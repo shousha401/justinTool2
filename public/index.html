@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Product Value — last selling price</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --ink: #1c2430; --muted: #75808f;
+    --line: #e6e9ee; --accent: #1f6feb; --accent-d: #1a5fd0;
+    --good: #0a7d33; --warn: #9a6a00; --chip: #eef2f7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  }
+  header { padding: 22px 24px 14px; }
+  h1 { margin: 0 0 4px; font-size: 20px; }
+  .sub { color: var(--muted); font-size: 13px; max-width: 760px; }
+  .wrap { padding: 0 24px 40px; }
+  .bar {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    margin: 14px 0; padding: 12px 14px; background: var(--card);
+    border: 1px solid var(--line); border-radius: 10px;
+  }
+  .bar input[type=search] {
+    flex: 1 1 240px; min-width: 180px; padding: 8px 11px; font-size: 14px;
+    border: 1px solid var(--line); border-radius: 8px; outline: none;
+  }
+  .bar input[type=search]:focus { border-color: var(--accent); }
+  button, a.btn {
+    appearance: none; cursor: pointer; text-decoration: none;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    padding: 8px 13px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover { background: var(--accent-d); }
+  button:disabled { opacity: .55; cursor: default; }
+  label.toggle { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; user-select: none; }
+  .stats { color: var(--muted); font-size: 12.5px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .stats b { color: var(--ink); font-weight: 600; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  thead th {
+    position: sticky; top: 0; background: #fbfcfd; z-index: 1;
+    text-align: left; font-size: 12px; letter-spacing: .02em; text-transform: uppercase;
+    color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--line);
+    cursor: pointer; white-space: nowrap;
+  }
+  thead th .arrow { color: var(--accent); font-size: 11px; }
+  tbody td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tbody tr:hover { background: #fafbfc; }
+  td.code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 13px; white-space: nowrap; }
+  td.val { text-align: right; white-space: nowrap; font-weight: 600; }
+  td.val .uom { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 4px; }
+  td.nosale { color: var(--muted); font-weight: 400; font-style: italic; text-align: right; }
+  td.date, td.cust { white-space: nowrap; color: #41506a; }
+  .desc { color: #2a3445; }
+  .pill { display: inline-block; padding: 1px 7px; border-radius: 999px; background: var(--chip); color: var(--muted); font-size: 11px; }
+  .empty, .err { padding: 40px; text-align: center; color: var(--muted); }
+  .err { color: #b42318; }
+  .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Product Value</h1>
+  <div class="sub">
+    Each in-stock product code with its <b>last selling price</b> — the most recent sale to any
+    customer within the last <span id="lookback">360</span> days. Prices keep their native unit
+    (e.g. <span class="pill">$/LB</span>), since the same item can be sold by the case or by the pound.
+    Items not sold in that window show <i>“no recent sale.”</i>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="bar">
+    <input id="q" type="search" placeholder="Search code, description, or customer…" autocomplete="off" />
+    <label class="toggle"><input id="onlyPriced" type="checkbox" /> Priced only</label>
+    <button id="refresh" class="primary" type="button">Refresh</button>
+    <a id="csv" class="btn" href="/api/values/export.csv">Download CSV</a>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="card" style="margin-top:12px;">
+    <table>
+      <thead><tr id="head"></tr></thead>
+      <tbody id="body"></tbody>
+    </table>
+    <div id="state" class="empty"><span class="spin"></span> Loading…</div>
+  </div>
+</div>
+
+<script>
+const COLS = [
+  { key: 'productCode', label: 'Code', cls: 'code' },
+  { key: 'description', label: 'Description', cls: 'desc' },
+  { key: 'value',       label: 'Value',    cls: 'val', num: true },
+  { key: 'lastSoldDate',label: 'Last Sold',cls: 'date' },
+  { key: 'customer',    label: 'Customer', cls: 'cust' },
+];
+
+let ALL = [];
+let sortKey = 'productCode';
+let sortDir = 1; // 1 asc, -1 desc
+
+const $ = (id) => document.getElementById(id);
+const money = (n) => '$' + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function renderHead() {
+  $('head').innerHTML = COLS.map(c => {
+    const arrow = c.key === sortKey ? ` <span class="arrow">${sortDir === 1 ? '▲' : '▼'}</span>` : '';
+    return `<th data-key="${c.key}">${c.label}${arrow}</th>`;
+  }).join('');
+  document.querySelectorAll('#head th').forEach(th => {
+    th.onclick = () => {
+      const k = th.dataset.key;
+      if (k === sortKey) sortDir = -sortDir; else { sortKey = k; sortDir = 1; }
+      render();
+    };
+  });
+}
+
+function rowsForView() {
+  const q = $('q').value.trim().toLowerCase();
+  const onlyPriced = $('onlyPriced').checked;
+  let rows = ALL.filter(r => {
+    if (onlyPriced && !r.hasRecentSale) return false;
+    if (!q) return true;
+    return (r.productCode || '').toLowerCase().includes(q)
+        || (r.description || '').toLowerCase().includes(q)
+        || (r.customer || '').toLowerCase().includes(q);
+  });
+  const col = COLS.find(c => c.key === sortKey) || COLS[0];
+  rows.sort((a, b) => {
+    let av = a[sortKey], bv = b[sortKey];
+    if (col.num) { av = av == null ? -Infinity : av; bv = bv == null ? -Infinity : bv; return (av - bv) * sortDir; }
+    av = (av == null ? '' : String(av)).toLowerCase();
+    bv = (bv == null ? '' : String(bv)).toLowerCase();
+    return av < bv ? -sortDir : av > bv ? sortDir : 0;
+  });
+  return rows;
+}
+
+function render() {
+  renderHead();
+  const rows = rowsForView();
+  const body = $('body');
+  if (!rows.length) {
+    body.innerHTML = '';
+    $('state').className = 'empty';
+    $('state').textContent = ALL.length ? 'No items match your filter.' : 'No items.';
+    return;
+  }
+  $('state').textContent = '';
+  $('state').className = '';
+  body.innerHTML = rows.map(r => {
+    const valCell = r.hasRecentSale
+      ? `<td class="val">${money(r.value)}<span class="uom">/ ${r.valueUom || '—'}</span></td>`
+      : `<td class="nosale">no recent sale</td>`;
+    return `<tr>
+      <td class="code">${r.productCode}</td>
+      <td class="desc">${escapeHtml(r.description)}</td>
+      ${valCell}
+      <td class="date">${r.lastSoldDate || ''}</td>
+      <td class="cust">${escapeHtml(r.customer || '')}</td>
+    </tr>`;
+  }).join('');
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+
+function setStats(meta) {
+  const built = meta.builtAt ? new Date(meta.builtAt).toLocaleString() : '—';
+  $('lookback').textContent = meta.lookbackDays ?? 360;
+  $('stats').innerHTML = `
+    <span><b>${meta.itemCount ?? ALL.length}</b> in-stock items</span>
+    <span><b>${meta.pricedCount ?? 0}</b> with a recent price</span>
+    <span>last ${meta.lookbackDays ?? 360} days</span>
+    <span>built ${built}</span>`;
+}
+
+async function load(refresh) {
+  $('state').className = 'empty';
+  $('state').innerHTML = '<span class="spin"></span> ' + (refresh ? 'Refreshing from Swarmbox…' : 'Loading…');
+  $('refresh').disabled = true;
+  try {
+    const res = await fetch('/api/values' + (refresh ? '?refresh=1' : ''));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    ALL = data.rows || [];
+    setStats(data);
+    render();
+  } catch (err) {
+    $('body').innerHTML = '';
+    $('state').className = 'err';
+    $('state').textContent = 'Could not load values: ' + err.message;
+  } finally {
+    $('refresh').disabled = false;
+  }
+}
+
+$('q').oninput = render;
+$('onlyPriced').onchange = render;
+$('refresh').onclick = () => load(true);
+load(false);
+</script>
+</body>
+</html>
