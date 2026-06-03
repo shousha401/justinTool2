@@ -1,9 +1,12 @@
 # Product Value Tool
 
 A small standalone Node/Express app that lists **every in-stock product code with its
-last selling price** — the most recent sale to any customer, used as that product's
-`$value`. Read-only over the Swarmbox PostgREST API. Built in the same style as
-clayTool / ShoushaBox and reuses clayTool's Swarmbox client verbatim.
+last selling price in each company tier** — used as that product's `$value`. The
+business is two-tier: **CMP → JD** (what we produce and sell to JD, the internal
+price) and **JD → customer** (what JD resells it for, the street price). The tool
+reports the most recent real sale in each. Read-only over the Swarmbox PostgREST API.
+Built in the same style as clayTool / ShoushaBox and reuses clayTool's Swarmbox client
+verbatim.
 
 > This app does **not** touch clayTool or ShoushaBox. It only *reads* from Swarmbox
 > (`inventory_detail` + `sales_order_lines`) — no writes to any system.
@@ -18,25 +21,34 @@ clayTool / ShoushaBox and reuses clayTool's Swarmbox client verbatim.
    that returns too many rows (or fails) is automatically subdivided into finer
    prefixes, so no single call is ever oversized on the weak API.
 
-2. **Last price — batched** (`backend/pricing.js`)
-   `sales_order_lines` accepts a `p_items` array and tags each row with its `item`,
-   so codes are priced ~100 per call over the last 360 days (the API's item-filtered
-   window cap). For each item the row with the newest `delivery_date` wins → its
-   `price` + `price_uom` is the value.
+2. **Last price per tier — batched** (`backend/pricing.js`)
+   `sales_order_lines` accepts a `p_items` array and tags each row with its `item`
+   **and a `company` field** (`CMP` = CMP→JD internal, `JD` = JD→customer street).
+   For each item we keep the newest real (price > 0) sale in *each* tier. To stay
+   fast over thousands of codes: column-projected, parallel (bounded by the Swarmbox
+   semaphore), **tiered windows** (price a recent 60-day window first, widen to the
+   full 360 days only for items still missing a tier), and a batch that times out is
+   split in half and retried so heavy-history items never drop data.
 
 3. **Join + cache** (`backend/valuation.js`)
-   Catalog ⨝ prices → the value table, cached in memory (TTL, default 6h) and shared
-   across requests so page loads don't re-sweep.
+   Catalog ⨝ prices → the value table (both tiers per row), cached in memory (TTL,
+   default 6h) and shared across requests so page loads don't re-sweep.
 
-A full refresh is ~10–25 Swarmbox calls and finishes in well under a minute.
+A full refresh sweeps the whole WMS (~5,000+ codes) and takes roughly 2–3 minutes;
+it's cached and warmed on boot, so page loads hit the cache, not the build.
 
 ## Value semantics
 
-- **`value` = most recent selling price, any customer**, within the lookback window.
-- **Prices keep their native unit** (`valueUom`, e.g. `$/LB`). The same item may be
-  ordered by the case but priced by the pound, so a bare number would be misleading.
-- **No sale in the window → `value` is `null`** ("no recent sale"). The tool never
-  substitutes a number that isn't an actual selling price.
+- Two prices per item, each = **most recent real sale (price > 0), any customer**,
+  within the lookback window:
+  - `cmpValue` — **CMP → JD** (internal / production price; buyer "JD Food").
+  - `jdValue` — **JD → customer** (street price).
+- **Prices keep their native unit** (`cmpValueUom` / `jdValueUom`, e.g. `$/LB`). The
+  same item may be ordered by the case but priced by the pound, so a bare number
+  would be misleading.
+- **No sale in a tier → that value is `null`** (blank "no recent sale"). The tool
+  never substitutes a number that isn't an actual selling price. `$0` / internal
+  zero-price lines are ignored.
 
 ## Run
 
@@ -57,7 +69,7 @@ pm2 save
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /api/values` | Cached value table (`{ builtAt, itemCount, pricedCount, lookbackDays, rows }`). |
+| `GET /api/values` | Cached value table (`{ builtAt, itemCount, pricedCmp, pricedJd, lookbackDays, rows }`). Each row: `productCode, description, cmpValue, cmpValueUom, cmpLastSoldDate, jdValue, jdValueUom, jdLastSoldDate, jdCustomer`. |
 | `GET /api/values?refresh=1` | Force a fresh sweep, then return the table. |
 | `POST /api/values/refresh` | Force a rebuild, return a summary only. |
 | `GET /api/values/export.csv` | The current table as a CSV download. |

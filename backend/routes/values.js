@@ -14,7 +14,8 @@ router.get('/', async (req, res) => {
       buildMs: c.buildMs,
       lookbackDays: c.lookbackDays,
       itemCount: c.itemCount,
-      pricedCount: c.pricedCount,
+      pricedJd: c.pricedJd,
+      pricedCmp: c.pricedCmp,
       rows: c.rows,
     });
   } catch (err) {
@@ -31,7 +32,8 @@ router.post('/refresh', async (_req, res) => {
       builtAt: c.builtAt,
       buildMs: c.buildMs,
       itemCount: c.itemCount,
-      pricedCount: c.pricedCount,
+      pricedJd: c.pricedJd,
+      pricedCmp: c.pricedCmp,
     });
   } catch (err) {
     console.error('[Values] refresh failed:', err && err.message);
@@ -43,7 +45,11 @@ router.post('/refresh', async (_req, res) => {
 router.get('/export.csv', async (_req, res) => {
   try {
     const c = await getValues({});
-    const cols = ['productCode', 'description', 'value', 'valueUom', 'lastSoldDate', 'customer', 'salesOrder'];
+    const cols = [
+      'productCode', 'description',
+      'cmpValue', 'cmpValueUom', 'cmpLastSoldDate',
+      'jdValue', 'jdValueUom', 'jdLastSoldDate', 'jdCustomer',
+    ];
     const esc = (v) => (v == null ? '' : `"${String(v).replace(/"/g, '""')}"`);
     const lines = [cols.join(',')];
     for (const r of c.rows) lines.push(cols.map((k) => esc(r[k])).join(','));

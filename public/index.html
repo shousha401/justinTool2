@@ -8,7 +8,7 @@
   :root {
     --bg: #f6f7f9; --card: #fff; --ink: #1c2430; --muted: #75808f;
     --line: #e6e9ee; --accent: #1f6feb; --accent-d: #1a5fd0;
-    --good: #0a7d33; --warn: #9a6a00; --chip: #eef2f7;
+    --cmp: #6b4ea8; --jd: #0a7d33; --chip: #eef2f7;
   }
   * { box-sizing: border-box; }
   body {
@@ -17,7 +17,9 @@
   }
   header { padding: 22px 24px 14px; }
   h1 { margin: 0 0 4px; font-size: 20px; }
-  .sub { color: var(--muted); font-size: 13px; max-width: 760px; }
+  .sub { color: var(--muted); font-size: 13px; max-width: 820px; }
+  .sub b.cmp { color: var(--cmp); }
+  .sub b.jd { color: var(--jd); }
   .wrap { padding: 0 24px 40px; }
   .bar {
     display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
@@ -48,13 +50,19 @@
     color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--line);
     cursor: pointer; white-space: nowrap;
   }
+  thead th.num { text-align: right; }
   thead th .arrow { color: var(--accent); font-size: 11px; }
+  thead th .tier { display: block; font-size: 10px; font-weight: 700; letter-spacing: .03em; }
+  thead th.cmpcol .tier { color: var(--cmp); }
+  thead th.jdcol .tier { color: var(--jd); }
   tbody td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
   tbody tr:hover { background: #fafbfc; }
   td.code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 13px; white-space: nowrap; }
   td.val { text-align: right; white-space: nowrap; font-weight: 600; }
   td.val .uom { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 4px; }
-  td.nosale { color: var(--muted); font-weight: 400; font-style: italic; text-align: right; }
+  td.val.cmpcol { color: var(--cmp); }
+  td.val.jdcol { color: var(--jd); }
+  td.none { text-align: right; color: #c2c8d0; font-weight: 400; }
   td.date, td.cust { white-space: nowrap; color: #41506a; }
   .desc { color: #2a3445; }
   .pill { display: inline-block; padding: 1px 7px; border-radius: 999px; background: var(--chip); color: var(--muted); font-size: 11px; }
@@ -68,10 +76,12 @@
 <header>
   <h1>Product Value</h1>
   <div class="sub">
-    Each in-stock product code with its <b>last selling price</b> — the most recent sale to any
-    customer within the last <span id="lookback">360</span> days. Prices keep their native unit
-    (e.g. <span class="pill">$/LB</span>), since the same item can be sold by the case or by the pound.
-    Items not sold in that window show <i>“no recent sale.”</i>
+    Every in-stock product code with its <b>last selling price</b> in each tier, over the last
+    <span id="lookback">360</span> days:
+    <b class="cmp">CMP&nbsp;→&nbsp;JD</b> is what we produce and sell to JD (internal price),
+    <b class="jd">JD&nbsp;→&nbsp;Customer</b> is what JD resells it for (street price).
+    Both are the most recent real sale (any customer, price&nbsp;&gt;&nbsp;0); prices keep their
+    native unit (e.g. <span class="pill">$/LB</span>). A blank means no recent sale in that tier.
   </div>
 </header>
 
@@ -96,11 +106,12 @@
 
 <script>
 const COLS = [
-  { key: 'productCode', label: 'Code', cls: 'code' },
-  { key: 'description', label: 'Description', cls: 'desc' },
-  { key: 'value',       label: 'Value',    cls: 'val', num: true },
-  { key: 'lastSoldDate',label: 'Last Sold',cls: 'date' },
-  { key: 'customer',    label: 'Customer', cls: 'cust' },
+  { key: 'productCode',    label: 'Code',        cls: 'code' },
+  { key: 'description',    label: 'Description', cls: 'desc' },
+  { key: 'cmpValue',       label: 'Internal',  tier: 'CMP → JD', cls: 'val cmpcol', thCls: 'num cmpcol', num: true },
+  { key: 'jdValue',        label: 'Street',    tier: 'JD → Customer', cls: 'val jdcol', thCls: 'num jdcol', num: true },
+  { key: 'jdLastSoldDate', label: 'Last Sold (JD)', cls: 'date' },
+  { key: 'jdCustomer',     label: 'Customer (JD)',  cls: 'cust' },
 ];
 
 let ALL = [];
@@ -113,12 +124,13 @@ const money = (n) => '$' + Number(n).toLocaleString(undefined, { minimumFraction
 function renderHead() {
   $('head').innerHTML = COLS.map(c => {
     const arrow = c.key === sortKey ? ` <span class="arrow">${sortDir === 1 ? '▲' : '▼'}</span>` : '';
-    return `<th data-key="${c.key}">${c.label}${arrow}</th>`;
+    const tier = c.tier ? `<span class="tier">${c.tier}</span>` : '';
+    return `<th class="${c.thCls || ''}" data-key="${c.key}">${tier}${c.label}${arrow}</th>`;
   }).join('');
   document.querySelectorAll('#head th').forEach(th => {
     th.onclick = () => {
       const k = th.dataset.key;
-      if (k === sortKey) sortDir = -sortDir; else { sortKey = k; sortDir = 1; }
+      if (k === sortKey) sortDir = -sortDir; else { sortKey = k; sortDir = (k === 'cmpValue' || k === 'jdValue') ? -1 : 1; }
       render();
     };
   });
@@ -128,11 +140,11 @@ function rowsForView() {
   const q = $('q').value.trim().toLowerCase();
   const onlyPriced = $('onlyPriced').checked;
   let rows = ALL.filter(r => {
-    if (onlyPriced && !r.hasRecentSale) return false;
+    if (onlyPriced && !r.hasCmp && !r.hasJd) return false;
     if (!q) return true;
     return (r.productCode || '').toLowerCase().includes(q)
         || (r.description || '').toLowerCase().includes(q)
-        || (r.customer || '').toLowerCase().includes(q);
+        || (r.jdCustomer || '').toLowerCase().includes(q);
   });
   const col = COLS.find(c => c.key === sortKey) || COLS[0];
   rows.sort((a, b) => {
@@ -143,6 +155,12 @@ function rowsForView() {
     return av < bv ? -sortDir : av > bv ? sortDir : 0;
   });
   return rows;
+}
+
+function priceCell(val, uom, cls, title) {
+  if (val == null) return `<td class="none">—</td>`;
+  const t = title ? ` title="${title}"` : '';
+  return `<td class="${cls}"${t}>${money(val)}<span class="uom">/ ${uom || '—'}</span></td>`;
 }
 
 function render() {
@@ -157,18 +175,14 @@ function render() {
   }
   $('state').textContent = '';
   $('state').className = '';
-  body.innerHTML = rows.map(r => {
-    const valCell = r.hasRecentSale
-      ? `<td class="val">${money(r.value)}<span class="uom">/ ${r.valueUom || '—'}</span></td>`
-      : `<td class="nosale">no recent sale</td>`;
-    return `<tr>
+  body.innerHTML = rows.map(r => `<tr>
       <td class="code">${r.productCode}</td>
       <td class="desc">${escapeHtml(r.description)}</td>
-      ${valCell}
-      <td class="date">${r.lastSoldDate || ''}</td>
-      <td class="cust">${escapeHtml(r.customer || '')}</td>
-    </tr>`;
-  }).join('');
+      ${priceCell(r.cmpValue, r.cmpValueUom, 'val cmpcol', r.cmpLastSoldDate ? 'CMP→JD last sold ' + r.cmpLastSoldDate : '')}
+      ${priceCell(r.jdValue, r.jdValueUom, 'val jdcol', '')}
+      <td class="date">${r.jdLastSoldDate || ''}</td>
+      <td class="cust">${escapeHtml(r.jdCustomer || '')}</td>
+    </tr>`).join('');
 }
 
 function escapeHtml(s) {
@@ -182,14 +196,15 @@ function setStats(meta) {
   $('lookback').textContent = meta.lookbackDays ?? 360;
   $('stats').innerHTML = `
     <span><b>${meta.itemCount ?? ALL.length}</b> in-stock items</span>
-    <span><b>${meta.pricedCount ?? 0}</b> with a recent price</span>
+    <span><b>${meta.pricedCmp ?? 0}</b> with CMP→JD price</span>
+    <span><b>${meta.pricedJd ?? 0}</b> with JD→customer price</span>
     <span>last ${meta.lookbackDays ?? 360} days</span>
     <span>built ${built}</span>`;
 }
 
 async function load(refresh) {
   $('state').className = 'empty';
-  $('state').innerHTML = '<span class="spin"></span> ' + (refresh ? 'Refreshing from Swarmbox…' : 'Loading…');
+  $('state').innerHTML = '<span class="spin"></span> ' + (refresh ? 'Refreshing from Swarmbox… (can take a couple minutes)' : 'Loading…');
   $('refresh').disabled = true;
   try {
     const res = await fetch('/api/values' + (refresh ? '?refresh=1' : ''));

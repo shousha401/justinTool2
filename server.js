@@ -23,6 +23,6 @@ app.listen(PORT, () => {
   // Warm the cache on boot so the first page load is instant. Fire-and-forget —
   // a Swarmbox hiccup here just means the first request builds it lazily instead.
   getValues({})
-    .then((c) => console.log(`[ValueTool] cache warmed: ${c.itemCount} items, ${c.pricedCount} priced`))
+    .then((c) => console.log(`[ValueTool] cache warmed: ${c.itemCount} items (${c.pricedJd} JD-priced, ${c.pricedCmp} CMP-priced)`))
     .catch((err) => console.error('[ValueTool] warm-up failed (will build on first request):', err && err.message));
 });

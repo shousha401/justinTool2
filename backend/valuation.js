@@ -1,12 +1,16 @@
-// valuation.js — join the in-stock catalog with last-sold prices into the
-// value table, and cache the result so page loads don't trigger a fresh sweep.
+// valuation.js — join the in-stock catalog with last-sold prices (both tiers)
+// into the value table, and cache the result so page loads don't trigger a fresh
+// sweep.
 //
-//   value = most recent selling price (any customer) within the lookback window.
-//   Items with no sale in the window get value=null ("no recent sale") — we never
-//   substitute a number that isn't an actual selling price.
+// Each row carries two prices, both = most recent real sale (price > 0) in the
+// lookback window:
+//   - cmpValue : CMP -> JD     (internal / production price)
+//   - jdValue  : JD -> customer (street price)
+// Either may be null ("no recent sale" in that tier). We never substitute a
+// number that isn't an actual selling price.
 //
-// A single in-flight build is shared by concurrent callers so a burst of requests
-// (or a refresh mid-load) can't kick off two simultaneous sweeps.
+// A single in-flight build is shared by concurrent callers so a burst of
+// requests (or a refresh mid-load) can't kick off two simultaneous sweeps.
 
 const { sweepCatalog } = require('./catalog');
 const { lastPrices } = require('./pricing');
@@ -14,7 +18,7 @@ const { lastPrices } = require('./pricing');
 const TTL_MS = Number(process.env.VALUE_CACHE_TTL_MS) || 6 * 60 * 60 * 1000;
 const LOOKBACK_DAYS = Number(process.env.VALUE_LOOKBACK_DAYS) || 360;
 
-let cache = null;      // { rows, builtAt, lookbackDays, itemCount, pricedCount }
+let cache = null;      // { rows, builtAt, buildMs, lookbackDays, itemCount, pricedJd, pricedCmp }
 let building = null;   // Promise<cache> while a build is in flight
 
 async function build() {
@@ -22,21 +26,28 @@ async function build() {
   const catalog = await sweepCatalog();                 // [{ item, description }]
   const prices = await lastPrices(catalog.map((c) => c.item), LOOKBACK_DAYS);
 
-  let pricedCount = 0;
+  let pricedJd = 0;
+  let pricedCmp = 0;
   const rows = catalog.map((c) => {
     const p = prices.get(c.item);
-    const hasRecentSale = !!(p && p.price != null);
-    if (hasRecentSale) pricedCount++;
+    const jd = p && p.jd;
+    const cmp = p && p.cmp;
+    if (jd) pricedJd++;
+    if (cmp) pricedCmp++;
     return {
       productCode: c.item,
       description: c.description || '',
-      value: hasRecentSale ? p.price : null,
-      valueUom: hasRecentSale ? (p.priceUom || null) : null,
-      orderUom: p ? (p.orderUom || null) : null,
-      lastSoldDate: p ? (p.lastSoldDate || null) : null,
-      customer: p ? (p.customer || null) : null,
-      salesOrder: p ? (p.salesOrder || null) : null,
-      hasRecentSale,
+      // CMP -> JD (internal / production price)
+      cmpValue: cmp ? cmp.price : null,
+      cmpValueUom: cmp ? (cmp.priceUom || null) : null,
+      cmpLastSoldDate: cmp ? (cmp.lastSoldDate || null) : null,
+      // JD -> customer (street price)
+      jdValue: jd ? jd.price : null,
+      jdValueUom: jd ? (jd.priceUom || null) : null,
+      jdLastSoldDate: jd ? (jd.lastSoldDate || null) : null,
+      jdCustomer: jd ? (jd.customer || null) : null,
+      hasCmp: !!cmp,
+      hasJd: !!jd,
     };
   });
 
@@ -46,9 +57,10 @@ async function build() {
     buildMs: Date.now() - startedAt,
     lookbackDays: LOOKBACK_DAYS,
     itemCount: rows.length,
-    pricedCount,
+    pricedJd,
+    pricedCmp,
   };
-  console.log(`[Valuation] built ${rows.length} rows (${pricedCount} priced) in ${cache.buildMs}ms`);
+  console.log(`[Valuation] built ${rows.length} rows (JD-priced ${pricedJd}, CMP-priced ${pricedCmp}) in ${cache.buildMs}ms`);
   return cache;
 }
 
