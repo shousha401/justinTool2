@@ -50,6 +50,26 @@ it's cached and warmed on boot, so page loads hit the cache, not the build.
   never substitutes a number that isn't an actual selling price. `$0` / internal
   zero-price lines are ignored.
 
+## Price store & daily refresh
+
+The built value table is persisted to a local **SQLite** file (`data/value.db`, via
+Node's built-in `node:sqlite` — no dependency, no native build) with **one snapshot per
+build day**, which buys two things:
+
+- **Instant restarts.** On boot the last snapshot is loaded straight from disk, so a
+  restart/deploy serves prices immediately instead of cold-rebuilding for 2–3 minutes.
+  A stale snapshot is served *while* a fresh build runs in the background — so a page
+  load never waits on the sweep once any data exists (only the very first build ever does).
+- **Price history.** Each day's prices are kept, so you can see how an item's price moved
+  over time. In the value table, the **📈** on a row opens its day-by-day series
+  (`GET /api/values/history?code=…`). History accumulates one row per day, so trends fill
+  in after a few days of runs.
+
+The sweep itself still runs once a day — a scheduled **background refresh** at
+`VALUE_REFRESH_HOUR` (default 5 AM, VM local time) rebuilds the table and writes the new
+snapshot. The manual **Refresh** button still forces an immediate rebuild. The `data/`
+folder is gitignored, so the store lives only on the machine that runs the app.
+
 ## Discontinued list
 
 Products you no longer care about can be moved to a **discontinued list** so they're
@@ -115,6 +135,7 @@ pm2 save
 | `GET /api/values?refresh=1` | Force a fresh sweep, then return the table. |
 | `POST /api/values/refresh` | Force a rebuild, return a summary only. |
 | `GET /api/values/export.csv` | The current table as a CSV download. |
+| `GET /api/values/history?code=…` | Day-by-day price snapshots for one item (`{ code, history: [{ date, cmpValue, jdValue, … }] }`). |
 | `GET /api/production` | Margin report for the most recent production day. `?date=YYYY-MM-DD` for a specific day; `?refresh=1` to rebuild. |
 | `GET /api/production/dates` | Recent production days (newest first) with batch counts — drives the day picker. |
 | `GET /api/production/export.csv?date=…` | The day's batch-detail lines as a CSV download. |

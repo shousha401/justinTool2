@@ -91,6 +91,11 @@
   button.x:hover { border-color: var(--accent); color: var(--accent); }
   button.x.restore:hover { border-color: var(--jd); color: var(--jd); }
   #disc.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .modal { position: fixed; inset: 0; background: rgba(20,28,40,.45); display: flex; align-items: center; justify-content: center; z-index: 10; }
+  .modal-card { background: var(--card); border-radius: 12px; max-width: 560px; width: 90%; max-height: 80vh; overflow: auto; box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--card); }
+  .modal-head b { font-size: 14px; }
+  #histBody { padding: 8px 16px 16px; }
 </style>
 </head>
 <body>
@@ -138,6 +143,13 @@
       <tbody id="body"></tbody>
     </table>
     <div id="state" class="empty"><span class="spin"></span> Loading…</div>
+  </div>
+</div>
+
+<div id="histModal" class="modal" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-head"><b id="histTitle"></b><button id="histClose" class="x" type="button">✕</button></div>
+    <div id="histBody"></div>
   </div>
 </div>
 
@@ -229,7 +241,7 @@ function render() {
       ${priceCell(r.jdValue, r.jdValueUom, 'val jdcol', '')}
       <td class="date">${r.jdLastSoldDate || ''}</td>
       <td class="cust">${escapeHtml(r.jdCustomer || '')}</td>
-      <td class="act"><button class="x" data-code="${escapeHtml(r.productCode)}" title="Discontinue this item">✕</button></td>
+      <td class="act"><button class="x hist" data-code="${escapeHtml(r.productCode)}" title="Price history">📈</button> <button class="x" data-code="${escapeHtml(r.productCode)}" title="Discontinue this item">✕</button></td>
     </tr>`).join('');
 }
 
@@ -319,6 +331,33 @@ async function restore(code) {
   } catch (e) { alert('Could not restore: ' + e.message); }
 }
 
+async function openHistory(code) {
+  $('histTitle').textContent = 'Price history · ' + code;
+  $('histBody').innerHTML = '<div class="empty"><span class="spin"></span> Loading…</div>';
+  $('histModal').style.display = 'flex';
+  try {
+    const res = await fetch('/api/values/history?code=' + encodeURIComponent(code));
+    const data = await res.json();
+    const h = data.history || [];
+    if (!h.length) {
+      $('histBody').innerHTML = '<div class="empty">No history yet — one snapshot is saved per day, so trends appear after a few days.</div>';
+      return;
+    }
+    const uom = (u) => u ? ` <span class="uom">/ ${escapeHtml(u)}</span>` : '';
+    $('histBody').innerHTML = `<table>
+      <thead><tr><th>Date</th><th class="num cmpcol"><span class="tier">CMP → JD</span>Internal</th><th class="num jdcol"><span class="tier">JD → Customer</span>Street</th><th>Customer (JD)</th></tr></thead>
+      <tbody>${h.map(r => `<tr>
+        <td class="date">${r.date}</td>
+        <td class="val cmpcol">${r.cmpValue == null ? '—' : money(r.cmpValue) + uom(r.cmpUom)}</td>
+        <td class="val jdcol">${r.jdValue == null ? '—' : money(r.jdValue) + uom(r.jdUom)}</td>
+        <td class="cust">${escapeHtml(r.jdCustomer || '')}</td>
+      </tr>`).join('')}</tbody></table>`;
+  } catch (e) {
+    $('histBody').innerHTML = '<div class="err">Could not load history: ' + e.message + '</div>';
+  }
+}
+function closeHistory() { $('histModal').style.display = 'none'; }
+
 $('q').oninput = render;
 $('filter').onchange = render;
 $('refresh').onclick = () => load(true);
@@ -348,13 +387,15 @@ $('body').addEventListener('click', (e) => {
   const btn = e.target.closest('button.x');
   if (!btn) return;
   const code = btn.dataset.code;
-  if (btn.classList.contains('restore')) {
-    restore(code);
-  } else {
-    const desc = (btn.closest('tr').querySelector('.desc') || {}).textContent || '';
-    discontinue(code, desc);
-  }
+  if (btn.classList.contains('hist')) { openHistory(code); return; }
+  if (btn.classList.contains('restore')) { restore(code); return; }
+  const desc = (btn.closest('tr').querySelector('.desc') || {}).textContent || '';
+  discontinue(code, desc);
 });
+
+$('histClose').onclick = closeHistory;
+$('histModal').onclick = (e) => { if (e.target === $('histModal')) closeHistory(); };
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeHistory(); });
 
 (async () => { await load(false); await loadDisc(); })();
 </script>

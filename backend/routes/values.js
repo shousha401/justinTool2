@@ -1,7 +1,19 @@
 const express = require('express');
-const { getValues } = require('../valuation');
+const { getValues, priceHistory } = require('../valuation');
 
 const router = express.Router();
+
+// GET /api/values/history?code=XXXXXX → day-by-day price series for one item
+router.get('/history', (req, res) => {
+  const code = String(req.query.code || '').trim();
+  if (!code) return res.status(400).json({ error: 'code required' });
+  try {
+    res.json({ code, history: priceHistory(code) });
+  } catch (err) {
+    console.error('[Values] history failed:', err && err.message);
+    res.status(500).json({ error: 'Failed to load history' });
+  }
+});
 
 // GET /api/values            → cached value table (rebuilds if stale)
 // GET /api/values?refresh=1  → force a fresh sweep first
