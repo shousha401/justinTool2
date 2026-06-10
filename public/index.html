@@ -31,6 +31,12 @@
     border: 1px solid var(--line); border-radius: 8px; outline: none;
   }
   .bar input[type=search]:focus { border-color: var(--accent); }
+  .bar select {
+    padding: 8px 11px; font-size: 13px; border: 1px solid var(--line);
+    border-radius: 8px; background: var(--card); color: var(--ink); cursor: pointer;
+  }
+  .bar select:focus { border-color: var(--accent); outline: none; }
+  #showing { color: var(--muted); font-size: 12.5px; margin-left: auto; white-space: nowrap; }
   button, a.btn {
     appearance: none; cursor: pointer; text-decoration: none;
     border: 1px solid var(--line); background: var(--card); color: var(--ink);
@@ -88,7 +94,17 @@
 <div class="wrap">
   <div class="bar">
     <input id="q" type="search" placeholder="Search code, description, or customer…" autocomplete="off" />
-    <label class="toggle"><input id="onlyPriced" type="checkbox" /> Priced only</label>
+    <label class="toggle">Show
+      <select id="filter">
+        <option value="all">All items</option>
+        <option value="priced">Priced — either tier</option>
+        <option value="both">Both prices</option>
+        <option value="cmp">CMP only (no street)</option>
+        <option value="jd">JD only (no internal)</option>
+        <option value="none">No price</option>
+      </select>
+    </label>
+    <span id="showing"></span>
     <button id="refresh" class="primary" type="button">Refresh</button>
     <a id="csv" class="btn" href="/api/values/export.csv">Download CSV</a>
   </div>
@@ -138,9 +154,14 @@ function renderHead() {
 
 function rowsForView() {
   const q = $('q').value.trim().toLowerCase();
-  const onlyPriced = $('onlyPriced').checked;
+  const filter = $('filter').value;
   let rows = ALL.filter(r => {
-    if (onlyPriced && !r.hasCmp && !r.hasJd) return false;
+    const c = !!r.hasCmp, j = !!r.hasJd;
+    if (filter === 'priced' && !(c || j)) return false;
+    else if (filter === 'both' && !(c && j)) return false;
+    else if (filter === 'cmp'  && !(c && !j)) return false;
+    else if (filter === 'jd'   && !(j && !c)) return false;
+    else if (filter === 'none' && (c || j)) return false;
     if (!q) return true;
     return (r.productCode || '').toLowerCase().includes(q)
         || (r.description || '').toLowerCase().includes(q)
@@ -166,6 +187,7 @@ function priceCell(val, uom, cls, title) {
 function render() {
   renderHead();
   const rows = rowsForView();
+  $('showing').textContent = ALL.length ? `${rows.length.toLocaleString()} of ${ALL.length.toLocaleString()} shown` : '';
   const body = $('body');
   if (!rows.length) {
     body.innerHTML = '';
@@ -223,7 +245,7 @@ async function load(refresh) {
 }
 
 $('q').oninput = render;
-$('onlyPriced').onchange = render;
+$('filter').onchange = render;
 $('refresh').onclick = () => load(true);
 load(false);
 </script>
