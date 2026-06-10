@@ -57,8 +57,12 @@ production day, every finished-good line split into:
 
 - **Toll** — we processed a customer's own meat for a fee. Input cost is ≈ $0 (we
   didn't buy the meat), so a line is toll when its batch's avg input cost is under
-  `$0.10/lb` *and* the batch isn't our own (`CMP`) production. Revenue = a **contract
-  toll rate × lbs** (rates live in `backend/tollRates.js`, the one business-owned file).
+  `$0.10/lb` *and* the batch isn't our own (`CMP`) production. Revenue = **toll rate
+  × lbs**, where the rate is pulled **live**: the item's most recent real CMP-tier
+  sale to an *external* customer (One World, Sugar Mountain, Gourmet, Diestel…) — the
+  fee actually billed to the meat's owner. Internal (JD Food / CMP) lines are excluded
+  so a transfer price can't masquerade as a toll fee. Items with no recent toll sale
+  fall back to the contract rate tables in `backend/tollRates.js`.
 - **Own** — we own the meat. Revenue = the line's **sell value**, cost = its **input
   (raw-material) cost**.
 
@@ -66,10 +70,12 @@ Gross profit = revenue − cost; minus a manually-entered **labor** figure (kept
 browser) = **net contribution**. Results roll up by **production room** and by
 **customer**, with a line-by-line **Batch Detail** view.
 
-All of it comes live from Swarmbox's `production_output_cost` RPC (one quick call per
-day — no minutes-long sweep). The data layer is solid; the **toll rates are v1 contract
-tables** — items with no mapped rate are flagged in a banner and show $0 revenue until a
-rate (or a live toll-sale price, a planned fast-follow) is added.
+All of it comes live from Swarmbox (`production_output_cost` for the day's lines,
+`sales_order_lines` for each toll item's latest billed rate) — one quick set of calls,
+no minutes-long sweep. A small note shows how many toll lines were priced **live** vs
+**contract fallback** vs **no rate**; the rare item with neither is flagged in a banner
+and shows $0 revenue until a rate appears (a real toll sale, or a hand-added contract
+rate in `tollRates.js`).
 
 ## Run
 

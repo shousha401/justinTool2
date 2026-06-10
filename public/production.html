@@ -71,6 +71,9 @@
   tr.total td { border-top: 2px solid var(--line); font-weight: 600; border-bottom: 0; }
   .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
   .dim { color: var(--muted); font-size: 10.5px; }
+  .src-contract { color: #8a5a00; font-size: 10.5px; }
+  .src-none { color: var(--neg); font-size: 10.5px; }
+  #tollnote { font-size: 12px; color: var(--muted); margin: -2px 0 12px; }
   .badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 999px; font-weight: 600; }
   .badge.toll { background: #e7f0fe; color: var(--toll); }
   .badge.own { background: #e6f6ec; color: var(--own); }
@@ -90,7 +93,8 @@
   <h1>Production Margin</h1>
   <div class="sub">
     One day's finished-good production, split into <b class="toll">Toll</b> (we processed a customer's
-    own meat for a fee — input cost ≈ $0, revenue = contract rate × lbs) and
+    own meat for a fee — input cost ≈ $0, revenue = the <b>most recent live toll price</b> × lbs,
+    falling back to a contract rate only if there's no recent toll sale) and
     <b class="own">Own</b> (we own the meat — revenue = sell value, less raw-material cost).
     Gross profit, less labor, is net contribution.
   </div>
@@ -110,6 +114,7 @@
 
   <div id="warn" class="warn" style="display:none;"></div>
   <div id="ribbon" class="ribbon"></div>
+  <div id="tollnote"></div>
   <div id="content"></div>
   <div id="state" class="empty"><span class="spin"></span> Loading…</div>
 </div>
@@ -194,7 +199,7 @@ function renderDetail() {
     <td class="num">${fmtN(r.cs)}</td><td class="num">${fmtN(r.lbs)}</td>
     <td class="num">${r.rate != null ? '$' + r.rate.toFixed(2) : '—'}</td>
     <td class="num">${fmt$(r.revenue)}</td>
-    <td class="num dim">${r.missingRate ? '⚠ no rate' : esc(r.source || '')}</td>
+    <td class="num ${r.priceBasis === 'contract' ? 'src-contract' : r.priceBasis === 'none' ? 'src-none' : 'dim'}">${r.missingRate ? '⚠ no rate' : esc(r.source || '')}</td>
     <td class="num">${r.isToll ? '—' : fmt$(r.inputCost)}</td>
     <td class="num ${sign(r.gp)}">${fmt$(r.gp)}</td>
     <td class="num ${sign(r.gp)}">${gpPct(r.gp, r.revenue)}</td>
@@ -215,6 +220,8 @@ function render() {
   } else {
     $('warn').style.display = 'none';
   }
+  const tp = REPORT.tollPricing || { live: 0, contract: 0, missing: 0 };
+  $('tollnote').textContent = `Toll rates — ${tp.live} live · ${tp.contract} contract fallback · ${tp.missing} no rate`;
   renderRibbon();
   if (view === 'summary') renderSummary(); else renderDetail();
 }
