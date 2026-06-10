@@ -11,6 +11,7 @@ app.use(express.json({ limit: '256kb' }));
 
 app.use('/api/values', require('./backend/routes/values'));
 app.use('/api/production', require('./backend/routes/production'));
+app.use('/api/discontinued', require('./backend/routes/discontinued'));
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
 app.get('/', (_req, res) => {

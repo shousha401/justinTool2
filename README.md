@@ -50,6 +50,21 @@ it's cached and warmed on boot, so page loads hit the cache, not the build.
   never substitutes a number that isn't an actual selling price. `$0` / internal
   zero-price lines are ignored.
 
+## Discontinued list
+
+Products you no longer care about can be moved to a **discontinued list** so they're
+dropped from the value table. The list is server-side (`data/discontinued.json`, kept
+out of git) and applied **right after the catalog sweep, before pricing** — so
+discontinued codes never hit the price API and cost ≈ nothing on a rebuild, keeping
+rebuilds lighter and the table clean. (Normal page loads are cached either way; this
+speeds up the *rebuild*, not the cached read.)
+
+In the **Product Value** tab: the **✕** on any row discontinues it (it disappears
+instantly — no rebuild wait); **Discontinue unsold** moves every item with no sale in
+either tier at once (the dead weight); **Discontinued (N)** opens the list to **Restore**
+anything. Restored items reappear on the next rebuild/Refresh. Discontinuing only affects
+the value table — the Production Margin tab still shows whatever was actually produced.
+
 ## Production Margin tab
 
 A second tab (`/production.html`) reports **daily production margin** — for one
@@ -103,6 +118,10 @@ pm2 save
 | `GET /api/production` | Margin report for the most recent production day. `?date=YYYY-MM-DD` for a specific day; `?refresh=1` to rebuild. |
 | `GET /api/production/dates` | Recent production days (newest first) with batch counts — drives the day picker. |
 | `GET /api/production/export.csv?date=…` | The day's batch-detail lines as a CSV download. |
+| `GET /api/discontinued` | The discontinued list (`{ rows: [{ code, description, addedAt }] }`). |
+| `POST /api/discontinued` | Discontinue one item (`{ code, description }`); drops it from the live cache immediately. |
+| `POST /api/discontinued/bulk-unsold` | Discontinue every item with no sale in either tier. |
+| `DELETE /api/discontinued/:code` | Restore an item (reappears on the next value-table rebuild). |
 
 ## Configuration (`.env`)
 

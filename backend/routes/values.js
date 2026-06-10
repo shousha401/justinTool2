@@ -16,6 +16,7 @@ router.get('/', async (req, res) => {
       itemCount: c.itemCount,
       pricedJd: c.pricedJd,
       pricedCmp: c.pricedCmp,
+      discontinued: c.discontinued,
       rows: c.rows,
     });
   } catch (err) {

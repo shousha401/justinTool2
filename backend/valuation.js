@@ -14,6 +14,7 @@
 
 const { sweepCatalog } = require('./catalog');
 const { lastPrices } = require('./pricing');
+const { getCodes: discontinuedCodes } = require('./discontinued');
 
 const TTL_MS = Number(process.env.VALUE_CACHE_TTL_MS) || 6 * 60 * 60 * 1000;
 const LOOKBACK_DAYS = Number(process.env.VALUE_LOOKBACK_DAYS) || 360;
@@ -24,11 +25,14 @@ let building = null;   // Promise<cache> while a build is in flight
 async function build() {
   const startedAt = Date.now();
   const catalog = await sweepCatalog();                 // [{ item, description }]
-  const prices = await lastPrices(catalog.map((c) => c.item), LOOKBACK_DAYS);
+  // Drop discontinued codes BEFORE pricing — they never hit the price API.
+  const disc = discontinuedCodes();
+  const active = disc.size ? catalog.filter((c) => !disc.has(c.item)) : catalog;
+  const prices = await lastPrices(active.map((c) => c.item), LOOKBACK_DAYS);
 
   let pricedJd = 0;
   let pricedCmp = 0;
-  const rows = catalog.map((c) => {
+  const rows = active.map((c) => {
     const p = prices.get(c.item);
     const jd = p && p.jd;
     const cmp = p && p.cmp;
@@ -59,9 +63,29 @@ async function build() {
     itemCount: rows.length,
     pricedJd,
     pricedCmp,
+    discontinued: disc.size,
   };
-  console.log(`[Valuation] built ${rows.length} rows (JD-priced ${pricedJd}, CMP-priced ${pricedCmp}) in ${cache.buildMs}ms`);
+  console.log(`[Valuation] built ${rows.length} rows (JD-priced ${pricedJd}, CMP-priced ${pricedCmp}, ${disc.size} discontinued skipped) in ${cache.buildMs}ms`);
   return cache;
+}
+
+// Live-cache helpers so a discontinue action takes effect instantly without
+// waiting for a full rebuild.
+function getCachedRows() { return cache ? cache.rows : null; }
+
+function dropFromCache(codes) {
+  if (!cache) return 0;
+  const before = cache.rows.length;
+  cache.rows = cache.rows.filter((r) => !codes.has(r.productCode));
+  const removed = before - cache.rows.length;
+  if (removed) {
+    let jd = 0, cmp = 0;
+    for (const r of cache.rows) { if (r.hasJd) jd++; if (r.hasCmp) cmp++; }
+    cache.itemCount = cache.rows.length;
+    cache.pricedJd = jd;
+    cache.pricedCmp = cmp;
+  }
+  return removed;
 }
 
 // Returns the cached value table, rebuilding if stale or forced. Concurrent
@@ -74,4 +98,4 @@ async function getValues({ force = false } = {}) {
   return building;
 }
 
-module.exports = { getValues };
+module.exports = { getValues, getCachedRows, dropFromCache };

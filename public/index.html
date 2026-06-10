@@ -83,6 +83,14 @@
   }
   .topnav a:hover { color: var(--ink); }
   .topnav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+  td.act { text-align: right; white-space: nowrap; }
+  button.x {
+    border: 1px solid var(--line); background: var(--card); color: var(--muted);
+    border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 600; cursor: pointer; line-height: 1.4;
+  }
+  button.x:hover { border-color: var(--accent); color: var(--accent); }
+  button.x.restore:hover { border-color: var(--jd); color: var(--jd); }
+  #disc.on { background: var(--accent); border-color: var(--accent); color: #fff; }
 </style>
 </head>
 <body>
@@ -115,6 +123,8 @@
         <option value="none">No price</option>
       </select>
     </label>
+    <button id="bulkUnsold" class="btn" type="button" title="Discontinue every item with no sale in the lookback window">Discontinue unsold</button>
+    <button id="disc" class="btn" type="button">Discontinued (0)</button>
     <span id="showing"></span>
     <button id="refresh" class="primary" type="button">Refresh</button>
     <a id="csv" class="btn" href="/api/values/export.csv">Download CSV</a>
@@ -142,6 +152,9 @@ const COLS = [
 ];
 
 let ALL = [];
+let DISC = [];
+let mode = 'active';      // 'active' | 'discontinued'
+let LOOKBACK = 360;
 let sortKey = 'productCode';
 let sortDir = 1; // 1 asc, -1 desc
 
@@ -153,7 +166,7 @@ function renderHead() {
     const arrow = c.key === sortKey ? ` <span class="arrow">${sortDir === 1 ? '▲' : '▼'}</span>` : '';
     const tier = c.tier ? `<span class="tier">${c.tier}</span>` : '';
     return `<th class="${c.thCls || ''}" data-key="${c.key}">${tier}${c.label}${arrow}</th>`;
-  }).join('');
+  }).join('') + '<th></th>';
   document.querySelectorAll('#head th').forEach(th => {
     th.onclick = () => {
       const k = th.dataset.key;
@@ -196,6 +209,7 @@ function priceCell(val, uom, cls, title) {
 }
 
 function render() {
+  if (mode === 'discontinued') { renderDisc(); return; }
   renderHead();
   const rows = rowsForView();
   $('showing').textContent = ALL.length ? `${rows.length.toLocaleString()} of ${ALL.length.toLocaleString()} shown` : '';
@@ -215,6 +229,27 @@ function render() {
       ${priceCell(r.jdValue, r.jdValueUom, 'val jdcol', '')}
       <td class="date">${r.jdLastSoldDate || ''}</td>
       <td class="cust">${escapeHtml(r.jdCustomer || '')}</td>
+      <td class="act"><button class="x" data-code="${escapeHtml(r.productCode)}" title="Discontinue this item">✕</button></td>
+    </tr>`).join('');
+}
+
+function renderDisc() {
+  $('head').innerHTML = '<th>Code</th><th>Description</th><th>Discontinued</th><th></th>';
+  $('showing').textContent = `${DISC.length.toLocaleString()} discontinued`;
+  const body = $('body');
+  if (!DISC.length) {
+    body.innerHTML = '';
+    $('state').className = 'empty';
+    $('state').textContent = 'Nothing discontinued. Use ✕ on a row, or “Discontinue unsold”.';
+    return;
+  }
+  $('state').textContent = '';
+  $('state').className = '';
+  body.innerHTML = DISC.map(d => `<tr>
+      <td class="code">${escapeHtml(d.code)}</td>
+      <td class="desc">${escapeHtml(d.description)}</td>
+      <td class="date">${d.addedAt ? new Date(d.addedAt).toLocaleDateString() : ''}</td>
+      <td class="act"><button class="x restore" data-code="${escapeHtml(d.code)}" title="Restore (reappears after the next Refresh)">Restore</button></td>
     </tr>`).join('');
 }
 
@@ -226,12 +261,14 @@ function escapeHtml(s) {
 
 function setStats(meta) {
   const built = meta.builtAt ? new Date(meta.builtAt).toLocaleString() : '—';
-  $('lookback').textContent = meta.lookbackDays ?? 360;
+  LOOKBACK = meta.lookbackDays ?? 360;
+  $('lookback').textContent = LOOKBACK;
   $('stats').innerHTML = `
     <span><b>${meta.itemCount ?? ALL.length}</b> in-stock items</span>
     <span><b>${meta.pricedCmp ?? 0}</b> with CMP→JD price</span>
     <span><b>${meta.pricedJd ?? 0}</b> with JD→customer price</span>
-    <span>last ${meta.lookbackDays ?? 360} days</span>
+    <span><b>${meta.discontinued ?? 0}</b> discontinued</span>
+    <span>last ${LOOKBACK} days</span>
     <span>built ${built}</span>`;
 }
 
@@ -255,10 +292,71 @@ async function load(refresh) {
   }
 }
 
+async function loadDisc() {
+  try {
+    const res = await fetch('/api/discontinued');
+    DISC = (await res.json()).rows || [];
+  } catch (e) { DISC = []; }
+  $('disc').textContent = `Discontinued (${DISC.length})`;
+}
+
+async function discontinue(code, description) {
+  try {
+    await fetch('/api/discontinued', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, description }),
+    });
+    await loadDisc();
+    await load(false);   // refetch the now-trimmed cached table — instant
+  } catch (e) { alert('Could not discontinue: ' + e.message); }
+}
+
+async function restore(code) {
+  try {
+    await fetch('/api/discontinued/' + encodeURIComponent(code), { method: 'DELETE' });
+    await loadDisc();
+    render();            // still in the discontinued view
+  } catch (e) { alert('Could not restore: ' + e.message); }
+}
+
 $('q').oninput = render;
 $('filter').onchange = render;
 $('refresh').onclick = () => load(true);
-load(false);
+
+$('disc').onclick = async () => {
+  mode = mode === 'discontinued' ? 'active' : 'discontinued';
+  $('disc').classList.toggle('on', mode === 'discontinued');
+  if (mode === 'discontinued') await loadDisc();
+  render();
+};
+
+$('bulkUnsold').onclick = async () => {
+  const n = ALL.filter(r => !r.hasCmp && !r.hasJd).length;
+  if (!n) { alert('No unsold items to discontinue — every item shown has a recent sale.'); return; }
+  if (!confirm(`Discontinue ${n} item(s) with no sale in the last ${LOOKBACK} days?\nThey stop being priced on rebuilds. You can restore any of them later.`)) return;
+  try {
+    const res = await fetch('/api/discontinued/bulk-unsold', { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    await loadDisc();
+    await load(false);
+    alert(`Discontinued ${data.added} item(s).`);
+  } catch (e) { alert('Bulk discontinue failed: ' + e.message); }
+};
+
+$('body').addEventListener('click', (e) => {
+  const btn = e.target.closest('button.x');
+  if (!btn) return;
+  const code = btn.dataset.code;
+  if (btn.classList.contains('restore')) {
+    restore(code);
+  } else {
+    const desc = (btn.closest('tr').querySelector('.desc') || {}).textContent || '';
+    discontinue(code, desc);
+  }
+});
+
+(async () => { await load(false); await loadDisc(); })();
 </script>
 </body>
 </html>
