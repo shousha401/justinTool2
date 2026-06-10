@@ -3,8 +3,9 @@
 // For a given production day, Swarmbox's `production_output_cost` RPC returns one
 // row per finished-good line with cases, pounds, input (raw-material) cost, and
 // sell value already computed. We classify each line as TOLL (we processed a
-// customer's own meat for a fee — input cost ~$0) or OWN (we own the meat and
-// sell it), compute gross profit, and roll it up by room and by customer.
+// customer's own meat for a fee — the batch shows ~$0 input cost, OR the item has
+// a real external toll price) or OWN (we own the meat and sell it), compute gross
+// profit, and roll it up by room and by customer.
 //
 //   - OWN  : revenue = sell value (total_sales_cost), cost = input cost.
 //   - TOLL : revenue = toll rate × lbs, cost = $0.
@@ -32,14 +33,17 @@ const shortCust = (c) => String(c || '').split(/[(,]/)[0].trim();
 
 // ── Live toll rate ───────────────────────────────────────────────────────────
 // The toll fee billed to the customer who owns the meat = the item's most recent
-// real CMP-tier sale ($/lb, price > 0) to an EXTERNAL customer. Internal lines
-// (JD Food transfers, CMP itself) are not toll billings — including them would
-// pick up product/transfer prices (e.g. $7/lb) instead of the toll fee.
+// real CMP-tier sale ($/lb, price > 0) to a TOLL-arrangement customer. Those are
+// the accounts tagged "(…-TOLL)" (One World, Sugar Mountain) plus known toll
+// partners without the tag (Gourmet, Diestel). We must NOT accept other CMP
+// lines — meat-account ("…-MEAT") sales, street/distributor sales, or internal
+// transfers — because their prices are product prices ($5–$49/lb), not toll fees.
+// (If a new toll partner appears without a "-TOLL" tag, add it here.)
 const TOLL_SELECT = 'item,delivery_date,price,price_uom,company,customer_name';
 const TOLL_RPC = `sales_order_lines?select=${TOLL_SELECT}`;
-const isInternalCustomer = (name) => {
+const isTollCustomer = (name) => {
   const n = String(name || '').toUpperCase();
-  return n.startsWith('JD FOOD') || n.includes('CERTIFIED MEAT');
+  return n.includes('TOLL') || n.startsWith('GOURMET BEEF') || n.startsWith('DIESTEL');
 };
 
 // Returns Map<item, { price, lastSoldDate, customer }> — newest external toll
@@ -63,7 +67,7 @@ async function fetchTollRates(codes) {
       const price = num(r.price);
       if (!(price > 0)) continue;                                        // skip $0 / internal-zero lines
       if (String(r.price_uom || 'LB').toUpperCase() !== 'LB') continue;  // rate must be per-lb
-      if (isInternalCustomer(r.customer_name)) continue;                 // exclude internal transfers
+      if (!isTollCustomer(r.customer_name)) continue;                    // only genuine toll billings
       const date = String(r.delivery_date || '');
       const cur = out.get(r.item);
       if (!cur || date > cur.lastSoldDate) out.set(r.item, { price, lastSoldDate: date, customer: r.customer_name });
@@ -122,7 +126,10 @@ function classify(lines) {
       sellVal: num(r.total_sales_cost),
       inputCostRaw: num(r.total_inventory_cost),
       customer,
-      isToll: customer !== 'CMP' && batchAvgIC < TOLL_IC_PER_LB,
+      // Preliminary signal: the batch barely had input cost ⇒ customer supplied
+      // the meat. Finalized in getProductionReport (a real toll price also counts).
+      lowInputCost: customer !== 'CMP' && batchAvgIC < TOLL_IC_PER_LB,
+      isToll: false,
     };
   });
   return { base, itemLbs };
@@ -235,9 +242,17 @@ async function getProductionReport({ date, force = false } = {}) {
 
   const { base, itemLbs } = classify(lines);
 
-  // Pull the live toll rate (most recent external CMP-tier sale) for the day's toll items.
-  const tollCodes = [...new Set(base.filter((b) => b.isToll).map((b) => b.r.item))];
-  const livePrices = await fetchTollRates(tollCodes);
+  // Pull the live toll rate (most recent external CMP-tier sale) for every non-CMP
+  // item — not just the ~$0-input ones — so a real toll item that happened to pick
+  // up a stray input cost is still recognized as toll.
+  const candidateCodes = [...new Set(base.filter((b) => b.customer !== 'CMP').map((b) => b.r.item))];
+  const livePrices = await fetchTollRates(candidateCodes);
+
+  // Finalize toll classification: a non-CMP line is toll if the customer supplied
+  // the meat (≈$0 input) OR the item has a recent real external toll price.
+  for (const b of base) {
+    b.isToll = b.customer !== 'CMP' && (b.lowInputCost || livePrices.has(b.r.item));
+  }
 
   const report = buildReport(day, base, itemLbs, yieldByBatch, livePrices);
   reportCache.set(day, { report, builtAt: Date.now() });
