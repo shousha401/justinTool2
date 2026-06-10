@@ -76,9 +76,20 @@
   .err { color: #b42318; }
   .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px; }
   @keyframes sp { to { transform: rotate(360deg); } }
+  .topnav { display: flex; gap: 4px; padding: 10px 24px 0; border-bottom: 1px solid var(--line); background: var(--card); }
+  .topnav a {
+    text-decoration: none; color: var(--muted); font-size: 13px; font-weight: 600;
+    padding: 9px 14px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .topnav a:hover { color: var(--ink); }
+  .topnav a.active { color: var(--accent); border-bottom-color: var(--accent); }
 </style>
 </head>
 <body>
+<nav class="topnav">
+  <a href="/" class="active">Product Value</a>
+  <a href="/production.html">Production Margin</a>
+</nav>
 <header>
   <h1>Product Value</h1>
   <div class="sub">

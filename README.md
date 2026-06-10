@@ -50,6 +50,27 @@ it's cached and warmed on boot, so page loads hit the cache, not the build.
   never substitutes a number that isn't an actual selling price. `$0` / internal
   zero-price lines are ignored.
 
+## Production Margin tab
+
+A second tab (`/production.html`) reports **daily production margin** — for one
+production day, every finished-good line split into:
+
+- **Toll** — we processed a customer's own meat for a fee. Input cost is ≈ $0 (we
+  didn't buy the meat), so a line is toll when its batch's avg input cost is under
+  `$0.10/lb` *and* the batch isn't our own (`CMP`) production. Revenue = a **contract
+  toll rate × lbs** (rates live in `backend/tollRates.js`, the one business-owned file).
+- **Own** — we own the meat. Revenue = the line's **sell value**, cost = its **input
+  (raw-material) cost**.
+
+Gross profit = revenue − cost; minus a manually-entered **labor** figure (kept in the
+browser) = **net contribution**. Results roll up by **production room** and by
+**customer**, with a line-by-line **Batch Detail** view.
+
+All of it comes live from Swarmbox's `production_output_cost` RPC (one quick call per
+day — no minutes-long sweep). The data layer is solid; the **toll rates are v1 contract
+tables** — items with no mapped rate are flagged in a banner and show $0 revenue until a
+rate (or a live toll-sale price, a planned fast-follow) is added.
+
 ## Run
 
 ```bash
@@ -73,6 +94,9 @@ pm2 save
 | `GET /api/values?refresh=1` | Force a fresh sweep, then return the table. |
 | `POST /api/values/refresh` | Force a rebuild, return a summary only. |
 | `GET /api/values/export.csv` | The current table as a CSV download. |
+| `GET /api/production` | Margin report for the most recent production day. `?date=YYYY-MM-DD` for a specific day; `?refresh=1` to rebuild. |
+| `GET /api/production/dates` | Recent production days (newest first) with batch counts — drives the day picker. |
+| `GET /api/production/export.csv?date=…` | The day's batch-detail lines as a CSV download. |
 
 ## Configuration (`.env`)
 
@@ -85,3 +109,4 @@ pm2 save
 | `VALUE_LOOKBACK_DAYS` | `360` | Sales window for "last price" (max 360). |
 | `VALUE_CACHE_TTL_MS` | `21600000` | How long a built table is reused (6h). |
 | `CATALOG_ROW_BUDGET` | `50000` | Subdivide a wildcard prefix above this many rows. |
+| `PRODUCTION_CACHE_TTL_MS` | `300000` | How long a built day's margin report is reused (5m). |
