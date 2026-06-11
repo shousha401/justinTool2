@@ -81,6 +81,10 @@
   .badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 999px; font-weight: 600; }
   .badge.toll { background: #e7f0fe; color: var(--toll); }
   .badge.own { background: #e6f6ec; color: var(--own); }
+  select.classEdit { font-size: 11px; padding: 2px 4px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); cursor: pointer; font-weight: 600; }
+  select.classEdit.is-toll { color: var(--toll); }
+  select.classEdit.is-own { color: var(--own); }
+  select.classEdit.overridden { border-color: currentColor; }
   .warn { background: #fff7e6; border: 1px solid #ffe1a6; color: #8a5a00; border-radius: 10px; padding: 10px 14px; font-size: 12.5px; margin: 14px 0; }
   .empty, .err { padding: 40px; text-align: center; color: var(--muted); }
   .err { color: #b42318; }
@@ -199,7 +203,11 @@ function renderDetail() {
     <td><b>${esc(r.customer)}</b><div class="dim">${esc(r.notes.slice(0, 42))}</div></td>
     <td>${esc(r.description)}<div class="dim mono">${esc(r.item)}</div></td>
     <td class="num dim">${esc(r.room)}</td>
-    <td class="num"><span class="badge ${r.isToll ? 'toll' : 'own'}">${r.isToll ? 'Toll' : 'Own'}</span></td>
+    <td class="num"><select class="classEdit ${r.override ? 'overridden ' : ''}${r.isToll ? 'is-toll' : 'is-own'}" data-code="${esc(r.item)}" title="Force this item Toll or Own">
+      <option value="" ${!r.override ? 'selected' : ''}>Auto (${r.autoToll ? 'Toll' : 'Own'})</option>
+      <option value="toll" ${r.override === 'toll' ? 'selected' : ''}>Toll</option>
+      <option value="own" ${r.override === 'own' ? 'selected' : ''}>Own</option>
+    </select></td>
     <td class="num">${fmtN(r.cs)}</td><td class="num">${fmtN(r.lbs)}</td>
     <td class="num">${(r.priceBasis === 'none' || r.priceBasis === 'manual')
       ? `<input class="rateEdit${r.priceBasis === 'manual' ? ' set' : ''}" type="number" step="0.01" min="0" data-code="${esc(r.item)}" value="${r.priceBasis === 'manual' && r.rate != null ? r.rate : ''}" placeholder="$/lb" title="Type a $/lb toll rate (blank to clear)" />`
@@ -294,9 +302,31 @@ async function commitRate(inp) {
     inp.disabled = false; delete inp.dataset.busy;
   }
 }
+async function commitClass(sel) {
+  const code = sel.dataset.code;
+  const mode = sel.value; // '', 'toll', or 'own'
+  sel.disabled = true;
+  try {
+    if (mode === '') {
+      await fetch('/api/production/overrides/' + encodeURIComponent(code), { method: 'DELETE' });
+    } else {
+      await fetch('/api/production/overrides', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, mode }),
+      });
+    }
+    await load($('date').value, false); // recompute (cache cleared server-side)
+  } catch (err) {
+    alert('Could not change type: ' + err.message);
+    sel.disabled = false;
+  }
+}
+
 $('content').addEventListener('change', (e) => {
   const inp = e.target.closest('input.rateEdit');
-  if (inp) commitRate(inp);
+  if (inp) { commitRate(inp); return; }
+  const sel = e.target.closest('select.classEdit');
+  if (sel) commitClass(sel);
 });
 $('content').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && e.target.closest('input.rateEdit')) e.target.blur();

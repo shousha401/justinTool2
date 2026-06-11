@@ -117,6 +117,12 @@ lines have an inline **$/lb box**: type a rate and it's saved (`data/toll-rates.
 gitignored) and applied to that item everywhere. It's a fallback only — if a real toll
 sale later appears, the live price automatically takes over. Clear the box to remove it.
 
+**Toll vs Own is also overridable.** The Type column in Batch Detail is an
+**Auto / Toll / Own** selector: "Auto" uses the automatic rule (and shows what it
+decided, e.g. "Auto (Own)"), or pick Toll/Own to force an item either way. Overrides
+are per-item, saved to `data/class-overrides.json` (gitignored), and the report
+recomputes on change. This is how you settle items the rule can't (e.g. JD Food).
+
 ## Run
 
 ```bash
@@ -147,6 +153,9 @@ pm2 save
 | `GET /api/production/rates` | Manual per-item toll rates (`{ rates: [{ code, rate, note, updatedAt }] }`). |
 | `POST /api/production/rates` | Set a manual toll rate (`{ code, rate, note }`); used only where there's no live/contract rate. |
 | `DELETE /api/production/rates/:code` | Remove a manual toll rate. |
+| `GET /api/production/overrides` | Manual Toll/Own classifications (`{ overrides: [{ code, mode, updatedAt }] }`). |
+| `POST /api/production/overrides` | Force an item Toll or Own (`{ code, mode }`, mode = `toll`\|`own`). |
+| `DELETE /api/production/overrides/:code` | Revert an item to automatic classification. |
 | `GET /api/discontinued` | The discontinued list (`{ rows: [{ code, description, addedAt }] }`). |
 | `POST /api/discontinued` | Discontinue one item (`{ code, description }`); drops it from the live cache immediately. |
 | `POST /api/discontinued/bulk-unsold` | Discontinue every item with no sale in either tier. |

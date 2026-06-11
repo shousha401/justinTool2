@@ -1,8 +1,31 @@
 const express = require('express');
 const { getProductionReport, recentDates, clearCache } = require('../production');
 const manualRates = require('../manualRates');
+const classOverrides = require('../classOverrides');
 
 const router = express.Router();
+
+// GET /api/production/overrides → manual Toll/Own classifications
+router.get('/overrides', (_req, res) => {
+  res.json({ overrides: classOverrides.getList() });
+});
+
+// POST /api/production/overrides { code, mode } → force an item Toll or Own
+router.post('/overrides', (req, res) => {
+  const code = String((req.body && req.body.code) || '').trim();
+  const mode = req.body && req.body.mode;
+  if (!code || (mode !== 'toll' && mode !== 'own')) return res.status(400).json({ error: 'code and mode (toll|own) required' });
+  classOverrides.set(code, mode);
+  clearCache();
+  res.json({ ok: true });
+});
+
+// DELETE /api/production/overrides/:code → revert an item to Auto
+router.delete('/overrides/:code', (req, res) => {
+  const removed = classOverrides.remove(req.params.code);
+  clearCache();
+  res.json({ ok: true, removed });
+});
 
 // GET /api/production/rates → manual toll rates
 router.get('/rates', (_req, res) => {

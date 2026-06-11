@@ -22,6 +22,7 @@
 const { postRpc } = require('./swarmbox');
 const { tollRate, parseCustomer, ROOM_LABEL } = require('./tollRates');
 const manualRates = require('./manualRates');
+const classOverrides = require('./classOverrides');
 
 const TTL_MS = Number(process.env.PRODUCTION_CACHE_TTL_MS) || 5 * 60 * 1000; // 5 min
 const RECENT_WINDOW_DAYS = 21;      // how far back the date picker looks
@@ -142,7 +143,7 @@ function classify(lines) {
 function buildReport(date, base, itemLbs, yieldByBatch, livePrices) {
   const counts = { live: 0, manual: 0, contract: 0, missing: 0 };
 
-  const rows = base.map(({ r, cs, lbs, sellVal, inputCostRaw, customer, isToll }) => {
+  const rows = base.map(({ r, cs, lbs, sellVal, inputCostRaw, customer, isToll, autoToll, override }) => {
     let revenue, inputCost, rate, source, missingRate = false, priceBasis;
 
     if (isToll) {
@@ -192,6 +193,8 @@ function buildReport(date, base, itemLbs, yieldByBatch, livePrices) {
       notes: r.batch_notes || '',
       customer,
       isToll,
+      autoToll: !!autoToll,
+      override: override || null,
       cs, lbs, rate, revenue, inputCost, gp,
       source, missingRate, priceBasis,
       yieldPct: yieldByBatch.get(r.batch) ?? null,
@@ -251,15 +254,23 @@ async function getProductionReport({ date, force = false } = {}) {
   const { base, itemLbs } = classify(lines);
 
   // Pull the live toll rate (most recent external CMP-tier sale) for every non-CMP
-  // item — not just the ~$0-input ones — so a real toll item that happened to pick
-  // up a stray input cost is still recognized as toll.
-  const candidateCodes = [...new Set(base.filter((b) => b.customer !== 'CMP').map((b) => b.r.item))];
+  // item (and any item forced to Toll) — not just the ~$0-input ones — so a real
+  // toll item that happened to pick up a stray input cost is still recognized.
+  const candidateCodes = [...new Set(base
+    .filter((b) => b.customer !== 'CMP' || classOverrides.getMode(b.r.item) === 'toll')
+    .map((b) => b.r.item))];
   const livePrices = await fetchTollRates(candidateCodes);
 
-  // Finalize toll classification: a non-CMP line is toll if the customer supplied
-  // the meat (≈$0 input) OR the item has a recent real external toll price.
+  // Finalize toll classification. A manual Toll/Own override wins; otherwise a
+  // non-CMP line is toll if the customer supplied the meat (≈$0 input) OR the item
+  // has a recent real external toll price. autoToll records what the rule alone
+  // would say (so the UI can show "Auto (Toll/Own)").
   for (const b of base) {
-    b.isToll = b.customer !== 'CMP' && (b.lowInputCost || livePrices.has(b.r.item));
+    const auto = b.customer !== 'CMP' && (b.lowInputCost || livePrices.has(b.r.item));
+    const ov = classOverrides.getMode(b.r.item);
+    b.autoToll = auto;
+    b.override = ov || null;
+    b.isToll = ov ? ov === 'toll' : auto;
   }
 
   const report = buildReport(day, base, itemLbs, yieldByBatch, livePrices);
