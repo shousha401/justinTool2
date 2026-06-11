@@ -235,7 +235,9 @@ function render() {
     $('warn').style.display = 'none';
   }
   const tp = REPORT.tollPricing || { live: 0, manual: 0, contract: 0, missing: 0 };
-  $('tollnote').textContent = `Toll rates — ${tp.live} live · ${tp.manual || 0} manual · ${tp.contract} contract · ${tp.missing} no rate`;
+  const op = REPORT.ownPricing || { sale: 0, standard: 0 };
+  $('tollnote').innerHTML = `Toll rates — ${tp.live} live · ${tp.manual || 0} manual · ${tp.contract} contract · ${tp.missing} no rate`
+    + ` &nbsp;|&nbsp; Own revenue — ${op.sale} from actual sales · ${op.standard} from production value`;
   renderRibbon();
   if (view === 'summary') renderSummary(); else renderDetail();
 }

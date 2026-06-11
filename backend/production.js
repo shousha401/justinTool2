@@ -33,24 +33,29 @@ const num = (v) => (v == null ? 0 : Number(v) || 0);
 function ymd(d) { return d.toISOString().slice(0, 10); }
 const shortCust = (c) => String(c || '').split(/[(,]/)[0].trim();
 
-// ── Live toll rate ───────────────────────────────────────────────────────────
-// The toll fee billed to the customer who owns the meat = the item's most recent
-// real CMP-tier sale ($/lb, price > 0) to a TOLL-arrangement customer. Those are
-// the accounts tagged "(…-TOLL)" (One World, Sugar Mountain) plus known toll
-// partners without the tag (Gourmet, Diestel). We must NOT accept other CMP
-// lines — meat-account ("…-MEAT") sales, street/distributor sales, or internal
-// transfers — because their prices are product prices ($5–$49/lb), not toll fees.
-// (If a new toll partner appears without a "-TOLL" tag, add it here.)
-const TOLL_SELECT = 'item,delivery_date,price,price_uom,company,customer_name';
-const TOLL_RPC = `sales_order_lines?select=${TOLL_SELECT}`;
+// ── Live sale prices ─────────────────────────────────────────────────────────
+// We read each item's most recent real CMP-tier sale ($/lb, price > 0) from
+// sales_order_lines and split it two ways:
+//   any  — newest sale to ANY customer → used as OWN-product revenue. The
+//          production module's own sell value (total_sales_cost) is often a flat
+//          standard (e.g. 661922 is stamped $1.00/lb on every batch), so the real
+//          last sale price is far more accurate; we fall back to the standard only
+//          when there's no recent sale.
+//   toll — newest sale to a TOLL-arrangement customer → used as the TOLL rate.
+//          Toll accounts are tagged "(…-TOLL)" (One World, Sugar Mountain) plus
+//          known partners without the tag (Gourmet, Diestel). We must NOT treat
+//          meat-account ("…-MEAT"), street, or internal lines as toll fees — their
+//          prices are product prices ($5–$49/lb). (Add a new toll partner here.)
+const SALE_SELECT = 'item,delivery_date,price,price_uom,company,customer_name';
+const SALE_RPC = `sales_order_lines?select=${SALE_SELECT}`;
 const isTollCustomer = (name) => {
   const n = String(name || '').toUpperCase();
   return n.includes('TOLL') || n.startsWith('GOURMET BEEF') || n.startsWith('DIESTEL');
 };
 
-// Returns Map<item, { price, lastSoldDate, customer }> — newest external toll
-// billing per item within the freshness window. Never throws.
-async function fetchTollRates(codes) {
+// Returns Map<item, { any, toll }> — newest CMP-tier sale to any / to a toll
+// customer, each { price, lastSoldDate, customer } or null. Never throws.
+async function fetchCmpSales(codes) {
   const out = new Map();
   if (!codes.length) return out;
   const end = new Date();
@@ -58,21 +63,23 @@ async function fetchTollRates(codes) {
   const endYmd = ymd(end);
   const CHUNK = 100;
   for (let i = 0; i < codes.length; i += CHUNK) {
-    const res = await postRpc(TOLL_RPC, {
+    const res = await postRpc(SALE_RPC, {
       p_items: codes.slice(i, i + CHUNK),
       p_start_delivery_date: startYmd,
       p_end_delivery_date: endYmd,
     });
     if (!res.ok) continue;
     for (const r of res.data) {
-      if (String(r.company || '').toUpperCase() !== 'CMP') continue;     // toll billings are CMP-company
+      if (String(r.company || '').toUpperCase() !== 'CMP') continue;     // CMP's own billings (not JD-tier street)
       const price = num(r.price);
-      if (!(price > 0)) continue;                                        // skip $0 / internal-zero lines
-      if (String(r.price_uom || 'LB').toUpperCase() !== 'LB') continue;  // rate must be per-lb
-      if (!isTollCustomer(r.customer_name)) continue;                    // only genuine toll billings
+      if (!(price > 0)) continue;                                        // skip $0 / placeholder lines
+      if (String(r.price_uom || 'LB').toUpperCase() !== 'LB') continue;  // need a per-lb price
       const date = String(r.delivery_date || '');
-      const cur = out.get(r.item);
-      if (!cur || date > cur.lastSoldDate) out.set(r.item, { price, lastSoldDate: date, customer: r.customer_name });
+      let rec = out.get(r.item);
+      if (!rec) { rec = { any: null, toll: null }; out.set(r.item, rec); }
+      const sale = { price, lastSoldDate: date, customer: r.customer_name };
+      if (!rec.any || date > rec.any.lastSoldDate) rec.any = sale;
+      if (isTollCustomer(r.customer_name) && (!rec.toll || date > rec.toll.lastSoldDate)) rec.toll = sale;
     }
   }
   return out;
@@ -140,15 +147,17 @@ function classify(lines) {
 // ── Report build ─────────────────────────────────────────────────────────────
 // livePrices: Map<item, { price, lastSoldDate, customer }> — most recent CMP-tier
 // toll sale within the lookback window.
-function buildReport(date, base, itemLbs, yieldByBatch, livePrices) {
+function buildReport(date, base, itemLbs, yieldByBatch, sales) {
   const counts = { live: 0, manual: 0, contract: 0, missing: 0 };
+  const ownCounts = { sale: 0, standard: 0 };
 
   const rows = base.map(({ r, cs, lbs, sellVal, inputCostRaw, customer, isToll, autoToll, override }) => {
     let revenue, inputCost, rate, source, missingRate = false, priceBasis;
+    const rec = sales.get(r.item);
 
     if (isToll) {
       inputCost = 0;
-      const live = livePrices.get(r.item);
+      const live = rec && rec.toll;
       const manual = manualRates.getRate(r.item);
       if (live && live.price > 0) {
         rate = live.price;
@@ -176,11 +185,23 @@ function buildReport(date, base, itemLbs, yieldByBatch, livePrices) {
         }
       }
     } else {
-      revenue = sellVal;
       inputCost = inputCostRaw;
-      rate = lbs ? revenue / lbs : null;
-      source = 'own: sell value';
-      priceBasis = 'own';
+      const sale = rec && rec.any;
+      if (sale && sale.price > 0) {
+        // Real revenue = the price CMP last actually billed for this item.
+        rate = sale.price;
+        revenue = rate * lbs;
+        source = `sale $${rate.toFixed(2)}/lb · ${shortCust(sale.customer)} ${sale.lastSoldDate || ''}`.trim();
+        priceBasis = 'own';
+        ownCounts.sale++;
+      } else {
+        // No recent sale — fall back to the production module's sell value.
+        revenue = sellVal;
+        rate = lbs ? revenue / lbs : null;
+        source = 'production value';
+        priceBasis = 'own';
+        ownCounts.standard++;
+      }
     }
     const gp = revenue - inputCost;
 
@@ -225,7 +246,8 @@ function buildReport(date, base, itemLbs, yieldByBatch, livePrices) {
     date,
     builtAt: Date.now(),
     totals,
-    tollPricing: counts, // { live, contract, missing } line counts
+    tollPricing: counts,       // toll line counts: { live, manual, contract, missing }
+    ownPricing: ownCounts,     // own line counts: { sale, standard }
     rooms: [...roomMap.values()].sort((a, b) => (a.room < b.room ? -1 : a.room > b.room ? 1 : 0)),
     customers: [...custMap.values()].sort((a, b) => b.rev - a.rev),
     rows,
@@ -253,27 +275,25 @@ async function getProductionReport({ date, force = false } = {}) {
 
   const { base, itemLbs } = classify(lines);
 
-  // Pull the live toll rate (most recent external CMP-tier sale) for every non-CMP
-  // item (and any item forced to Toll) — not just the ~$0-input ones — so a real
-  // toll item that happened to pick up a stray input cost is still recognized.
-  const candidateCodes = [...new Set(base
-    .filter((b) => b.customer !== 'CMP' || classOverrides.getMode(b.r.item) === 'toll')
-    .map((b) => b.r.item))];
-  const livePrices = await fetchTollRates(candidateCodes);
+  // One sales lookup for every item that day → real prices for both toll (toll
+  // rate) and own (actual revenue, vs the production standard sell value).
+  const allCodes = [...new Set(base.map((b) => b.r.item))];
+  const sales = await fetchCmpSales(allCodes);
 
   // Finalize toll classification. A manual Toll/Own override wins; otherwise a
   // non-CMP line is toll if the customer supplied the meat (≈$0 input) OR the item
-  // has a recent real external toll price. autoToll records what the rule alone
-  // would say (so the UI can show "Auto (Toll/Own)").
+  // has a recent real toll price. autoToll records what the rule alone would say
+  // (so the UI can show "Auto (Toll/Own)").
   for (const b of base) {
-    const auto = b.customer !== 'CMP' && (b.lowInputCost || livePrices.has(b.r.item));
+    const rec = sales.get(b.r.item);
+    const auto = b.customer !== 'CMP' && (b.lowInputCost || !!(rec && rec.toll));
     const ov = classOverrides.getMode(b.r.item);
     b.autoToll = auto;
     b.override = ov || null;
     b.isToll = ov ? ov === 'toll' : auto;
   }
 
-  const report = buildReport(day, base, itemLbs, yieldByBatch, livePrices);
+  const report = buildReport(day, base, itemLbs, yieldByBatch, sales);
   reportCache.set(day, { report, builtAt: Date.now() });
   const c = report.tollPricing;
   console.log(`[Production] ${day}: ${report.rows.length} lines, GP $${Math.round(report.totals.gp).toLocaleString()} (toll rates: ${c.live} live, ${c.contract} contract, ${c.missing} missing)`);

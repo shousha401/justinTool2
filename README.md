@@ -98,8 +98,13 @@ production day, every finished-good line split into:
   fee actually billed to the meat's owner. Internal (JD Food / CMP) lines are excluded
   so a transfer price can't masquerade as a toll fee. Items with no recent toll sale
   fall back to the contract rate tables in `backend/tollRates.js`.
-- **Own** — we own the meat. Revenue = the line's **sell value**, cost = its **input
-  (raw-material) cost**.
+- **Own** — we own the meat. Revenue = the item's **most recent actual sale price**
+  (CMP-tier, from `sales_order_lines`, same source as the Product Value tab) × lbs,
+  falling back to the production module's sell value only when there's no recent sale;
+  cost = its **input (raw-material) cost**. (The production sell value is often a flat
+  standard — e.g. 661922 is stamped $1.00/lb on every batch — so the real last sale
+  price is far more accurate. A note shows how many own lines used a real sale vs the
+  fallback.)
 
 Gross profit = revenue − cost; minus a manually-entered **labor** figure (kept in the
 browser) = **net contribution**. Results roll up by **production room** and by
