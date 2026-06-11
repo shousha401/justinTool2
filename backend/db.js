@@ -139,13 +139,13 @@ const upsertProd = db.prepare(`INSERT INTO prod_summary
     own_rev=excluded.own_rev, lbs=excluded.lbs, cs=excluded.cs, ic=excluded.ic,
     lines=excluded.lines, payload=excluded.payload`);
 
-// s: { date, builtAt, lines, totals:{gp,rev,tollRev,ownRev,lbs,cs,ic}, customers:[], items:[] }
+// s: { date, builtAt, lines, v, totals:{gp,rev,tollRev,ownRev,lbs,cs,ic}, customers:[{...,items:[]}] }
 function saveProdSummary(s) {
   const t = s.totals || {};
   upsertProd.run(
     s.date, s.builtAt || null, t.gp || 0, t.rev || 0, t.tollRev || 0, t.ownRev || 0,
     t.lbs || 0, t.cs || 0, t.ic || 0, s.lines || 0,
-    JSON.stringify({ customers: s.customers || [], items: s.items || [] }),
+    JSON.stringify({ v: s.v || 1, customers: s.customers || [] }),
   );
 }
 
@@ -154,10 +154,10 @@ function loadProdSummaries(fromDate, toDate) {
     .map((r) => {
       let p = {}; try { p = JSON.parse(r.payload || '{}'); } catch (e) { /* ignore */ }
       return {
-        date: r.date, builtAt: r.built_at,
+        date: r.date, builtAt: r.built_at, v: p.v || 1,
         gp: r.gp, rev: r.rev, tollRev: r.toll_rev, ownRev: r.own_rev,
         lbs: r.lbs, cs: r.cs, ic: r.ic, lines: r.lines,
-        customers: p.customers || [], items: p.items || [],
+        customers: p.customers || [], items: p.items || [], // items: legacy v1 only
       };
     });
 }

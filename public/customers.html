@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Customers — profitability scorecard</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --ink: #1c2430; --muted: #75808f;
+    --line: #e6e9ee; --accent: #1f6feb; --toll: #1f6feb; --own: #1D9E75; --neg: #D85A30; --secbg: #f1f3f6;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+  .topnav { display: flex; gap: 4px; padding: 10px 24px 0; border-bottom: 1px solid var(--line); background: var(--card); }
+  .topnav a { text-decoration: none; color: var(--muted); font-size: 13px; font-weight: 600; padding: 9px 14px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .topnav a:hover { color: var(--ink); }
+  .topnav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+  header { padding: 22px 24px 14px; }
+  h1 { margin: 0 0 4px; font-size: 20px; }
+  .sub { color: var(--muted); font-size: 13px; max-width: 820px; }
+  .wrap { padding: 0 24px 40px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 14px 0; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; background: var(--card); color: var(--muted); padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .seg button.on { background: var(--accent); color: #fff; }
+  .grow { margin-left: auto; }
+  .range { color: var(--muted); font-size: 12.5px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  thead th { text-align: left; font-size: 11px; color: var(--muted); font-weight: 600; padding: 9px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; cursor: pointer; user-select: none; background: #fbfcfd; }
+  th.num { text-align: right; } th .arrow { color: var(--accent); font-size: 10px; }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+  td.num { text-align: right; white-space: nowrap; }
+  tbody tr.crow { cursor: pointer; }
+  tbody tr.crow:hover { background: #fafbfc; }
+  .pos { color: var(--own); } .neg { color: var(--neg); } .dim { color: var(--muted); }
+  .cust { font-weight: 600; }
+  .caret { display: inline-block; width: 12px; color: var(--muted); transition: transform .15s; }
+  tr.open .caret { transform: rotate(90deg); }
+  .mix { display: inline-flex; width: 84px; height: 9px; border-radius: 5px; overflow: hidden; background: var(--secbg); vertical-align: middle; }
+  .mix .t { background: var(--toll); } .mix .o { background: var(--own); }
+  .mixlbl { font-size: 10.5px; color: var(--muted); margin-left: 6px; vertical-align: middle; }
+  .detail { background: #fbfcfd; }
+  .detail .inner { padding: 12px 16px 16px; display: grid; grid-template-columns: 1.3fr 1fr; gap: 18px; }
+  @media (max-width: 760px) { .detail .inner { grid-template-columns: 1fr; } }
+  .detail h3 { font-size: 12px; margin: 0 0 8px; color: var(--muted); font-weight: 600; }
+  .detail table td, .detail table th { font-size: 11.5px; padding: 5px 8px; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 10.5px; color: var(--muted); }
+  .empty, .err { padding: 36px; text-align: center; color: var(--muted); }
+  .err { color: #b42318; }
+  .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a href="/dashboard.html">Dashboard</a>
+  <a href="/customers.html" class="active">Customers</a>
+  <a href="/">Product Value</a>
+  <a href="/production.html">Production Margin</a>
+</nav>
+<header>
+  <h1>Customer Scorecard</h1>
+  <div class="sub">Every customer ranked by gross profit over the period, with their toll/own mix and the change vs. the prior equal-length period. Click a customer to see their products and day-by-day trend.</div>
+</header>
+
+<div class="wrap">
+  <div class="bar">
+    <div class="seg">
+      <button data-days="7" type="button">7 days</button>
+      <button data-days="14" class="on" type="button">14 days</button>
+      <button data-days="30" type="button">30 days</button>
+    </div>
+    <span class="grow"></span>
+    <span class="range" id="range"></span>
+    <div class="seg"><button id="refresh" type="button">Refresh</button></div>
+  </div>
+
+  <div class="card"><table>
+    <thead><tr id="head"></tr></thead>
+    <tbody id="body"></tbody>
+  </table></div>
+  <div id="state" class="empty"><span class="spin"></span> Loading…</div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const fmt$ = (n) => '$' + Math.round(n || 0).toLocaleString();
+const fmtN = (n) => Math.round(n || 0).toLocaleString();
+const gpPct = (gp, rev) => (rev ? (Math.round((gp / rev) * 1000) / 10).toFixed(1) + '%' : '—');
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+const COLS = [
+  { key: 'customer', label: 'Customer' },
+  { key: 'lbs', label: 'Lbs', num: true },
+  { key: 'rev', label: 'Revenue', num: true },
+  { key: 'mix', label: 'Toll / Own' },
+  { key: 'gp', label: 'GP $', num: true },
+  { key: 'gpPct', label: 'GP %', num: true },
+  { key: 'deltaPct', label: 'vs prior', num: true },
+];
+let DATA = null, days = 14, sortKey = 'gp', sortDir = -1, open = new Set();
+
+function mix(c) {
+  const tot = (c.tollRev || 0) + (c.ownRev || 0);
+  const t = tot ? Math.round(c.tollRev / tot * 100) : 0;
+  return `<span class="mix" title="Toll ${t}% · Own ${100 - t}%"><span class="t" style="width:${t}%"></span><span class="o" style="width:${100 - t}%"></span></span><span class="mixlbl">${t}% / ${100 - t}%</span>`;
+}
+function delta(c) {
+  if (c.deltaPct == null) return '<span class="dim">—</span>';
+  const up = c.deltaPct >= 0, v = Math.abs(Math.round(c.deltaPct));
+  return `<span class="${up ? 'pos' : 'neg'}">${up ? '▲' : '▼'} ${v}%</span>`;
+}
+
+function miniChart(daily) {
+  if (!daily || !daily.length) return '<div class="dim">No daily data.</div>';
+  const W = 320, H = 90, padB = 4, padT = 4;
+  const gps = daily.map(d => d.gp), maxV = Math.max(0, ...gps), minV = Math.min(0, ...gps), range = (maxV - minV) || 1;
+  const innerH = H - padB - padT, y0 = padT + (maxV / range) * innerH, bw = W / daily.length, barW = Math.max(2, bw * 0.7);
+  let bars = '';
+  daily.forEach((d, i) => {
+    const x = i * bw + (bw - barW) / 2, h = Math.abs(d.gp) / range * innerH, y = d.gp >= 0 ? y0 - h : y0;
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(0, h).toFixed(1)}" fill="${d.gp >= 0 ? 'var(--own)' : 'var(--neg)'}" rx="1.5"><title>${d.date}: ${fmt$(d.gp)}</title></rect>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-height:96px"><line x1="0" y1="${y0.toFixed(1)}" x2="${W}" y2="${y0.toFixed(1)}" stroke="var(--line)"/>${bars}</svg>`;
+}
+
+function detailRow(c) {
+  const items = (c.items || []).map(it => `<tr><td>${esc(it.description || it.item)}<div class="mono">${esc(it.item)}</div></td><td class="num">${fmtN(it.lbs)}</td><td class="num">${fmt$(it.rev)}</td><td class="num ${it.gp >= 0 ? 'pos' : 'neg'}">${fmt$(it.gp)}</td></tr>`).join('');
+  return `<tr class="detail"><td colspan="${COLS.length}"><div class="inner">
+    <div><h3>Top products</h3><table><thead><tr><th>Product</th><th class="num">Lbs</th><th class="num">Revenue</th><th class="num">GP $</th></tr></thead><tbody>${items || '<tr><td class="dim">None.</td></tr>'}</tbody></table></div>
+    <div><h3>Daily gross profit</h3>${miniChart(c.daily)}</div>
+  </div></td></tr>`;
+}
+
+function renderHead() {
+  $('head').innerHTML = COLS.map(c => {
+    const a = c.key === sortKey ? ` <span class="arrow">${sortDir === 1 ? '▲' : '▼'}</span>` : '';
+    return `<th class="${c.num ? 'num' : ''}" data-key="${c.key}">${c.label}${a}</th>`;
+  }).join('');
+  document.querySelectorAll('#head th').forEach(th => th.onclick = () => {
+    const k = th.dataset.key;
+    if (k === sortKey) sortDir = -sortDir; else { sortKey = k; sortDir = (k === 'customer') ? 1 : -1; }
+    render();
+  });
+}
+
+function sortVal(c, k) {
+  if (k === 'mix') return c.rev ? c.tollRev / c.rev : 0;
+  if (k === 'gpPct') return c.rev ? c.gp / c.rev : -Infinity;
+  if (k === 'deltaPct') return c.deltaPct == null ? -Infinity : c.deltaPct;
+  return c[k];
+}
+
+function render() {
+  if (!DATA) return;
+  renderHead();
+  $('range').textContent = DATA.from ? `${DATA.from} → ${DATA.to} · ${DATA.dayCount} days · ${DATA.customers.length} customers${DATA.hasPrior ? '' : ' · no prior period'}` : '';
+  const rows = [...DATA.customers].sort((a, b) => {
+    let av = sortVal(a, sortKey), bv = sortVal(b, sortKey);
+    if (sortKey === 'customer') { av = String(av).toLowerCase(); bv = String(bv).toLowerCase(); return av < bv ? -sortDir : av > bv ? sortDir : 0; }
+    return (av - bv) * sortDir;
+  });
+  if (!rows.length) { $('body').innerHTML = ''; $('state').style.display = ''; $('state').className = 'empty'; $('state').textContent = 'No customers in this period.'; return; }
+  $('state').style.display = 'none';
+  $('body').innerHTML = rows.map(c => {
+    const isOpen = open.has(c.customer);
+    const main = `<tr class="crow ${isOpen ? 'open' : ''}" data-cust="${esc(c.customer)}">
+      <td class="cust"><span class="caret">▸</span> ${esc(c.customer)}</td>
+      <td class="num">${fmtN(c.lbs)}</td>
+      <td class="num">${fmt$(c.rev)}</td>
+      <td>${mix(c)}</td>
+      <td class="num ${c.gp >= 0 ? 'pos' : 'neg'}">${fmt$(c.gp)}</td>
+      <td class="num ${c.gp >= 0 ? 'pos' : 'neg'}">${gpPct(c.gp, c.rev)}</td>
+      <td class="num">${delta(c)}</td></tr>`;
+    return main + (isOpen ? detailRow(c) : '');
+  }).join('');
+  document.querySelectorAll('#body tr.crow').forEach(tr => tr.onclick = () => {
+    const k = tr.dataset.cust;
+    if (open.has(k)) open.delete(k); else open.add(k);
+    render();
+  });
+}
+
+async function load() {
+  $('state').style.display = ''; $('state').className = 'empty';
+  $('state').innerHTML = '<span class="spin"></span> Crunching ' + days + ' days…';
+  try {
+    const res = await fetch('/api/customers?days=' + days);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    DATA = await res.json();
+    render();
+  } catch (err) {
+    $('body').innerHTML = ''; $('state').style.display = ''; $('state').className = 'err';
+    $('state').textContent = 'Could not load customers: ' + err.message;
+  }
+}
+
+document.querySelectorAll('.seg button[data-days]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.seg button[data-days]').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); days = Number(b.dataset.days); open.clear(); load();
+});
+$('refresh').onclick = load;
+load();
+</script>
+</body>
+</html>

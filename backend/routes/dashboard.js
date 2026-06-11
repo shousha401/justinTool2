@@ -39,7 +39,19 @@ router.get('/', async (req, res) => {
       return [...m.values()];
     };
     const customers = merge(summaries, 'customers').sort((a, b) => b.gp - a.gp);
-    const items = merge(summaries, 'items').sort((a, b) => b.gp - a.gp);
+
+    // Products: in v2 each customer carries its own items; flatten across customers
+    // (fall back to a legacy v1 top-level items array if present).
+    const itemMap = new Map();
+    for (const s of summaries) {
+      const rows = (s.items && s.items.length) ? s.items : [].concat(...(s.customers || []).map((c) => c.items || []));
+      for (const x of rows) {
+        const m = itemMap.get(x.item) || { item: x.item, description: x.description, lbs: 0, rev: 0, ic: 0, gp: 0 };
+        m.lbs += x.lbs || 0; m.rev += x.rev || 0; m.ic += x.ic || 0; m.gp += x.gp || 0;
+        itemMap.set(x.item, m);
+      }
+    }
+    const items = [...itemMap.values()].sort((a, b) => b.gp - a.gp);
 
     res.json({
       days,

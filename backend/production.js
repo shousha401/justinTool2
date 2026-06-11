@@ -26,7 +26,8 @@ const classOverrides = require('./classOverrides');
 const dbStore = require('./db');
 
 const TTL_MS = Number(process.env.PRODUCTION_CACHE_TTL_MS) || 5 * 60 * 1000; // 5 min
-const RECENT_WINDOW_DAYS = 21;      // how far back the date picker looks
+const RECENT_WINDOW_DAYS = 45;      // how far back the date picker / period comparisons look
+const SUMMARY_VERSION = 2;          // bump when the stored summary shape changes (forces re-backfill)
 const TOLL_IC_PER_LB = 0.10;        // batch avg input cost below this ⇒ customer-supplied meat ⇒ toll
 const TOLL_LOOKBACK_DAYS = Number(process.env.TOLL_LOOKBACK_DAYS) || 90; // freshness window for the live toll price
 
@@ -307,36 +308,35 @@ async function getProductionReport({ date, force = false } = {}) {
   return report;
 }
 
-// Condense a day's report into a stored summary (totals + per-customer + per-item)
-// for the Owner's Dashboard.
+// Condense a day's report into a stored summary for the Owner's Dashboard and the
+// Customers tab: per customer { totals, toll/own split, and their per-item rollup }.
 function summarize(report) {
-  const items = new Map();
+  const custMap = new Map();
   for (const r of report.rows) {
-    const it = items.get(r.item) || { item: r.item, description: r.description, isToll: r.isToll, lbs: 0, rev: 0, ic: 0, gp: 0 };
+    let c = custMap.get(r.customer);
+    if (!c) { c = { customer: r.customer, lbs: 0, rev: 0, ic: 0, gp: 0, tollRev: 0, ownRev: 0, _items: new Map() }; custMap.set(r.customer, c); }
+    c.lbs += r.lbs; c.rev += r.revenue; c.ic += r.inputCost; c.gp += r.gp;
+    if (r.isToll) c.tollRev += r.revenue; else c.ownRev += r.revenue;
+    let it = c._items.get(r.item);
+    if (!it) { it = { item: r.item, description: r.description, lbs: 0, rev: 0, ic: 0, gp: 0 }; c._items.set(r.item, it); }
     it.lbs += r.lbs; it.rev += r.revenue; it.ic += r.inputCost; it.gp += r.gp;
-    items.set(r.item, it);
   }
-  return {
-    date: report.date,
-    builtAt: report.builtAt,
-    lines: report.rows.length,
-    totals: report.totals,
-    customers: report.customers,
-    items: [...items.values()],
-  };
+  const customers = [...custMap.values()].map(({ _items, ...rest }) => ({ ...rest, items: [..._items.values()] }));
+  return { date: report.date, builtAt: report.builtAt, lines: report.rows.length, v: SUMMARY_VERSION, totals: report.totals, customers };
 }
 
-// Ensure the last `days` production days have stored summaries (computes any
-// missing — building a day saves its summary). Run in the background on boot.
+// Ensure the last `days` production days have a CURRENT-version stored summary
+// (computes any missing or out-of-date — building a day saves its summary).
 async function backfillSummaries(days = 30) {
   const dates = (await recentDates()).slice(0, days).map((d) => d.date);
-  const have = new Set(dbStore.prodSummaryDates());
-  const missing = dates.filter((d) => !have.has(d));
-  for (const d of missing) {
+  if (!dates.length) return { requested: 0, filled: 0 };
+  const stored = new Map(dbStore.loadProdSummaries(dates[dates.length - 1], dates[0]).map((s) => [s.date, s.v]));
+  const todo = dates.filter((d) => stored.get(d) !== SUMMARY_VERSION);
+  for (const d of todo) {
     try { await getProductionReport({ date: d }); } catch (e) { /* keep going */ }
   }
-  if (missing.length) console.log(`[Production] backfilled ${missing.length} day summaries`);
-  return { requested: dates.length, filled: missing.length };
+  if (todo.length) console.log(`[Production] backfilled ${todo.length} day summaries`);
+  return { requested: dates.length, filled: todo.length };
 }
 
 // Drop cached reports so the next request recomputes (e.g. after a manual rate

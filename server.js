@@ -13,6 +13,7 @@ app.use('/api/values', require('./backend/routes/values'));
 app.use('/api/production', require('./backend/routes/production'));
 app.use('/api/discontinued', require('./backend/routes/discontinued'));
 app.use('/api/dashboard', require('./backend/routes/dashboard'));
+app.use('/api/customers', require('./backend/routes/customers'));
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
 app.get('/', (_req, res) => {

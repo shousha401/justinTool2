@@ -63,6 +63,15 @@ production days on boot** — so it loads instantly with real history (productio
 recomputable from Swarmbox, so there's nothing to wait for). Days whose Swarmbox fetch
 errors out are **excluded, not shown as a false $0**.
 
+## Customers tab
+
+A profitability **scorecard**: every customer ranked by gross profit over the period
+(7/14/30 days), with their **toll/own revenue mix**, GP%, and the **change vs. the prior
+equal-length period** (▲/▼). Click a customer to drill down into their **top products**
+and a **day-by-day GP** mini-chart. Columns are sortable. It reuses the same stored daily
+summaries as the dashboard (`prod_summary`, which now nests each customer's products and
+toll/own split — `SUMMARY_VERSION` bumps force a one-time re-backfill).
+
 ## Price store & daily refresh
 
 The built value table is persisted to a local **SQLite** file (`data/value.db`, via
@@ -175,6 +184,7 @@ pm2 save
 | `POST /api/production/overrides` | Force an item Toll or Own (`{ code, mode }`, mode = `toll`\|`own`). |
 | `DELETE /api/production/overrides/:code` | Revert an item to automatic classification. |
 | `GET /api/dashboard?days=7\|14\|30` | Period margin rollup for the Owner's Dashboard: daily GP series, totals, top/bottom customers & products. |
+| `GET /api/customers?days=7\|14\|30` | Customer scorecard: every customer ranked by GP with toll/own split, trend vs the prior period, and per-customer products + daily series. |
 | `GET /api/discontinued` | The discontinued list (`{ rows: [{ code, description, addedAt }] }`). |
 | `POST /api/discontinued` | Discontinue one item (`{ code, description }`); drops it from the live cache immediately. |
 | `POST /api/discontinued/bulk-unsold` | Discontinue every item with no sale in either tier. |
