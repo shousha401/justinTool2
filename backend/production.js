@@ -27,7 +27,7 @@ const dbStore = require('./db');
 
 const TTL_MS = Number(process.env.PRODUCTION_CACHE_TTL_MS) || 5 * 60 * 1000; // 5 min
 const RECENT_WINDOW_DAYS = 45;      // how far back the date picker / period comparisons look
-const SUMMARY_VERSION = 2;          // bump when the stored summary shape changes (forces re-backfill)
+const SUMMARY_VERSION = 3;          // bump when the stored summary shape OR the numbers behind it change (forces re-backfill)
 const TOLL_IC_PER_LB = 0.10;        // batch avg input cost below this ⇒ customer-supplied meat ⇒ toll
 const TOLL_LOOKBACK_DAYS = Number(process.env.TOLL_LOOKBACK_DAYS) || 90; // freshness window for the live toll price
 
