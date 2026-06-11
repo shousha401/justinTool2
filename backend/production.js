@@ -21,6 +21,7 @@
 
 const { postRpc } = require('./swarmbox');
 const { tollRate, parseCustomer, ROOM_LABEL } = require('./tollRates');
+const manualRates = require('./manualRates');
 
 const TTL_MS = Number(process.env.PRODUCTION_CACHE_TTL_MS) || 5 * 60 * 1000; // 5 min
 const RECENT_WINDOW_DAYS = 21;      // how far back the date picker looks
@@ -139,7 +140,7 @@ function classify(lines) {
 // livePrices: Map<item, { price, lastSoldDate, customer }> — most recent CMP-tier
 // toll sale within the lookback window.
 function buildReport(date, base, itemLbs, yieldByBatch, livePrices) {
-  const counts = { live: 0, contract: 0, missing: 0 };
+  const counts = { live: 0, manual: 0, contract: 0, missing: 0 };
 
   const rows = base.map(({ r, cs, lbs, sellVal, inputCostRaw, customer, isToll }) => {
     let revenue, inputCost, rate, source, missingRate = false, priceBasis;
@@ -147,12 +148,19 @@ function buildReport(date, base, itemLbs, yieldByBatch, livePrices) {
     if (isToll) {
       inputCost = 0;
       const live = livePrices.get(r.item);
+      const manual = manualRates.getRate(r.item);
       if (live && live.price > 0) {
         rate = live.price;
         revenue = rate * lbs;
         source = `live $${rate.toFixed(2)}/lb · ${shortCust(live.customer)} ${live.lastSoldDate || ''}`.trim();
         priceBasis = 'live';
         counts.live++;
+      } else if (manual != null && manual > 0) {
+        rate = manual;
+        revenue = manual * lbs;
+        source = `manual $${manual.toFixed(2)}/lb`;
+        priceBasis = 'manual';
+        counts.manual++;
       } else {
         const { rate: rt } = tollRate(r.item, itemLbs.get(r.item) || lbs);
         if (rt != null) {
@@ -261,4 +269,8 @@ async function getProductionReport({ date, force = false } = {}) {
   return report;
 }
 
-module.exports = { getProductionReport, recentDates, mostRecentDate };
+// Drop cached reports so the next request recomputes (e.g. after a manual rate
+// change). Cheap — a day's report is a single Swarmbox call.
+function clearCache() { reportCache.clear(); }
+
+module.exports = { getProductionReport, recentDates, mostRecentDate, clearCache };

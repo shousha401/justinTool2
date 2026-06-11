@@ -107,10 +107,15 @@ browser) = **net contribution**. Results roll up by **production room** and by
 
 All of it comes live from Swarmbox (`production_output_cost` for the day's lines,
 `sales_order_lines` for each toll item's latest billed rate) — one quick set of calls,
-no minutes-long sweep. A small note shows how many toll lines were priced **live** vs
-**contract fallback** vs **no rate**; the rare item with neither is flagged in a banner
-and shows $0 revenue until a rate appears (a real toll sale, or a hand-added contract
-rate in `tollRates.js`).
+no minutes-long sweep. A toll line's rate is resolved **live → manual → contract**: the
+most recent real sale to a toll account (`…-TOLL`, Gourmet, Diestel) wins; failing that,
+a **manual rate** you typed in; failing that, the contract table in `tollRates.js`. A
+small note shows the live/manual/contract/no-rate split.
+
+The rare item with no rate at all shows $0 and is flagged — in **Batch Detail** those
+lines have an inline **$/lb box**: type a rate and it's saved (`data/toll-rates.json`,
+gitignored) and applied to that item everywhere. It's a fallback only — if a real toll
+sale later appears, the live price automatically takes over. Clear the box to remove it.
 
 ## Run
 
@@ -139,6 +144,9 @@ pm2 save
 | `GET /api/production` | Margin report for the most recent production day. `?date=YYYY-MM-DD` for a specific day; `?refresh=1` to rebuild. |
 | `GET /api/production/dates` | Recent production days (newest first) with batch counts — drives the day picker. |
 | `GET /api/production/export.csv?date=…` | The day's batch-detail lines as a CSV download. |
+| `GET /api/production/rates` | Manual per-item toll rates (`{ rates: [{ code, rate, note, updatedAt }] }`). |
+| `POST /api/production/rates` | Set a manual toll rate (`{ code, rate, note }`); used only where there's no live/contract rate. |
+| `DELETE /api/production/rates/:code` | Remove a manual toll rate. |
 | `GET /api/discontinued` | The discontinued list (`{ rows: [{ code, description, addedAt }] }`). |
 | `POST /api/discontinued` | Discontinue one item (`{ code, description }`); drops it from the live cache immediately. |
 | `POST /api/discontinued/bulk-unsold` | Discontinue every item with no sale in either tier. |

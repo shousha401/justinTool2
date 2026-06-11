@@ -72,7 +72,11 @@
   .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
   .dim { color: var(--muted); font-size: 10.5px; }
   .src-contract { color: #8a5a00; font-size: 10.5px; }
+  .src-manual { color: var(--toll); font-size: 10.5px; }
   .src-none { color: var(--neg); font-size: 10.5px; }
+  input.rateEdit { width: 62px; padding: 3px 6px; font-size: 12px; border: 1px solid var(--neg); border-radius: 6px; text-align: right; background: var(--card); color: var(--ink); }
+  input.rateEdit:focus { border-color: var(--accent); outline: none; }
+  input.rateEdit.set { border-color: var(--toll); }
   #tollnote { font-size: 12px; color: var(--muted); margin: -2px 0 12px; }
   .badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 999px; font-weight: 600; }
   .badge.toll { background: #e7f0fe; color: var(--toll); }
@@ -197,9 +201,11 @@ function renderDetail() {
     <td class="num dim">${esc(r.room)}</td>
     <td class="num"><span class="badge ${r.isToll ? 'toll' : 'own'}">${r.isToll ? 'Toll' : 'Own'}</span></td>
     <td class="num">${fmtN(r.cs)}</td><td class="num">${fmtN(r.lbs)}</td>
-    <td class="num">${r.rate != null ? '$' + r.rate.toFixed(2) : '—'}</td>
+    <td class="num">${(r.priceBasis === 'none' || r.priceBasis === 'manual')
+      ? `<input class="rateEdit${r.priceBasis === 'manual' ? ' set' : ''}" type="number" step="0.01" min="0" data-code="${esc(r.item)}" value="${r.priceBasis === 'manual' && r.rate != null ? r.rate : ''}" placeholder="$/lb" title="Type a $/lb toll rate (blank to clear)" />`
+      : (r.rate != null ? '$' + r.rate.toFixed(2) : '—')}</td>
     <td class="num">${fmt$(r.revenue)}</td>
-    <td class="num ${r.priceBasis === 'contract' ? 'src-contract' : r.priceBasis === 'none' ? 'src-none' : 'dim'}">${r.missingRate ? '⚠ no rate' : esc(r.source || '')}</td>
+    <td class="num ${r.priceBasis === 'contract' ? 'src-contract' : r.priceBasis === 'manual' ? 'src-manual' : r.priceBasis === 'none' ? 'src-none' : 'dim'}">${r.missingRate ? '⚠ no rate' : esc(r.source || '')}</td>
     <td class="num">${r.isToll ? '—' : fmt$(r.inputCost)}</td>
     <td class="num ${sign(r.gp)}">${fmt$(r.gp)}</td>
     <td class="num ${sign(r.gp)}">${gpPct(r.gp, r.revenue)}</td>
@@ -216,12 +222,12 @@ function render() {
   const m = REPORT.missing || [];
   if (m.length) {
     $('warn').style.display = '';
-    $('warn').innerHTML = `⚠ No contract toll rate for ${m.length} SKU(s): ${m.slice(0, 6).map(esc).join(', ')}${m.length > 6 ? ` +${m.length - 6} more` : ''}. Their revenue shows as $0 until a rate (or live price) is added.`;
+    $('warn').innerHTML = `⚠ No toll rate for ${m.length} SKU(s): ${m.slice(0, 6).map(esc).join(', ')}${m.length > 6 ? ` +${m.length - 6} more` : ''}. They show $0 — type a $/lb rate in the box on those lines in <b>Batch Detail</b> (a real sale, if one appears later, takes over automatically).`;
   } else {
     $('warn').style.display = 'none';
   }
-  const tp = REPORT.tollPricing || { live: 0, contract: 0, missing: 0 };
-  $('tollnote').textContent = `Toll rates — ${tp.live} live · ${tp.contract} contract fallback · ${tp.missing} no rate`;
+  const tp = REPORT.tollPricing || { live: 0, manual: 0, contract: 0, missing: 0 };
+  $('tollnote').textContent = `Toll rates — ${tp.live} live · ${tp.manual || 0} manual · ${tp.contract} contract · ${tp.missing} no rate`;
   renderRibbon();
   if (view === 'summary') renderSummary(); else renderDetail();
 }
@@ -263,6 +269,38 @@ $('date').onchange = (e) => load(e.target.value, false);
 $('vSummary').onclick = () => { view = 'summary'; render(); };
 $('vDetail').onclick = () => { view = 'detail'; render(); };
 $('refresh').onclick = () => load($('date').value, true);
+
+// Inline manual toll rates: commit on Enter or blur. A value sets the rate for
+// that item; clearing it removes the manual rate. Then reload the day.
+async function commitRate(inp) {
+  if (inp.dataset.busy) return;
+  const code = inp.dataset.code;
+  const val = inp.value.trim();
+  const rate = parseFloat(val);
+  if (val !== '' && !(rate > 0)) { inp.focus(); return; }
+  inp.dataset.busy = '1'; inp.disabled = true;
+  try {
+    if (val === '') {
+      await fetch('/api/production/rates/' + encodeURIComponent(code), { method: 'DELETE' });
+    } else {
+      await fetch('/api/production/rates', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, rate }),
+      });
+    }
+    await load($('date').value, false); // recompute (cache cleared server-side)
+  } catch (err) {
+    alert('Could not save rate: ' + err.message);
+    inp.disabled = false; delete inp.dataset.busy;
+  }
+}
+$('content').addEventListener('change', (e) => {
+  const inp = e.target.closest('input.rateEdit');
+  if (inp) commitRate(inp);
+});
+$('content').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.closest('input.rateEdit')) e.target.blur();
+});
 
 (async () => {
   try {
