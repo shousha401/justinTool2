@@ -94,6 +94,7 @@
 </head>
 <body>
 <nav class="topnav">
+  <a href="/dashboard.html">Dashboard</a>
   <a href="/">Product Value</a>
   <a href="/production.html" class="active">Production Margin</a>
 </nav>
@@ -228,7 +229,10 @@ function render() {
   $('vSummary').classList.toggle('on', view === 'summary');
   $('vDetail').classList.toggle('on', view === 'detail');
   const m = REPORT.missing || [];
-  if (m.length) {
+  if (REPORT.unavailable) {
+    $('warn').style.display = '';
+    $('warn').innerHTML = `⚠ Swarmbox returned an error for this day, so its numbers couldn't be loaded (this happens intermittently on certain days). Try <b>Refresh</b>, or pick another day.`;
+  } else if (m.length) {
     $('warn').style.display = '';
     $('warn').innerHTML = `⚠ No toll rate for ${m.length} SKU(s): ${m.slice(0, 6).map(esc).join(', ')}${m.length > 6 ? ` +${m.length - 6} more` : ''}. They show $0 — type a $/lb rate in the box on those lines in <b>Batch Detail</b> (a real sale, if one appears later, takes over automatically).`;
   } else {

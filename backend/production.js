@@ -23,6 +23,7 @@ const { postRpc } = require('./swarmbox');
 const { tollRate, parseCustomer, ROOM_LABEL } = require('./tollRates');
 const manualRates = require('./manualRates');
 const classOverrides = require('./classOverrides');
+const dbStore = require('./db');
 
 const TTL_MS = Number(process.env.PRODUCTION_CACHE_TTL_MS) || 5 * 60 * 1000; // 5 min
 const RECENT_WINDOW_DAYS = 21;      // how far back the date picker looks
@@ -294,14 +295,52 @@ async function getProductionReport({ date, force = false } = {}) {
   }
 
   const report = buildReport(day, base, itemLbs, yieldByBatch, sales);
+  report.unavailable = !outRes.ok; // Swarmbox errored for this day — not a real $0
   reportCache.set(day, { report, builtAt: Date.now() });
+  // Only persist days that actually loaded — never store a misleading $0 for a
+  // day whose output fetch errored (e.g. Swarmbox's intermittent 400 on some days).
+  if (outRes.ok) {
+    try { dbStore.saveProdSummary(summarize(report)); } catch (e) { console.error('[Production] summary save failed:', e && e.message); }
+  }
   const c = report.tollPricing;
-  console.log(`[Production] ${day}: ${report.rows.length} lines, GP $${Math.round(report.totals.gp).toLocaleString()} (toll rates: ${c.live} live, ${c.contract} contract, ${c.missing} missing)`);
+  console.log(`[Production] ${day}: ${outRes.ok ? report.rows.length + ' lines' : 'UNAVAILABLE (Swarmbox error)'}, GP $${Math.round(report.totals.gp).toLocaleString()} (toll: ${c.live} live, ${c.contract} contract, ${c.missing} missing)`);
   return report;
+}
+
+// Condense a day's report into a stored summary (totals + per-customer + per-item)
+// for the Owner's Dashboard.
+function summarize(report) {
+  const items = new Map();
+  for (const r of report.rows) {
+    const it = items.get(r.item) || { item: r.item, description: r.description, isToll: r.isToll, lbs: 0, rev: 0, ic: 0, gp: 0 };
+    it.lbs += r.lbs; it.rev += r.revenue; it.ic += r.inputCost; it.gp += r.gp;
+    items.set(r.item, it);
+  }
+  return {
+    date: report.date,
+    builtAt: report.builtAt,
+    lines: report.rows.length,
+    totals: report.totals,
+    customers: report.customers,
+    items: [...items.values()],
+  };
+}
+
+// Ensure the last `days` production days have stored summaries (computes any
+// missing — building a day saves its summary). Run in the background on boot.
+async function backfillSummaries(days = 30) {
+  const dates = (await recentDates()).slice(0, days).map((d) => d.date);
+  const have = new Set(dbStore.prodSummaryDates());
+  const missing = dates.filter((d) => !have.has(d));
+  for (const d of missing) {
+    try { await getProductionReport({ date: d }); } catch (e) { /* keep going */ }
+  }
+  if (missing.length) console.log(`[Production] backfilled ${missing.length} day summaries`);
+  return { requested: dates.length, filled: missing.length };
 }
 
 // Drop cached reports so the next request recomputes (e.g. after a manual rate
 // change). Cheap — a day's report is a single Swarmbox call.
 function clearCache() { reportCache.clear(); }
 
-module.exports = { getProductionReport, recentDates, mostRecentDate, clearCache };
+module.exports = { getProductionReport, recentDates, mostRecentDate, clearCache, backfillSummaries };

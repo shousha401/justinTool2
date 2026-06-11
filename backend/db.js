@@ -39,6 +39,19 @@ db.exec(`
     PRIMARY KEY (snapshot_date, product_code)
   );
   CREATE INDEX IF NOT EXISTS idx_vh_code ON value_history (product_code);
+  CREATE TABLE IF NOT EXISTS prod_summary (
+    date      TEXT PRIMARY KEY,
+    built_at  INTEGER,
+    gp        REAL,
+    rev       REAL,
+    toll_rev  REAL,
+    own_rev   REAL,
+    lbs       REAL,
+    cs        REAL,
+    ic        REAL,
+    lines     INTEGER,
+    payload   TEXT
+  );
 `);
 
 // Reusable statements
@@ -117,4 +130,38 @@ function priceHistory(productCode, limit = 120) {
     }));
 }
 
-module.exports = { saveSnapshot, loadLatest, priceHistory };
+// ── Production daily margin summaries (for the Owner's Dashboard) ─────────────
+const upsertProd = db.prepare(`INSERT INTO prod_summary
+  (date, built_at, gp, rev, toll_rev, own_rev, lbs, cs, ic, lines, payload)
+  VALUES (?,?,?,?,?,?,?,?,?,?,?)
+  ON CONFLICT(date) DO UPDATE SET
+    built_at=excluded.built_at, gp=excluded.gp, rev=excluded.rev, toll_rev=excluded.toll_rev,
+    own_rev=excluded.own_rev, lbs=excluded.lbs, cs=excluded.cs, ic=excluded.ic,
+    lines=excluded.lines, payload=excluded.payload`);
+
+// s: { date, builtAt, lines, totals:{gp,rev,tollRev,ownRev,lbs,cs,ic}, customers:[], items:[] }
+function saveProdSummary(s) {
+  const t = s.totals || {};
+  upsertProd.run(
+    s.date, s.builtAt || null, t.gp || 0, t.rev || 0, t.tollRev || 0, t.ownRev || 0,
+    t.lbs || 0, t.cs || 0, t.ic || 0, s.lines || 0,
+    JSON.stringify({ customers: s.customers || [], items: s.items || [] }),
+  );
+}
+
+function loadProdSummaries(fromDate, toDate) {
+  return db.prepare('SELECT * FROM prod_summary WHERE date >= ? AND date <= ? ORDER BY date').all(fromDate, toDate)
+    .map((r) => {
+      let p = {}; try { p = JSON.parse(r.payload || '{}'); } catch (e) { /* ignore */ }
+      return {
+        date: r.date, builtAt: r.built_at,
+        gp: r.gp, rev: r.rev, tollRev: r.toll_rev, ownRev: r.own_rev,
+        lbs: r.lbs, cs: r.cs, ic: r.ic, lines: r.lines,
+        customers: p.customers || [], items: p.items || [],
+      };
+    });
+}
+
+const prodSummaryDates = () => db.prepare('SELECT date FROM prod_summary').all().map((r) => r.date);
+
+module.exports = { saveSnapshot, loadLatest, priceHistory, saveProdSummary, loadProdSummaries, prodSummaryDates };

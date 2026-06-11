@@ -4,7 +4,7 @@ const express = require('express');
 const path = require('path');
 
 const { getValues } = require('./backend/valuation');
-const { getProductionReport } = require('./backend/production');
+const { getProductionReport, backfillSummaries } = require('./backend/production');
 
 const app = express();
 app.use(express.json({ limit: '256kb' }));
@@ -12,6 +12,7 @@ app.use(express.json({ limit: '256kb' }));
 app.use('/api/values', require('./backend/routes/values'));
 app.use('/api/production', require('./backend/routes/production'));
 app.use('/api/discontinued', require('./backend/routes/discontinued'));
+app.use('/api/dashboard', require('./backend/routes/dashboard'));
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
 app.get('/', (_req, res) => {
@@ -48,9 +49,15 @@ app.listen(PORT, () => {
     .then((c) => console.log(`[ValueTool] cache ready: ${c.itemCount} items (${c.pricedJd} JD-priced, ${c.pricedCmp} CMP-priced)`))
     .catch((err) => console.error('[ValueTool] warm-up failed (will build on first request):', err && err.message));
 
-  // Warm the most-recent production day too (cheap — one day is a single call).
+  // Warm the most-recent production day too (cheap — one day is a single call),
+  // then backfill the Owner's Dashboard history (last 30 production days) in the
+  // background so the dashboard loads instantly with real trends.
   getProductionReport({})
-    .then((p) => console.log(`[ValueTool] production warmed: ${p.date} (${p.rows.length} lines)`))
+    .then((p) => {
+      console.log(`[ValueTool] production warmed: ${p.date} (${p.rows.length} lines)`);
+      return backfillSummaries(30);
+    })
+    .then((b) => { if (b) console.log(`[ValueTool] dashboard history ready (${b.filled} day(s) backfilled)`); })
     .catch((err) => console.error('[ValueTool] production warm-up failed (will build on first request):', err && err.message));
 
   scheduleDailyRefresh();

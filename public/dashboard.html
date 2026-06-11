@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Owner's Dashboard — margin trends</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --ink: #1c2430; --muted: #75808f;
+    --line: #e6e9ee; --accent: #1f6feb; --accent-d: #1a5fd0;
+    --toll: #1f6feb; --own: #1D9E75; --neg: #D85A30; --secbg: #f1f3f6;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+  .topnav { display: flex; gap: 4px; padding: 10px 24px 0; border-bottom: 1px solid var(--line); background: var(--card); }
+  .topnav a { text-decoration: none; color: var(--muted); font-size: 13px; font-weight: 600; padding: 9px 14px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .topnav a:hover { color: var(--ink); }
+  .topnav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+  header { padding: 22px 24px 14px; }
+  h1 { margin: 0 0 4px; font-size: 20px; }
+  .sub { color: var(--muted); font-size: 13px; max-width: 820px; }
+  .wrap { padding: 0 24px 40px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 14px 0; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; background: var(--card); color: var(--muted); padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .seg button.on { background: var(--accent); color: #fff; }
+  label.fld { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+  input[type=number] { padding: 7px 9px; font-size: 13px; border: 1px solid var(--line); border-radius: 8px; width: 110px; }
+  .grow { margin-left: auto; }
+  .range { color: var(--muted); font-size: 12.5px; }
+  .ribbon { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+  .metric { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 13px 15px; }
+  .mL { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .mV { font-size: 22px; font-weight: 600; }
+  .mS { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .pos { color: var(--own); } .neg { color: var(--neg); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+  .card h2 { font-size: 13px; font-weight: 600; margin: 0 0 12px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th { text-align: left; font-size: 11px; color: var(--muted); font-weight: 600; padding: 7px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th.num, td.num { text-align: right; }
+  td { padding: 7px 8px; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+  tbody tr:hover { background: #fafbfc; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11px; color: var(--muted); }
+  .empty, .err { padding: 36px; text-align: center; color: var(--muted); }
+  .err { color: #b42318; }
+  .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a href="/dashboard.html" class="active">Dashboard</a>
+  <a href="/">Product Value</a>
+  <a href="/production.html">Production Margin</a>
+</nav>
+<header>
+  <h1>Owner's Dashboard</h1>
+  <div class="sub">Production margin across the period — gross profit trend, toll vs own, and who/what makes &amp; loses the most money. Built from the same real-sale numbers as the Production Margin tab.</div>
+</header>
+
+<div class="wrap">
+  <div class="bar">
+    <div class="seg">
+      <button data-days="7" type="button">7 days</button>
+      <button data-days="14" class="on" type="button">14 days</button>
+      <button data-days="30" type="button">30 days</button>
+    </div>
+    <label class="fld">Labor $/day <input id="labor" type="number" placeholder="0" /></label>
+    <span class="grow"></span>
+    <span class="range" id="range"></span>
+    <button id="refresh" class="seg" style="border-radius:8px;"><span style="padding:8px 14px;display:inline-block;">Refresh</span></button>
+  </div>
+
+  <div id="ribbon" class="ribbon"></div>
+
+  <div class="card">
+    <h2>Daily gross profit</h2>
+    <div id="chart"></div>
+  </div>
+
+  <div class="cols">
+    <div class="card"><h2>Top customers by gross profit</h2><div id="topCust"></div></div>
+    <div class="card"><h2>Top products by gross profit</h2><div id="topItem"></div></div>
+  </div>
+  <div class="cols" id="losers" style="display:none;">
+    <div class="card"><h2 style="color:var(--neg)">Customers losing money</h2><div id="botCust"></div></div>
+    <div class="card"><h2 style="color:var(--neg)">Products losing money</h2><div id="botItem"></div></div>
+  </div>
+
+  <div id="state" class="empty"><span class="spin"></span> Loading…</div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const fmt$ = (n) => '$' + Math.round(n || 0).toLocaleString();
+const fmtN = (n) => Math.round(n || 0).toLocaleString();
+const gpPct = (gp, rev) => (rev ? (Math.round((gp / rev) * 1000) / 10).toFixed(1) + '%' : '—');
+const sign = (n) => (n >= 0 ? 'pos' : 'neg');
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+let DATA = null;
+let days = 14;
+let labor = parseFloat(localStorage.getItem('cmp_labor') || '0') || 0;
+
+function renderRibbon() {
+  const t = DATA.totals;
+  const dayCount = DATA.dayCount || 0;
+  const periodLabor = labor * dayCount;
+  const net = (t.gp || 0) - periodLabor;
+  const avg = dayCount ? (t.gp || 0) / dayCount : 0;
+  $('ribbon').innerHTML = `
+    <div class="metric"><div class="mL">Gross revenue</div><div class="mV">${fmt$(t.rev)}</div><div class="mS">Toll ${fmt$(t.tollRev)} · Own ${fmt$(t.ownRev)}</div></div>
+    <div class="metric"><div class="mL">Raw material</div><div class="mV">${fmt$(t.ic)}</div><div class="mS">own product only</div></div>
+    <div class="metric"><div class="mL">Gross profit</div><div class="mV ${sign(t.gp)}">${fmt$(t.gp)}</div><div class="mS">GP% ${gpPct(t.gp, t.rev)}</div></div>
+    <div class="metric"><div class="mL">Avg GP / day</div><div class="mV ${sign(avg)}">${fmt$(avg)}</div><div class="mS">${dayCount} production days</div></div>
+    <div class="metric"><div class="mL">Lbs produced</div><div class="mV">${fmtN(t.lbs)}</div><div class="mS">finished goods</div></div>
+    <div class="metric"><div class="mL">Net after labor</div><div class="mV ${sign(net)}">${fmt$(net)}</div><div class="mS">less ${fmt$(periodLabor)} labor</div></div>`;
+}
+
+function renderChart() {
+  const daily = DATA.daily || [];
+  if (!daily.length) { $('chart').innerHTML = '<div class="empty">No data in this period.</div>'; return; }
+  const W = 880, H = 240, padL = 60, padR = 14, padT = 14, padB = 26;
+  const innerW = W - padL - padR, innerH = H - padT - padB;
+  const gps = daily.map(d => d.gp);
+  const maxV = Math.max(0, ...gps), minV = Math.min(0, ...gps);
+  const range = (maxV - minV) || 1;
+  const y0 = padT + (maxV / range) * innerH;
+  const bw = innerW / daily.length;
+  const barW = Math.max(2, Math.min(46, bw * 0.7));
+  let bars = '';
+  daily.forEach((d, i) => {
+    const x = padL + i * bw + (bw - barW) / 2;
+    const h = Math.abs(d.gp) / range * innerH;
+    const y = d.gp >= 0 ? y0 - h : y0;
+    const color = d.gp >= 0 ? 'var(--own)' : 'var(--neg)';
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(0, h).toFixed(1)}" fill="${color}" rx="2"><title>${d.date}: ${fmt$(d.gp)} GP · ${fmt$(d.rev)} rev</title></rect>`;
+  });
+  const yLab = (v) => { const y = padT + (maxV - v) / range * innerH; return `<text x="${padL - 8}" y="${(y + 3).toFixed(1)}" font-size="10" fill="var(--muted)" text-anchor="end">${fmt$(v)}</text>`; };
+  const idxs = [...new Set([0, Math.floor(daily.length / 2), daily.length - 1])];
+  const xLabs = idxs.map(i => { const x = padL + i * bw + bw / 2; return `<text x="${x.toFixed(1)}" y="${H - 6}" font-size="10" fill="var(--muted)" text-anchor="middle">${daily[i].date.slice(5)}</text>`; }).join('');
+  const zero = `<line x1="${padL}" y1="${y0.toFixed(1)}" x2="${W - padR}" y2="${y0.toFixed(1)}" stroke="var(--line)" stroke-width="1" />`;
+  $('chart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-height:260px">${zero}${bars}${yLab(maxV)}${minV < 0 ? yLab(minV) : ''}${xLabs}</svg>`;
+}
+
+function custTable(rows) {
+  if (!rows.length) return '<div class="empty">None.</div>';
+  return `<table><thead><tr><th>Customer</th><th class="num">Lbs</th><th class="num">Revenue</th><th class="num">GP $</th><th class="num">GP %</th></tr></thead><tbody>${rows.map(c => `<tr>
+    <td><b>${esc(c.customer)}</b></td><td class="num">${fmtN(c.lbs)}</td><td class="num">${fmt$(c.rev)}</td>
+    <td class="num ${sign(c.gp)}">${fmt$(c.gp)}</td><td class="num ${sign(c.gp)}">${gpPct(c.gp, c.rev)}</td></tr>`).join('')}</tbody></table>`;
+}
+function itemTable(rows) {
+  if (!rows.length) return '<div class="empty">None.</div>';
+  return `<table><thead><tr><th>Product</th><th class="num">Lbs</th><th class="num">Revenue</th><th class="num">GP $</th><th class="num">GP %</th></tr></thead><tbody>${rows.map(it => `<tr>
+    <td>${esc(it.description || it.item)}<div class="mono">${esc(it.item)}</div></td><td class="num">${fmtN(it.lbs)}</td><td class="num">${fmt$(it.rev)}</td>
+    <td class="num ${sign(it.gp)}">${fmt$(it.gp)}</td><td class="num ${sign(it.gp)}">${gpPct(it.gp, it.rev)}</td></tr>`).join('')}</tbody></table>`;
+}
+
+function render() {
+  if (!DATA) return;
+  $('range').textContent = DATA.from ? `${DATA.from} → ${DATA.to} · ${DATA.dayCount} days` : '';
+  $('labor').value = labor || '';
+  renderRibbon();
+  renderChart();
+  $('topCust').innerHTML = custTable(DATA.topCustomers || []);
+  $('topItem').innerHTML = itemTable(DATA.topItems || []);
+  const hasLosers = (DATA.bottomCustomers || []).length || (DATA.bottomItems || []).length;
+  $('losers').style.display = hasLosers ? '' : 'none';
+  if (hasLosers) {
+    $('botCust').innerHTML = custTable(DATA.bottomCustomers || []);
+    $('botItem').innerHTML = itemTable(DATA.bottomItems || []);
+  }
+}
+
+async function load() {
+  $('state').style.display = '';
+  $('state').className = 'empty';
+  $('state').innerHTML = '<span class="spin"></span> Crunching ' + days + ' days…';
+  try {
+    const res = await fetch('/api/dashboard?days=' + days);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    DATA = await res.json();
+    $('state').style.display = 'none';
+    render();
+  } catch (err) {
+    $('ribbon').innerHTML = ''; $('chart').innerHTML = '';
+    $('state').style.display = '';
+    $('state').className = 'err';
+    $('state').textContent = 'Could not load dashboard: ' + err.message;
+  }
+}
+
+document.querySelectorAll('.seg button[data-days]').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.seg button[data-days]').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    days = Number(b.dataset.days);
+    load();
+  };
+});
+$('labor').onchange = (e) => { labor = parseFloat(e.target.value) || 0; localStorage.setItem('cmp_labor', String(labor)); render(); };
+$('refresh').onclick = load;
+
+load();
+</script>
+</body>
+</html>

@@ -50,6 +50,19 @@ it's cached and warmed on boot, so page loads hit the cache, not the build.
   never substitutes a number that isn't an actual selling price. `$0` / internal
   zero-price lines are ignored.
 
+## Owner's Dashboard
+
+A period view (**7 / 14 / 30 days**) of production margin — the "how's the business
+doing" screen. KPI cards (revenue with toll/own split, raw material, gross profit + GP%,
+avg GP/day, lbs, net after labor), a daily **gross-profit bar chart**, and the **top &
+bottom customers and products** by GP for the period.
+
+It reads stored daily margin summaries (one row per production day in SQLite,
+`prod_summary`), written whenever a day is built and **backfilled for the last 30
+production days on boot** — so it loads instantly with real history (production margin is
+recomputable from Swarmbox, so there's nothing to wait for). Days whose Swarmbox fetch
+errors out are **excluded, not shown as a false $0**.
+
 ## Price store & daily refresh
 
 The built value table is persisted to a local **SQLite** file (`data/value.db`, via
@@ -161,6 +174,7 @@ pm2 save
 | `GET /api/production/overrides` | Manual Toll/Own classifications (`{ overrides: [{ code, mode, updatedAt }] }`). |
 | `POST /api/production/overrides` | Force an item Toll or Own (`{ code, mode }`, mode = `toll`\|`own`). |
 | `DELETE /api/production/overrides/:code` | Revert an item to automatic classification. |
+| `GET /api/dashboard?days=7\|14\|30` | Period margin rollup for the Owner's Dashboard: daily GP series, totals, top/bottom customers & products. |
 | `GET /api/discontinued` | The discontinued list (`{ rows: [{ code, description, addedAt }] }`). |
 | `POST /api/discontinued` | Discontinue one item (`{ code, description }`); drops it from the live cache immediately. |
 | `POST /api/discontinued/bulk-unsold` | Discontinue every item with no sale in either tier. |
