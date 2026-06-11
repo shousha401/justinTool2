@@ -112,14 +112,15 @@ the value table — the Production Margin tab still shows whatever was actually 
 A second tab (`/production.html`) reports **daily production margin** — for one
 production day, every finished-good line split into:
 
-- **Toll** — we processed a customer's own meat for a fee. Input cost is ≈ $0 (we
-  didn't buy the meat), so a line is toll when its batch's avg input cost is under
-  `$0.10/lb` *and* the batch isn't our own (`CMP`) production. Revenue = **toll rate
-  × lbs**, where the rate is pulled **live**: the item's most recent real CMP-tier
-  sale to an *external* customer (One World, Sugar Mountain, Gourmet, Diestel…) — the
-  fee actually billed to the meat's owner. Internal (JD Food / CMP) lines are excluded
-  so a transfer price can't masquerade as a toll fee. Items with no recent toll sale
-  fall back to the contract rate tables in `backend/tollRates.js`.
+- **Toll** — we processed a customer's own meat for a fee. A line is toll when it bills a
+  **toll-arrangement customer** (`…-TOLL`, Gourmet, Diestel) *or* its batch had ≈ $0
+  input cost **and the item has no ordinary sale** (a low-input batch that *does* have a
+  regular sale is treated as own, not toll). Revenue = **toll rate × lbs**, resolved
+  **live → manual → contract → sale price**: the most recent toll-customer sale; else a
+  hand-typed rate; else the contract table in `backend/tollRates.js`; else the item's
+  actual sale price (labeled "no toll rate") so the line is never a phantom $0 and a
+  Toll/Own flip never blanks. Only items with *no* sale anywhere and no production value
+  stay $0.
 - **Own** — we own the meat. Revenue = the item's **most recent actual sale price**
   (CMP-tier, from `sales_order_lines`, same source as the Product Value tab) × lbs,
   falling back to the production module's sell value only when there's no recent sale;
@@ -134,10 +135,11 @@ browser) = **net contribution**. Results roll up by **production room** and by
 
 All of it comes live from Swarmbox (`production_output_cost` for the day's lines,
 `sales_order_lines` for each toll item's latest billed rate) — one quick set of calls,
-no minutes-long sweep. A toll line's rate is resolved **live → manual → contract**: the
-most recent real sale to a toll account (`…-TOLL`, Gourmet, Diestel) wins; failing that,
-a **manual rate** you typed in; failing that, the contract table in `tollRates.js`. A
-small note shows the live/manual/contract/no-rate split.
+no minutes-long sweep. A toll line's rate is resolved **live → manual → contract → sale price**: the most recent
+sale to a toll account (`…-TOLL`, Gourmet, Diestel) wins; then a **manual rate** you typed
+in; then the contract table in `tollRates.js`; then the item's actual sale price (so the
+line never shows a false $0 and a Toll/Own flip keeps a number). A small note shows the
+live/manual/contract/sale-price/no-rate split.
 
 The rare item with no rate at all shows $0 and is flagged — in **Batch Detail** those
 lines have an inline **$/lb box**: type a rate and it's saved (`data/toll-rates.json`,

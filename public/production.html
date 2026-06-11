@@ -73,6 +73,7 @@
   .dim { color: var(--muted); font-size: 10.5px; }
   .src-contract { color: #8a5a00; font-size: 10.5px; }
   .src-manual { color: var(--toll); font-size: 10.5px; }
+  .src-sale { color: #6b4ea8; font-size: 10.5px; }
   .src-none { color: var(--neg); font-size: 10.5px; }
   input.rateEdit { width: 62px; padding: 3px 6px; font-size: 12px; border: 1px solid var(--neg); border-radius: 6px; text-align: right; background: var(--card); color: var(--ink); }
   input.rateEdit:focus { border-color: var(--accent); outline: none; }
@@ -211,11 +212,11 @@ function renderDetail() {
       <option value="own" ${r.override === 'own' ? 'selected' : ''}>Own</option>
     </select></td>
     <td class="num">${fmtN(r.cs)}</td><td class="num">${fmtN(r.lbs)}</td>
-    <td class="num">${(r.priceBasis === 'none' || r.priceBasis === 'manual')
-      ? `<input class="rateEdit${r.priceBasis === 'manual' ? ' set' : ''}" type="number" step="0.01" min="0" data-code="${esc(r.item)}" value="${r.priceBasis === 'manual' && r.rate != null ? r.rate : ''}" placeholder="$/lb" title="Type a $/lb toll rate (blank to clear)" />`
+    <td class="num">${(r.priceBasis === 'none' || r.priceBasis === 'manual' || r.priceBasis === 'sale')
+      ? `<input class="rateEdit${r.priceBasis === 'manual' ? ' set' : ''}" type="number" step="0.01" min="0" data-code="${esc(r.item)}" value="${r.priceBasis === 'manual' && r.rate != null ? r.rate : ''}" placeholder="${r.priceBasis === 'sale' && r.rate != null ? '$' + r.rate.toFixed(2) : '$/lb'}" title="Type a $/lb toll rate (blank to clear)" />`
       : (r.rate != null ? '$' + r.rate.toFixed(2) : '—')}</td>
     <td class="num">${fmt$(r.revenue)}</td>
-    <td class="num ${r.priceBasis === 'contract' ? 'src-contract' : r.priceBasis === 'manual' ? 'src-manual' : r.priceBasis === 'none' ? 'src-none' : 'dim'}">${r.missingRate ? '⚠ no rate' : esc(r.source || '')}</td>
+    <td class="num ${r.priceBasis === 'contract' ? 'src-contract' : r.priceBasis === 'manual' ? 'src-manual' : r.priceBasis === 'sale' ? 'src-sale' : r.priceBasis === 'none' ? 'src-none' : 'dim'}">${r.missingRate ? '⚠ no rate' : esc(r.source || '')}</td>
     <td class="num">${r.isToll ? '—' : fmt$(r.inputCost)}</td>
     <td class="num ${sign(r.gp)}">${fmt$(r.gp)}</td>
     <td class="num ${sign(r.gp)}">${gpPct(r.gp, r.revenue)}</td>
@@ -241,7 +242,7 @@ function render() {
   }
   const tp = REPORT.tollPricing || { live: 0, manual: 0, contract: 0, missing: 0 };
   const op = REPORT.ownPricing || { sale: 0, standard: 0 };
-  $('tollnote').innerHTML = `Toll rates — ${tp.live} live · ${tp.manual || 0} manual · ${tp.contract} contract · ${tp.missing} no rate`
+  $('tollnote').innerHTML = `Toll rates — ${tp.live} live · ${tp.manual || 0} manual · ${tp.contract} contract · ${tp.sale || 0} sale-price · ${tp.missing} no rate`
     + ` &nbsp;|&nbsp; Own revenue — ${op.sale} from actual sales · ${op.standard} from production value`;
   renderRibbon();
   if (view === 'summary') renderSummary(); else renderDetail();

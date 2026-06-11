@@ -150,7 +150,7 @@ function classify(lines) {
 // livePrices: Map<item, { price, lastSoldDate, customer }> — most recent CMP-tier
 // toll sale within the lookback window.
 function buildReport(date, base, itemLbs, yieldByBatch, sales) {
-  const counts = { live: 0, manual: 0, contract: 0, missing: 0 };
+  const counts = { live: 0, manual: 0, contract: 0, sale: 0, missing: 0 };
   const ownCounts = { sale: 0, standard: 0 };
 
   const rows = base.map(({ r, cs, lbs, sellVal, inputCostRaw, customer, isToll, autoToll, override }) => {
@@ -175,12 +175,21 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
         counts.manual++;
       } else {
         const { rate: rt } = tollRate(r.item, itemLbs.get(r.item) || lbs);
+        const sale = rec && rec.any;
         if (rt != null) {
           rate = rt;
           revenue = rt * lbs;
           source = `contract $${rt.toFixed(2)}/lb (no live sale)`;
           priceBasis = 'contract';
           counts.contract++;
+        } else if (sale && sale.price > 0) {
+          // No toll fee on file, but the item has a real sale — use it so the line
+          // isn't a phantom $0 (and a Toll/Own flip always keeps a number).
+          rate = sale.price;
+          revenue = rate * lbs;
+          source = `sale $${rate.toFixed(2)}/lb · ${shortCust(sale.customer)} (no toll rate)`;
+          priceBasis = 'sale';
+          counts.sale++;
         } else {
           rate = null; revenue = 0; source = null; missingRate = true; priceBasis = 'none';
           counts.missing++;
@@ -288,7 +297,12 @@ async function getProductionReport({ date, force = false } = {}) {
   // (so the UI can show "Auto (Toll/Own)").
   for (const b of base) {
     const rec = sales.get(b.r.item);
-    const auto = b.customer !== 'CMP' && (b.lowInputCost || !!(rec && rec.toll));
+    const hasToll = !!(rec && rec.toll);
+    const hasSale = !!(rec && rec.any);
+    // Low input cost flags a likely toll job — but only when the item has no
+    // ordinary sale. If there's a real CMP sale (to a non-toll customer), it's an
+    // own product that merely recorded ~$0 input this batch, not a toll job.
+    const auto = b.customer !== 'CMP' && (hasToll || (b.lowInputCost && !hasSale));
     const ov = classOverrides.getMode(b.r.item);
     b.autoToll = auto;
     b.override = ov || null;
