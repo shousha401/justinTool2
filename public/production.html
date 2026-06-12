@@ -236,14 +236,14 @@ function render() {
     $('warn').innerHTML = `⚠ Swarmbox returned an error for this day, so its numbers couldn't be loaded (this happens intermittently on certain days). Try <b>Refresh</b>, or pick another day.`;
   } else if (m.length) {
     $('warn').style.display = '';
-    $('warn').innerHTML = `⚠ No toll rate for ${m.length} SKU(s): ${m.slice(0, 6).map(esc).join(', ')}${m.length > 6 ? ` +${m.length - 6} more` : ''}. They show $0 — type a $/lb rate in the box on those lines in <b>Batch Detail</b> (a real sale, if one appears later, takes over automatically).`;
+    $('warn').innerHTML = `⚠ No price for ${m.length} item(s): ${m.slice(0, 6).map(esc).join(', ')}${m.length > 6 ? ` +${m.length - 6} more` : ''}. They show $0 — type a $/lb price in the box on those lines in <b>Batch Detail</b>; it's saved and used until a real sale appears.`;
   } else {
     $('warn').style.display = 'none';
   }
   const tp = REPORT.tollPricing || { live: 0, manual: 0, contract: 0, missing: 0 };
   const op = REPORT.ownPricing || { sale: 0, standard: 0 };
   $('tollnote').innerHTML = `Toll rates — ${tp.live} live · ${tp.manual || 0} manual · ${tp.contract} contract · ${tp.sale || 0} sale-price · ${tp.missing} no rate`
-    + ` &nbsp;|&nbsp; Own revenue — ${op.sale} from actual sales · ${op.standard} from production value`;
+    + ` &nbsp;|&nbsp; Own revenue — ${op.sale} from actual sales · ${op.manual || 0} manual · ${op.standard} from production value${op.none ? ` · ${op.none} no price` : ''}`;
   renderRibbon();
   if (view === 'summary') renderSummary(); else renderDetail();
 }

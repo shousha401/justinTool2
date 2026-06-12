@@ -151,7 +151,7 @@ function classify(lines) {
 // toll sale within the lookback window.
 function buildReport(date, base, itemLbs, yieldByBatch, sales) {
   const counts = { live: 0, manual: 0, contract: 0, sale: 0, missing: 0 };
-  const ownCounts = { sale: 0, standard: 0 };
+  const ownCounts = { sale: 0, manual: 0, standard: 0, none: 0 };
 
   const rows = base.map(({ r, cs, lbs, sellVal, inputCostRaw, customer, isToll, autoToll, override }) => {
     let revenue, inputCost, rate, source, missingRate = false, priceBasis;
@@ -198,6 +198,7 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
     } else {
       inputCost = inputCostRaw;
       const sale = rec && rec.any;
+      const manual = manualRates.getRate(r.item);
       if (sale && sale.price > 0) {
         // Real revenue = the price CMP last actually billed for this item.
         rate = sale.price;
@@ -205,13 +206,24 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
         source = `sale $${rate.toFixed(2)}/lb · ${shortCust(sale.customer)} ${sale.lastSoldDate || ''}`.trim();
         priceBasis = 'own';
         ownCounts.sale++;
-      } else {
-        // No recent sale — fall back to the production module's sell value.
+      } else if (manual != null && manual > 0) {
+        // A hand-entered price fills the gap until a real sale appears.
+        rate = manual;
+        revenue = manual * lbs;
+        source = `manual $${manual.toFixed(2)}/lb`;
+        priceBasis = 'manual';
+        ownCounts.manual++;
+      } else if (sellVal > 0) {
+        // No sale or manual — fall back to the production module's sell value.
         revenue = sellVal;
         rate = lbs ? revenue / lbs : null;
         source = 'production value';
         priceBasis = 'own';
         ownCounts.standard++;
+      } else {
+        // Nothing anywhere — show $0 with an editable box (saved, used until a sale appears).
+        rate = null; revenue = 0; source = null; missingRate = true; priceBasis = 'none';
+        ownCounts.none++;
       }
     }
     const gp = revenue - inputCost;
