@@ -50,26 +50,51 @@ function tollRate(item, dayLbs) {
   return { rate: null, source: null };
 }
 
-// Infer the toll/own customer from a batch's free-text notes. "CMP" means our
-// own in-house production (we own the meat) — anything else is a named external
-// customer whose meat we may be tolling.
-function parseCustomer(notes) {
-  const n = (notes || '').toUpperCase();
-  if (n.includes('TURKEY') || n.includes('WFM 365')) return 'Diestel';
-  if (n.includes('MISHIMA') || n.includes('MRCC') || n.includes('CROWD COW')) return 'Mishima';
-  if (n.includes('SUPER DUPER')) return 'Super Duper';
-  if (n.includes('AJINOMOTO')) return 'Ajinomoto';
-  if (n.includes('BRANDT')) return 'Brandt';
-  if (n.includes('GOURMET')) return 'Gourmet';
-  if (n.includes('JMC')) return 'JMC';
-  if (n.includes('GFF')) return 'GFF';
-  if (n.includes('WFM')) return 'WFM';
-  if (n.includes('HR ') || n.startsWith('HR')) return 'Harris Ranch';
-  if (n.includes('DD ')) return 'Dash & Dine';
-  if (n.includes('MCI')) return 'MCI';
-  if (n.includes('FML')) return 'FML';
-  if (n.includes('JD ') || n.includes('BIRITE') || n.includes('WAGYU BLEND') || n.includes('CHUCK BLEND')) return 'JD Food';
-  return 'CMP'; // beef/chicken/pork cutting and anything unmatched = our own production
+// Infer the customer from a line. There is NO real customer called "CMP" — it's
+// the production company, and a line with no other signal is JD Food's own
+// in-house production (beef/pork/chicken cutting), so it rolls up under "JD Food".
+//
+// The real customer is encoded in two places: the batch's free-text NOTES
+// ("MISHIMA…", "Eel River 93/7", "MARIPOSA PORTION CUTTING") and, when the notes
+// are just a generic cut name ("BEEF", "RIBEYE"), the product DESCRIPTION
+// ("GFF ROAST BEEF…", "BNLS BF 80 U CMP"). A "CMP" token in the description is
+// JD Food's own-brand naming → JD Food. We read notes first (most authoritative —
+// the batch was run for that customer), then the description.
+//
+// Short/ambiguous tokens (JD, DD, HR, MCI…) are only trusted inside batch notes,
+// never in a product description where they could appear by coincidence.
+function matchByText(text, allowShort) {
+  const t = (text || '').toUpperCase();
+  if (!t) return null;
+  // Distinctive, full-word names — safe to match in notes OR description.
+  if (t.includes('TURKEY') || t.includes('WFM 365') || t.includes('DIESTEL')) return 'Diestel';
+  if (t.includes('MISHIMA') || t.includes('MRCC') || t.includes('CROWD COW')) return 'Mishima';
+  if (t.includes('SUPER DUPER')) return 'Super Duper';
+  if (t.includes('AJINOMOTO')) return 'Ajinomoto';
+  if (t.includes('BRANDT')) return 'Brandt';
+  if (t.includes('GOURMET')) return 'Gourmet';
+  if (t.includes('EEL RIVER')) return 'Eel River';
+  if (t.includes('MARIPOSA')) return 'Mariposa';
+  if (t.includes('HEWITT')) return 'Hewitt';
+  if (t.includes('MIAMI')) return 'Miami';
+  if (t.includes('GFF')) return 'GFF';
+  // Short/ambiguous tokens — trust only in batch notes.
+  if (allowShort) {
+    if (t.includes('JMC')) return 'JMC';
+    if (t.includes('WFM')) return 'WFM';
+    if (t.includes('HR ') || t.startsWith('HR')) return 'Harris Ranch';
+    if (t.includes('DD ')) return 'Dash & Dine';
+    if (t.includes('MCI')) return 'MCI';
+    if (t.includes('FML')) return 'FML';
+    if (t.includes('JD ') || t.includes('BIRITE') || t.includes('WAGYU BLEND') || t.includes('CHUCK BLEND')) return 'JD Food';
+  }
+  // A standalone "CMP" token (product naming) = JD Food's own brand.
+  if (/(^|[^A-Z])CMP([^A-Z]|$)/.test(t)) return 'JD Food';
+  return null;
+}
+
+function parseCustomer(notes, description) {
+  return matchByText(notes, true) || matchByText(description, false) || 'JD Food';
 }
 
 // Short room labels for the rollup (raw Swarmbox value → display).
@@ -79,4 +104,13 @@ const ROOM_LABEL = {
   'R.R.TE.000': 'RTE',
 };
 
-module.exports = { tollRate, parseCustomer, ROOM_LABEL };
+// Every customer parseCustomer can produce — the canonical list the "transfer
+// item to another customer" dropdown is built from. "JD Food" is our own
+// in-house production (there is no real "CMP" customer).
+const KNOWN_CUSTOMERS = [
+  'JD Food', 'Diestel', 'Mishima', 'Gourmet', 'Brandt', 'Ajinomoto', 'Super Duper',
+  'Eel River', 'Mariposa', 'Hewitt', 'Miami', 'GFF', 'JMC', 'WFM',
+  'Harris Ranch', 'Dash & Dine', 'MCI', 'FML',
+];
+
+module.exports = { tollRate, parseCustomer, ROOM_LABEL, KNOWN_CUSTOMERS };

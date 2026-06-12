@@ -152,6 +152,36 @@ decided, e.g. "Auto (Own)"), or pick Toll/Own to force an item either way. Overr
 are per-item, saved to `data/class-overrides.json` (gitignored), and the report
 recomputes on change. This is how you settle items the rule can't (e.g. JD Food).
 
+**Customer is overridable too — "transfer" an item.** A line's customer is inferred
+from the batch **notes** first, then the product **description** (`backend/tollRates.js`
+`parseCustomer`) — so named accounts (Mishima, Eel River, Mariposa, Miami, Hewitt, GFF…)
+are recognized wherever they're written, and a `CMP` token in a description is JD Food's
+own brand. There is **no real "CMP" customer** — anything unidentified is JD Food's own
+in-house production. When the guess is still wrong, the **Customer** column in Batch
+Detail is a dropdown: pick a customer to **transfer that item** there. Transfers are
+per-item, saved to `data/customer-overrides.json` (gitignored), and flow everywhere —
+the report, the stored daily summaries, the Owner's Dashboard, and the Customers tab
+(they all roll up on one `customer` field).
+
+## Prices Today tab
+
+A second pricing view (`/prices.html`) listing **every item produced that day and the
+$/lb the report is using for it**, with where that number came from (live toll sale,
+real own sale, contract, manual, production value…). Two corrections live here:
+
+- **Forced price.** If Swarmbox is pulling the **wrong** number, type the correct
+  `$/lb`. Unlike a manual rate (a fallback that loses to a real sale), a forced price
+  **wins over everything** — live, own, sale, contract, standard — until you clear it.
+- **⚑ Wrong-source flag.** Flag a line as "pulling from the wrong area." Flagging
+  snapshots **what it was pulling** (basis + source) and an optional note, so the line
+  shows up under **Needs review** until you track down the correct Swarmbox source and
+  clear it. The flag is independent of the forced price — flag without a number when you
+  know it's wrong but don't yet have the right value.
+
+Forced prices and flags are per-item, saved to `data/price-overrides.json` (gitignored).
+Changing any override (price, class, customer) rebuilds the recent daily summaries in the
+background, so the Dashboard and Customers tab catch up without a manual refresh.
+
 ## Run
 
 ```bash
@@ -185,6 +215,13 @@ pm2 save
 | `GET /api/production/overrides` | Manual Toll/Own classifications (`{ overrides: [{ code, mode, updatedAt }] }`). |
 | `POST /api/production/overrides` | Force an item Toll or Own (`{ code, mode }`, mode = `toll`\|`own`). |
 | `DELETE /api/production/overrides/:code` | Revert an item to automatic classification. |
+| `GET /api/production/customer-overrides` | Manual item→customer transfers (`{ overrides: [{ code, customer, updatedAt }] }`). |
+| `POST /api/production/customer-overrides` | Transfer an item to a customer (`{ code, customer }`). |
+| `DELETE /api/production/customer-overrides/:code` | Revert an item to its auto-detected customer. |
+| `GET /api/production/known-customers` | Canonical customer list for the transfer dropdown. |
+| `GET /api/production/price-overrides` | Forced prices / flagged lines (`{ overrides: [{ code, rate, flagged, wrongBasis, wrongSource, note, updatedAt }] }`). |
+| `POST /api/production/price-overrides` | Set a forced price and/or flag a line (`{ code, rate?, flagged?, wrongBasis?, wrongSource?, note? }`; only fields sent are changed). |
+| `DELETE /api/production/price-overrides/:code` | Clear a forced price + flag. |
 | `GET /api/dashboard?days=7\|14\|30` | Period margin rollup for the Owner's Dashboard: daily GP series, totals, top/bottom customers & products. |
 | `GET /api/customers?days=7\|14\|30` | Customer scorecard: every customer ranked by GP with toll/own split, trend vs the prior period, and per-customer products + daily series. |
 | `GET /api/discontinued` | The discontinued list (`{ rows: [{ code, description, addedAt }] }`). |

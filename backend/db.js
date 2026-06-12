@@ -145,7 +145,7 @@ function saveProdSummary(s) {
   upsertProd.run(
     s.date, s.builtAt || null, t.gp || 0, t.rev || 0, t.tollRev || 0, t.ownRev || 0,
     t.lbs || 0, t.cs || 0, t.ic || 0, s.lines || 0,
-    JSON.stringify({ v: s.v || 1, customers: s.customers || [] }),
+    JSON.stringify({ v: s.v || 1, ov: s.ov || null, customers: s.customers || [] }),
   );
 }
 
@@ -154,7 +154,7 @@ function loadProdSummaries(fromDate, toDate) {
     .map((r) => {
       let p = {}; try { p = JSON.parse(r.payload || '{}'); } catch (e) { /* ignore */ }
       return {
-        date: r.date, builtAt: r.built_at, v: p.v || 1,
+        date: r.date, builtAt: r.built_at, v: p.v || 1, ov: p.ov || null,
         gp: r.gp, rev: r.rev, tollRev: r.toll_rev, ownRev: r.own_rev,
         lbs: r.lbs, cs: r.cs, ic: r.ic, lines: r.lines,
         customers: p.customers || [], items: p.items || [], // items: legacy v1 only

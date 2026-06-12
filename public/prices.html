@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Prices Today — what each item is pulling</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --ink: #1c2430; --muted: #75808f;
+    --line: #e6e9ee; --accent: #1f6feb; --accent-d: #1a5fd0;
+    --toll: #1f6feb; --own: #0a7d33; --pos: #1D9E75; --neg: #D85A30;
+    --warnbg: #fff7e6; --warnbd: #ffe1a6; --warnink: #8a5a00; --secbg: #f1f3f6;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+  .topnav { display: flex; gap: 4px; padding: 10px 24px 0; border-bottom: 1px solid var(--line); background: var(--card); flex-wrap: wrap; }
+  .topnav a { text-decoration: none; color: var(--muted); font-size: 13px; font-weight: 600; padding: 9px 14px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .topnav a:hover { color: var(--ink); }
+  .topnav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+  header { padding: 22px 24px 14px; }
+  h1 { margin: 0 0 4px; font-size: 20px; }
+  .sub { color: var(--muted); font-size: 13px; max-width: 880px; }
+  .sub b.toll { color: var(--toll); } .sub b.own { color: var(--own); }
+  .wrap { padding: 0 24px 40px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 14px 0; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+  select, input[type=number], input[type=text] { padding: 8px 11px; font-size: 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
+  select { cursor: pointer; } select:focus, input:focus { border-color: var(--accent); outline: none; }
+  button, a.btn { appearance: none; cursor: pointer; text-decoration: none; border: 1px solid var(--line); background: var(--card); color: var(--ink); padding: 8px 13px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover { background: var(--accent-d); }
+  button:disabled { opacity: .55; cursor: default; }
+  label.fld { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+  label.chk { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); font-size: 13px; cursor: pointer; user-select: none; }
+  .grow { margin-left: auto; }
+  #note { font-size: 12px; color: var(--muted); margin: -2px 0 12px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+  .card h2 { font-size: 13px; font-weight: 600; margin: 0 0 12px; }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th { text-align: left; font-size: 11px; color: var(--muted); font-weight: 600; padding: 7px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th.num, td.num { text-align: right; }
+  td { padding: 7px 8px; border-bottom: 1px solid var(--line); font-size: 12px; vertical-align: top; }
+  tbody tr:hover { background: #fafbfc; }
+  tr.flagged { background: var(--warnbg); }
+  tr.flagged:hover { background: #fff2d6; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  .dim { color: var(--muted); font-size: 10.5px; }
+  .was { color: var(--warnink); font-size: 10.5px; margin-top: 3px; }
+  .badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 999px; font-weight: 600; }
+  .badge.toll { background: #e7f0fe; color: var(--toll); } .badge.own { background: #e6f6ec; color: var(--own); }
+  .src-forced { color: var(--own); font-weight: 600; font-size: 10.5px; }
+  .src-live { color: var(--toll); font-size: 10.5px; } .src-own { color: var(--own); font-size: 10.5px; }
+  .src-contract { color: #8a5a00; font-size: 10.5px; } .src-manual { color: var(--toll); font-size: 10.5px; }
+  .src-sale { color: #6b4ea8; font-size: 10.5px; } .src-none { color: var(--neg); font-size: 10.5px; } .src-standard { color: var(--muted); font-size: 10.5px; }
+  input.forceEdit { width: 70px; padding: 3px 6px; font-size: 12px; border: 1px solid var(--line); border-radius: 6px; text-align: right; background: var(--card); color: var(--ink); }
+  input.forceEdit:focus { border-color: var(--accent); outline: none; }
+  input.forceEdit.set { border-color: var(--own); font-weight: 600; }
+  input.noteEdit { width: 130px; padding: 3px 6px; font-size: 11.5px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--ink); }
+  button.flagBtn { padding: 3px 8px; font-size: 13px; line-height: 1; border-radius: 6px; }
+  button.flagBtn.on { background: var(--warnbg); border-color: var(--warnbd); color: var(--warnink); }
+  .warn { background: var(--warnbg); border: 1px solid var(--warnbd); color: var(--warnink); border-radius: 10px; padding: 10px 14px; font-size: 12.5px; margin: 14px 0; }
+  .empty, .err { padding: 40px; text-align: center; color: var(--muted); }
+  .err { color: #b42318; }
+  .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a href="/dashboard.html">Dashboard</a>
+  <a href="/customers.html">Customers</a>
+  <a href="/">Product Value</a>
+  <a href="/production.html">Production Margin</a>
+  <a href="/prices.html" class="active">Prices Today</a>
+</nav>
+<header>
+  <h1>Prices Today</h1>
+  <div class="sub">
+    Every item produced this day and the <b>$/lb the report is using</b> for it, with where that number came
+    from (live toll sale, real own sale, contract, etc.). If Swarmbox is pulling the <b>wrong</b> number, type
+    the <b class="own">correct $/lb</b> — it overrides everything and is used until you clear it — and
+    <b class="toll">⚑ flag</b> the line so it shows up under <b>Needs review</b> until the real source is fixed.
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="bar">
+    <label class="fld">Day <select id="date"></select></label>
+    <label class="chk"><input type="checkbox" id="reviewOnly" /> Needs review only</label>
+    <span class="grow"></span>
+    <button id="refresh" class="primary" type="button">Refresh</button>
+  </div>
+
+  <div id="warn" class="warn" style="display:none;"></div>
+  <div id="note"></div>
+  <div id="content"></div>
+  <div id="state" class="empty"><span class="spin"></span> Loading…</div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const fmt$ = (n) => '$' + Math.round(n || 0).toLocaleString();
+const fmtN = (n) => Math.round(n || 0).toLocaleString();
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+let REPORT = null, ITEMS = [], reviewOnly = false;
+
+// One row per item: pricing is keyed by item, so all of an item's lines share
+// the rate/basis/override. Sum the volume; effective $/lb = revenue / lbs.
+function dedupe(rows) {
+  const m = new Map();
+  for (const r of rows) {
+    let it = m.get(r.item);
+    if (!it) {
+      it = {
+        item: r.item, description: r.description, custs: new Set(), isToll: r.isToll,
+        lbs: 0, revenue: 0, priceBasis: r.priceBasis, source: r.source, missingRate: r.missingRate,
+        forced: r.forced, flagged: r.flagged, wrongSource: r.wrongSource, forcedNote: r.forcedNote, rate: r.rate,
+      };
+      m.set(r.item, it);
+    }
+    it.lbs += r.lbs || 0; it.revenue += r.revenue || 0; it.custs.add(r.customer);
+  }
+  return [...m.values()].map(it => ({
+    ...it,
+    customer: [...it.custs].join(', '),
+    effRate: it.lbs ? it.revenue / it.lbs : it.rate,
+  })).sort((a, b) => (a.flagged === b.flagged ? b.revenue - a.revenue : (a.flagged ? -1 : 1)));
+}
+
+const BASIS_LABEL = { forced: 'forced ⚑', live: 'live toll sale', own: 'own sale', sale: 'sale (no toll rate)', contract: 'contract', manual: 'manual', standard: 'production value', none: 'no price' };
+const basisClass = (b) => 'src-' + (b || 'standard');
+
+function renderNote() {
+  const tot = ITEMS.length;
+  const flagged = ITEMS.filter(i => i.flagged).length;
+  const forced = ITEMS.filter(i => i.forced).length;
+  $('note').innerHTML = `${tot} item${tot === 1 ? '' : 's'} priced today · `
+    + `<b style="color:var(--own)">${forced}</b> corrected · `
+    + `<b style="color:var(--warnink)">${flagged}</b> flagged for review`;
+}
+
+function render() {
+  if (!REPORT) return;
+  renderNote();
+  let rows = ITEMS;
+  if (reviewOnly) rows = rows.filter(i => i.flagged || i.forced);
+  if (REPORT.unavailable) {
+    $('warn').style.display = '';
+    $('warn').innerHTML = `⚠ Swarmbox returned an error for this day, so prices couldn't be loaded. Try <b>Refresh</b> or pick another day.`;
+  } else { $('warn').style.display = 'none'; }
+
+  const head = `<th>Customer</th><th>Item / description</th><th class="num">Type</th><th class="num">Lbs</th>
+    <th class="num">$/lb used</th><th>Source</th><th class="num">Correct $/lb</th><th class="num">Flag</th><th>Note</th>`;
+  const body = rows.map(it => {
+    const wasLine = (it.flagged && it.wrongSource)
+      ? `<div class="was">⚑ was pulling: ${esc(it.wrongSource)}</div>` : '';
+    return `<tr class="${it.flagged ? 'flagged' : ''}">
+      <td><b>${esc(it.customer)}</b></td>
+      <td>${esc(it.description)}<div class="dim mono">${esc(it.item)}</div></td>
+      <td class="num"><span class="badge ${it.isToll ? 'toll' : 'own'}">${it.isToll ? 'Toll' : 'Own'}</span></td>
+      <td class="num">${fmtN(it.lbs)}</td>
+      <td class="num">${it.effRate != null ? '$' + it.effRate.toFixed(2) : '—'}</td>
+      <td class="${basisClass(it.priceBasis)}">${it.missingRate ? '⚠ no price' : esc(BASIS_LABEL[it.priceBasis] || it.priceBasis || '')}${wasLine}</td>
+      <td class="num"><input class="forceEdit${it.forced ? ' set' : ''}" type="number" step="0.01" min="0" data-code="${esc(it.item)}"
+        value="${it.forced && it.rate != null ? it.rate : ''}" placeholder="${it.effRate != null ? '$' + it.effRate.toFixed(2) : '$/lb'}"
+        title="Type the correct $/lb (overrides Swarmbox); blank to clear" /></td>
+      <td class="num"><button class="flagBtn${it.flagged ? ' on' : ''}" data-code="${esc(it.item)}"
+        data-basis="${esc(it.priceBasis || '')}" data-source="${esc(it.source || (it.missingRate ? 'no price' : ''))}"
+        title="Flag this line as pulling from the wrong source">⚑</button></td>
+      <td><input class="noteEdit" type="text" data-code="${esc(it.item)}" value="${esc(it.forcedNote || '')}" placeholder="why / where to look" /></td>
+    </tr>`;
+  }).join('');
+  $('content').innerHTML = `<div class="card"><h2>Prices used — ${REPORT.date} · ${rows.length} item${rows.length === 1 ? '' : 's'}${reviewOnly ? ' (needs review)' : ''}</h2>
+    <div class="scroll"><table><thead><tr>${head}</tr></thead><tbody>${body || '<tr><td colspan="9" class="dim" style="padding:18px;text-align:center">Nothing to review.</td></tr>'}</tbody></table></div></div>`;
+}
+
+async function loadDates() {
+  const res = await fetch('/api/production/dates');
+  const data = await res.json();
+  const dates = data.dates || [];
+  $('date').innerHTML = dates.map(d => `<option value="${d.date}">${d.date} (${d.batches} batches)</option>`).join('');
+  return dates.length ? dates[0].date : '';
+}
+
+async function load(date, refresh) {
+  $('state').style.display = ''; $('state').className = 'empty';
+  $('state').innerHTML = '<span class="spin"></span> ' + (refresh ? 'Refreshing from Swarmbox…' : 'Loading…');
+  $('refresh').disabled = true;
+  try {
+    const qs = new URLSearchParams();
+    if (date) qs.set('date', date);
+    if (refresh) qs.set('refresh', '1');
+    const res = await fetch('/api/production?' + qs.toString());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    REPORT = await res.json();
+    ITEMS = dedupe(REPORT.rows || []);
+    $('state').style.display = 'none';
+    render();
+  } catch (err) {
+    $('content').innerHTML = ''; $('note').innerHTML = '';
+    $('state').style.display = ''; $('state').className = 'err';
+    $('state').textContent = 'Could not load prices: ' + err.message;
+  } finally {
+    $('refresh').disabled = false;
+  }
+}
+
+// POST a partial change to an item's price override, then reload the day.
+async function postOverride(code, patch, el) {
+  if (el) el.disabled = true;
+  try {
+    await fetch('/api/production/price-overrides', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, ...patch }),
+    });
+    await load($('date').value, false);
+  } catch (err) {
+    alert('Could not save: ' + err.message);
+    if (el) el.disabled = false;
+  }
+}
+
+function commitForce(inp) {
+  if (inp.dataset.busy) return;
+  const val = inp.value.trim();
+  const rate = parseFloat(val);
+  if (val !== '' && !(rate > 0)) { inp.focus(); return; }
+  inp.dataset.busy = '1';
+  postOverride(inp.dataset.code, { rate: val === '' ? '' : rate }, inp);
+}
+function toggleFlag(btn) {
+  const on = btn.classList.contains('on');
+  const patch = on
+    ? { flagged: false }
+    : { flagged: true, wrongBasis: btn.dataset.basis, wrongSource: btn.dataset.source };
+  postOverride(btn.dataset.code, patch, btn);
+}
+function commitNote(inp) {
+  if (inp.dataset.busy) return;
+  inp.dataset.busy = '1';
+  postOverride(inp.dataset.code, { note: inp.value.trim() }, inp);
+}
+
+$('date').onchange = (e) => load(e.target.value, false);
+$('refresh').onclick = () => load($('date').value, true);
+$('reviewOnly').onchange = (e) => { reviewOnly = e.target.checked; render(); };
+
+$('content').addEventListener('change', (e) => {
+  const f = e.target.closest('input.forceEdit'); if (f) { commitForce(f); return; }
+  const n = e.target.closest('input.noteEdit'); if (n) { commitNote(n); return; }
+});
+$('content').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.target.closest('input.forceEdit') || e.target.closest('input.noteEdit'))) e.target.blur();
+});
+$('content').addEventListener('click', (e) => {
+  const b = e.target.closest('button.flagBtn'); if (b) toggleFlag(b);
+});
+
+(async () => {
+  try {
+    const recent = await loadDates();
+    await load(recent, false);
+  } catch (err) {
+    $('state').className = 'err';
+    $('state').textContent = 'Could not load production dates: ' + err.message;
+  }
+})();
+</script>
+</body>
+</html>

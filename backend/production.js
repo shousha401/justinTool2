@@ -23,11 +23,13 @@ const { postRpc } = require('./swarmbox');
 const { tollRate, parseCustomer, ROOM_LABEL } = require('./tollRates');
 const manualRates = require('./manualRates');
 const classOverrides = require('./classOverrides');
+const customerOverrides = require('./customerOverrides');
+const priceOverrides = require('./priceOverrides');
 const dbStore = require('./db');
 
 const TTL_MS = Number(process.env.PRODUCTION_CACHE_TTL_MS) || 5 * 60 * 1000; // 5 min
 const RECENT_WINDOW_DAYS = 45;      // how far back the date picker / period comparisons look
-const SUMMARY_VERSION = 3;          // bump when the stored summary shape OR the numbers behind it change (forces re-backfill)
+const SUMMARY_VERSION = 4;          // bump when the stored summary shape OR the numbers behind it change (forces re-backfill)
 const TOLL_IC_PER_LB = 0.10;        // batch avg input cost below this ⇒ customer-supplied meat ⇒ toll
 const TOLL_LOOKBACK_DAYS = Number(process.env.TOLL_LOOKBACK_DAYS) || 90; // freshness window for the live toll price
 
@@ -127,7 +129,10 @@ function classify(lines) {
     itemLbs.set(r.item, (itemLbs.get(r.item) || 0) + num(r.cost_quantity));
   }
   const base = lines.map((r) => {
-    const customer = parseCustomer(r.batch_notes);
+    // Manual transfer (per item) wins; otherwise infer from notes + description.
+    const autoCustomer = parseCustomer(r.batch_notes, r.description);
+    const customerOverride = customerOverrides.getCustomer(r.item) || null;
+    const customer = customerOverride || autoCustomer;
     const agg = batchAgg.get(r.batch) || { ic: 0, lbs: 0 };
     const batchAvgIC = agg.lbs ? agg.ic / agg.lbs : 0;
     return {
@@ -136,10 +141,11 @@ function classify(lines) {
       lbs: num(r.cost_quantity),
       sellVal: num(r.total_sales_cost),
       inputCostRaw: num(r.total_inventory_cost),
-      customer,
+      customer, autoCustomer, customerOverride,
       // Preliminary signal: the batch barely had input cost ⇒ customer supplied
       // the meat. Finalized in getProductionReport (a real toll price also counts).
-      lowInputCost: customer !== 'CMP' && batchAvgIC < TOLL_IC_PER_LB,
+      // "JD Food" is our own in-house production (the old "CMP" bucket) — never toll.
+      lowInputCost: customer !== 'JD Food' && batchAvgIC < TOLL_IC_PER_LB,
       isToll: false,
     };
   });
@@ -152,12 +158,25 @@ function classify(lines) {
 function buildReport(date, base, itemLbs, yieldByBatch, sales) {
   const counts = { live: 0, manual: 0, contract: 0, sale: 0, missing: 0 };
   const ownCounts = { sale: 0, manual: 0, standard: 0, none: 0 };
+  let forcedCount = 0, flaggedCount = 0;
 
-  const rows = base.map(({ r, cs, lbs, sellVal, inputCostRaw, customer, isToll, autoToll, override }) => {
+  const rows = base.map(({ r, cs, lbs, sellVal, inputCostRaw, customer, autoCustomer, customerOverride, isToll, autoToll, override }) => {
     let revenue, inputCost, rate, source, missingRate = false, priceBasis;
     const rec = sales.get(r.item);
+    const forced = priceOverrides.get(r.item); // authoritative correction (wins over Swarmbox)
+    if (forced && forced.flagged) flaggedCount++;
 
-    if (isToll) {
+    if (forced && forced.rate > 0) {
+      // A typed correction WINS over everything Swarmbox pulls (live/own/sale/
+      // contract/standard) — this is the "Swarmbox is wrong; here's the right
+      // number" override on the Prices Today page.
+      rate = forced.rate;
+      inputCost = isToll ? 0 : inputCostRaw;
+      revenue = rate * lbs;
+      source = `forced $${rate.toFixed(2)}/lb${forced.note ? ' · ' + forced.note : ''}`;
+      priceBasis = 'forced';
+      forcedCount++;
+    } else if (isToll) {
       inputCost = 0;
       const live = rec && rec.toll;
       const manual = manualRates.getRate(r.item);
@@ -236,11 +255,19 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
       process: r.production_process || '',
       notes: r.batch_notes || '',
       customer,
+      autoCustomer,
+      customerOverride: customerOverride || null,
       isToll,
       autoToll: !!autoToll,
       override: override || null,
       cs, lbs, rate, revenue, inputCost, gp,
       source, missingRate, priceBasis,
+      // Price-override surface for the Prices Today page.
+      forced: !!(forced && forced.rate > 0),
+      flagged: !!(forced && forced.flagged),
+      wrongBasis: forced ? forced.wrongBasis : null,
+      wrongSource: forced ? forced.wrongSource : null,
+      forcedNote: forced ? forced.note : '',
       yieldPct: yieldByBatch.get(r.batch) ?? null,
     };
   });
@@ -271,6 +298,7 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
     totals,
     tollPricing: counts,       // toll line counts: { live, manual, contract, missing }
     ownPricing: ownCounts,     // own line counts: { sale, standard }
+    forcedCount, flaggedCount, // price-override line counts (Prices Today page)
     rooms: [...roomMap.values()].sort((a, b) => (a.room < b.room ? -1 : a.room > b.room ? 1 : 0)),
     customers: [...custMap.values()].sort((a, b) => b.rev - a.rev),
     rows,
@@ -314,7 +342,7 @@ async function getProductionReport({ date, force = false } = {}) {
     // Low input cost flags a likely toll job — but only when the item has no
     // ordinary sale. If there's a real CMP sale (to a non-toll customer), it's an
     // own product that merely recorded ~$0 input this batch, not a toll job.
-    const auto = b.customer !== 'CMP' && (hasToll || (b.lowInputCost && !hasSale));
+    const auto = b.customer !== 'JD Food' && (hasToll || (b.lowInputCost && !hasSale));
     const ov = classOverrides.getMode(b.r.item);
     b.autoToll = auto;
     b.override = ov || null;
@@ -334,6 +362,21 @@ async function getProductionReport({ date, force = false } = {}) {
   return report;
 }
 
+// A cheap fingerprint of all user overrides (manual rates, toll/own class,
+// customer transfers, price corrections). Stored alongside each daily summary so
+// that changing ANY override marks the affected days stale — the Dashboard and
+// Customers tab then recompute them, so a transfer/correction "updates
+// everything", not just today's live report.
+function overrideSignature() {
+  const lists = [manualRates.getList(), classOverrides.getList(), customerOverrides.getList(), priceOverrides.getList()];
+  let total = 0, latest = '';
+  for (const list of lists) {
+    total += list.length;
+    for (const r of list) if (r.updatedAt && r.updatedAt > latest) latest = r.updatedAt;
+  }
+  return `${total}@${latest}`;
+}
+
 // Condense a day's report into a stored summary for the Owner's Dashboard and the
 // Customers tab: per customer { totals, toll/own split, and their per-item rollup }.
 function summarize(report) {
@@ -348,7 +391,7 @@ function summarize(report) {
     it.lbs += r.lbs; it.rev += r.revenue; it.ic += r.inputCost; it.gp += r.gp;
   }
   const customers = [...custMap.values()].map(({ _items, ...rest }) => ({ ...rest, items: [..._items.values()] }));
-  return { date: report.date, builtAt: report.builtAt, lines: report.rows.length, v: SUMMARY_VERSION, totals: report.totals, customers };
+  return { date: report.date, builtAt: report.builtAt, lines: report.rows.length, v: SUMMARY_VERSION, ov: overrideSignature(), totals: report.totals, customers };
 }
 
 // Ensure the last `days` production days have a CURRENT-version stored summary
@@ -356,8 +399,11 @@ function summarize(report) {
 async function backfillSummaries(days = 30) {
   const dates = (await recentDates()).slice(0, days).map((d) => d.date);
   if (!dates.length) return { requested: 0, filled: 0 };
-  const stored = new Map(dbStore.loadProdSummaries(dates[dates.length - 1], dates[0]).map((s) => [s.date, s.v]));
-  const todo = dates.filter((d) => stored.get(d) !== SUMMARY_VERSION);
+  const sig = overrideSignature();
+  const stored = new Map(dbStore.loadProdSummaries(dates[dates.length - 1], dates[0]).map((s) => [s.date, s]));
+  // Recompute a day if it's missing, built by an older code version, or built
+  // before the current set of overrides (a transfer/correction since then).
+  const todo = dates.filter((d) => { const s = stored.get(d); return !s || s.v !== SUMMARY_VERSION || s.ov !== sig; });
   for (const d of todo) {
     try { await getProductionReport({ date: d }); } catch (e) { /* keep going */ }
   }
@@ -369,4 +415,27 @@ async function backfillSummaries(days = 30) {
 // change). Cheap — a day's report is a single Swarmbox call.
 function clearCache() { reportCache.clear(); }
 
-module.exports = { getProductionReport, recentDates, mostRecentDate, clearCache, backfillSummaries };
+// Rebuild the recent stored daily summaries in the background after an override
+// change, so the Dashboard/Customers tab reflect it without the user waiting.
+// Debounced + coalesced: only one rebuild runs at a time; edits during a run
+// queue exactly one more pass. (The dashboards also self-heal on load via the
+// override-signature check, so this is just to get there sooner.)
+let refreshing = false, refreshQueued = false;
+function refreshSummariesInBackground(days = 30) {
+  if (refreshing) { refreshQueued = true; return; }
+  refreshing = true;
+  (async () => {
+    try {
+      do {
+        refreshQueued = false;
+        await backfillSummaries(days);
+      } while (refreshQueued);
+    } catch (e) {
+      console.error('[Production] background summary refresh failed:', e && e.message);
+    } finally {
+      refreshing = false;
+    }
+  })();
+}
+
+module.exports = { getProductionReport, recentDates, mostRecentDate, clearCache, backfillSummaries, refreshSummariesInBackground };

@@ -86,6 +86,9 @@
   select.classEdit.is-toll { color: var(--toll); }
   select.classEdit.is-own { color: var(--own); }
   select.classEdit.overridden { border-color: currentColor; }
+  select.custEdit { font-size: 12px; padding: 2px 4px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ink); cursor: pointer; font-weight: 600; max-width: 132px; }
+  select.custEdit:hover { border-color: var(--line); background: var(--card); }
+  select.custEdit.overridden { color: var(--accent); border-color: var(--accent); background: var(--card); }
   .warn { background: #fff7e6; border: 1px solid #ffe1a6; color: #8a5a00; border-radius: 10px; padding: 10px 14px; font-size: 12.5px; margin: 14px 0; }
   .empty, .err { padding: 40px; text-align: center; color: var(--muted); }
   .err { color: #b42318; }
@@ -99,6 +102,7 @@
   <a href="/customers.html">Customers</a>
   <a href="/">Product Value</a>
   <a href="/production.html" class="active">Production Margin</a>
+  <a href="/prices.html">Prices Today</a>
 </nav>
 <header>
   <h1>Production Margin</h1>
@@ -144,6 +148,7 @@ function esc(s) {
 
 let REPORT = null;
 let view = 'summary';
+let CUSTOMERS = []; // canonical customer list for the transfer dropdown
 let labor = parseFloat(localStorage.getItem('cmp_labor') || '0') || 0;
 
 function renderRibbon() {
@@ -203,7 +208,10 @@ function renderDetail() {
     <th class="num">CS</th><th class="num">Lbs</th><th class="num">$/lb</th><th class="num">Revenue</th>
     <th class="num">Source</th><th class="num">Raw material</th><th class="num">GP $</th><th class="num">GP %</th><th class="num">Yield</th>`;
   const rows = REPORT.rows.map(r => `<tr>
-    <td><b>${esc(r.customer)}</b><div class="dim">${esc(r.notes.slice(0, 42))}</div></td>
+    <td><select class="custEdit ${r.customerOverride ? 'overridden' : ''}" data-code="${esc(r.item)}" title="Transfer this item to a customer">
+      <option value="" ${!r.customerOverride ? 'selected' : ''}>Auto (${esc(r.autoCustomer || r.customer)})</option>
+      ${CUSTOMERS.map(c => `<option value="${esc(c)}" ${r.customerOverride === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}
+    </select><div class="dim">${esc(r.notes.slice(0, 42))}</div></td>
     <td>${esc(r.description)}<div class="dim mono">${esc(r.item)}</div></td>
     <td class="num dim">${esc(r.room)}</td>
     <td class="num"><select class="classEdit ${r.override ? 'overridden ' : ''}${r.isToll ? 'is-toll' : 'is-own'}" data-code="${esc(r.item)}" title="Force this item Toll or Own">
@@ -329,19 +337,52 @@ async function commitClass(sel) {
     sel.disabled = false;
   }
 }
+// Transfer an item to a customer ('' = back to auto-detected). Applies to the
+// item code everywhere and rebuilds the day; the dashboard/customers tab catch
+// up on their next load.
+async function commitCustomer(sel) {
+  const code = sel.dataset.code;
+  const customer = sel.value;
+  sel.disabled = true;
+  try {
+    if (customer === '') {
+      await fetch('/api/production/customer-overrides/' + encodeURIComponent(code), { method: 'DELETE' });
+    } else {
+      await fetch('/api/production/customer-overrides', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, customer }),
+      });
+    }
+    await load($('date').value, false);
+  } catch (err) {
+    alert('Could not transfer item: ' + err.message);
+    sel.disabled = false;
+  }
+}
 
 $('content').addEventListener('change', (e) => {
   const inp = e.target.closest('input.rateEdit');
   if (inp) { commitRate(inp); return; }
   const sel = e.target.closest('select.classEdit');
-  if (sel) commitClass(sel);
+  if (sel) { commitClass(sel); return; }
+  const cust = e.target.closest('select.custEdit');
+  if (cust) commitCustomer(cust);
 });
 $('content').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && e.target.closest('input.rateEdit')) e.target.blur();
 });
 
+async function loadCustomers() {
+  try {
+    const res = await fetch('/api/production/known-customers');
+    const data = await res.json();
+    CUSTOMERS = data.customers || [];
+  } catch (err) { CUSTOMERS = []; }
+}
+
 (async () => {
   try {
+    await loadCustomers();
     const recent = await loadDates();
     await load(recent, false);
   } catch (err) {
