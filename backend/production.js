@@ -25,11 +25,12 @@ const manualRates = require('./manualRates');
 const classOverrides = require('./classOverrides');
 const customerOverrides = require('./customerOverrides');
 const priceOverrides = require('./priceOverrides');
+const itemSpecs = require('./itemSpecs');
 const dbStore = require('./db');
 
 const TTL_MS = Number(process.env.PRODUCTION_CACHE_TTL_MS) || 5 * 60 * 1000; // 5 min
 const RECENT_WINDOW_DAYS = 45;      // how far back the date picker / period comparisons look
-const SUMMARY_VERSION = 4;          // bump when the stored summary shape OR the numbers behind it change (forces re-backfill)
+const SUMMARY_VERSION = 5;          // bump when the stored summary shape OR the numbers behind it change (forces re-backfill)
 const TOLL_IC_PER_LB = 0.10;        // batch avg input cost below this ⇒ customer-supplied meat ⇒ toll
 const TOLL_LOOKBACK_DAYS = Number(process.env.TOLL_LOOKBACK_DAYS) || 90; // freshness window for the live toll price
 
@@ -129,10 +130,12 @@ function classify(lines) {
     itemLbs.set(r.item, (itemLbs.get(r.item) || 0) + num(r.cost_quantity));
   }
   const base = lines.map((r) => {
-    // Manual transfer (per item) wins; otherwise infer from notes + description.
+    // Customer attribution chain: a manual transfer (per item) wins; then the
+    // authoritative spec-sheet customer; then the notes/description guess.
     const autoCustomer = parseCustomer(r.batch_notes, r.description);
+    const specCustomer = itemSpecs.getCustomer(r.item) || null;
     const customerOverride = customerOverrides.getCustomer(r.item) || null;
-    const customer = customerOverride || autoCustomer;
+    const customer = customerOverride || specCustomer || autoCustomer;
     const agg = batchAgg.get(r.batch) || { ic: 0, lbs: 0 };
     const batchAvgIC = agg.lbs ? agg.ic / agg.lbs : 0;
     return {
@@ -141,7 +144,7 @@ function classify(lines) {
       lbs: num(r.cost_quantity),
       sellVal: num(r.total_sales_cost),
       inputCostRaw: num(r.total_inventory_cost),
-      customer, autoCustomer, customerOverride,
+      customer, autoCustomer, specCustomer, customerOverride,
       // Preliminary signal: the batch barely had input cost ⇒ customer supplied
       // the meat. Finalized in getProductionReport (a real toll price also counts).
       // "JD Food" is our own in-house production (the old "CMP" bucket) — never toll.
@@ -160,7 +163,7 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
   const ownCounts = { sale: 0, manual: 0, standard: 0, none: 0 };
   let forcedCount = 0, flaggedCount = 0;
 
-  const rows = base.map(({ r, cs, lbs, sellVal, inputCostRaw, customer, autoCustomer, customerOverride, isToll, autoToll, override }) => {
+  const rows = base.map(({ r, cs, lbs, sellVal, inputCostRaw, customer, autoCustomer, specCustomer, customerOverride, isToll, autoToll, override }) => {
     let revenue, inputCost, rate, source, missingRate = false, priceBasis;
     const rec = sales.get(r.item);
     const forced = priceOverrides.get(r.item); // authoritative correction (wins over Swarmbox)
@@ -256,6 +259,7 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
       notes: r.batch_notes || '',
       customer,
       autoCustomer,
+      specCustomer: specCustomer || null,
       customerOverride: customerOverride || null,
       isToll,
       autoToll: !!autoToll,
@@ -374,7 +378,9 @@ function overrideSignature() {
     total += list.length;
     for (const r of list) if (r.updatedAt && r.updatedAt > latest) latest = r.updatedAt;
   }
-  return `${total}@${latest}`;
+  // Fold in the spec-sheet dataset so a re-import (new item-specs.json) also
+  // marks stored summaries stale and triggers a recompute.
+  return `${total}@${latest}|${itemSpecs.fingerprint}`;
 }
 
 // Condense a day's report into a stored summary for the Owner's Dashboard and the

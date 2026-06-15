@@ -1,0 +1,10196 @@
+{
+"generatedAt": "2026-06-15",
+"source": "Product Specs Data.xlsx",
+"count": 2198,
+"items": {
+"000011": {
+"customer": "JD FOOD"
+},
+"000012": {
+"customer": "JD FOOD"
+},
+"000014": {
+"customer": "JD FOOD"
+},
+"000016": {
+"customer": "JD FOOD"
+},
+"000018": {
+"customer": "GILLUM FAMILY FARMS",
+"channel": "Food Service"
+},
+"005347": {
+"customer": "JD FOOD",
+"species": "Goat"
+},
+"010119": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"040001": {
+"customer": "GILLUM FAMILY FARMS"
+},
+"050001": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"050004": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"050007": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"050008": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"050009": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"050010": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"050015": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"050200": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Retail"
+},
+"050201": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Retail"
+},
+"050206": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Retail"
+},
+"050208": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Retail"
+},
+"050209": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Retail"
+},
+"050210": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Retail"
+},
+"050212": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Retail"
+},
+"050214": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Retail"
+},
+"050215": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"050302": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"050306": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Food Service"
+},
+"050307": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Food Service"
+},
+"050310": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"050311": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"050550": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"050551": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"050552": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"050553": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"050554": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Food Service"
+},
+"050560": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"050561": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"050562": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"050563": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"050564": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"050600": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"050601": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Food Service"
+},
+"050804": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"050900": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"050901": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Retail"
+},
+"050904": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Retail"
+},
+"051000": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"051001": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"051004": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"051005": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"051021": {
+"customer": "HARRIS RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051022": {
+"customer": "HARRIS RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"051023": {
+"customer": "HARRIS RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"051025": {
+"customer": "HARRIS RANCH",
+"species": "Beef"
+},
+"051302": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"051303": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051304": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"051305": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051308": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Retail"
+},
+"051309": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Retail"
+},
+"051310": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"051311": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Retail"
+},
+"051312": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"051313": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"051314": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Retail"
+},
+"051315": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051316": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Retail"
+},
+"051317": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051318": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"051319": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"051320": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051321": {
+"customer": "PERENNIAL PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"051322": {
+"customer": "PERENNIAL PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"051323": {
+"customer": "PERENNIAL PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"051324": {
+"customer": "PERENNIAL PASTURES",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051327": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Retail"
+},
+"051328": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Retail"
+},
+"051329": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Retail"
+},
+"051332": {
+"customer": "PERENNIAL PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"051334": {
+"customer": "PERENNIAL PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"051335": {
+"customer": "PERENNIAL PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"051336": {
+"customer": "PERENNIAL PASTURES",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051403": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Retail"
+},
+"051404": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Retail"
+},
+"051405": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Retail"
+},
+"051406": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051407": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051409": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"051410": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051411": {
+"customer": "JOURNEYMAN MEAT CO.",
+"species": "Pork",
+"channel": "Retail"
+},
+"051412": {
+"customer": "EEL RIVER"
+},
+"051413": {
+"customer": "JOURNEYMAN MEAT CO.",
+"species": "Pork",
+"channel": "Food Service"
+},
+"051415": {
+"customer": "KRAVE PURE FOODS, INC.",
+"species": "Beef",
+"channel": "Retail"
+},
+"051416": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051417": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Retail"
+},
+"051418": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Retail"
+},
+"051420": {
+"customer": "CREAM CO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051421": {
+"customer": "CREAM CO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051422": {
+"customer": "CREAM CO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051423": {
+"customer": "CREAM CO",
+"species": "Pork",
+"channel": "Food Service"
+},
+"051424": {
+"customer": "CREAM CO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051450": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"051452": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"051453": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"051454": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"051456": {
+"customer": "CREAM CO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051457": {
+"customer": "CREAM CO",
+"species": "Beef",
+"channel": "Retail"
+},
+"051458": {
+"customer": "CREAM CO",
+"species": "Beef",
+"channel": "Retail"
+},
+"051459": {
+"customer": "CREAM CO",
+"species": "Beef"
+},
+"051460": {
+"customer": "CREAM CO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051500": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051501": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051502": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051503": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051504": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051700": {
+"customer": "MASAMI FOODS",
+"species": "Beef",
+"channel": "Retail"
+},
+"051701": {
+"customer": "MASAMI FOODS",
+"species": "Beef",
+"channel": "Retail"
+},
+"051702": {
+"customer": "MASAMI FOODS",
+"species": "Beef",
+"channel": "Retail"
+},
+"051703": {
+"customer": "MASAMI FOODS",
+"species": "Beef",
+"channel": "Retail"
+},
+"051704": {
+"customer": "MASAMI FOODS",
+"species": "Beef",
+"channel": "Retail"
+},
+"051705": {
+"customer": "MASAMI FOODS",
+"species": "Beef",
+"channel": "Food Service"
+},
+"051706": {
+"customer": "MASAMI FOODS",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"052000": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052005": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052006": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052007": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052010": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052013": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052014": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052015": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052019": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052024": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052025": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"052030": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052033": {
+"customer": "OTHER",
+"species": "Pork",
+"channel": "Further Processing"
+},
+"052035": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052036": {
+"customer": "OTHER",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052037": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052101": {
+"customer": "JD FOOD"
+},
+"052104": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052105": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Pork",
+"channel": "Retail"
+},
+"052106": {
+"customer": "GILLUM FAMILY FARMS",
+"channel": "Retail"
+},
+"052107": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052108": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052109": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052110": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052113": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052115": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052229": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052240": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"052300": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052301": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052302": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052303": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052304": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052307": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052310": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052311": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052313": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052314": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052316": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052319": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"052320": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"052321": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052325": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052400": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"052500": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"052501": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"052510": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052511": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052601": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052602": {
+"customer": "HARRIS RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"052603": {
+"customer": "HARRIS RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"052604": {
+"customer": "HARRIS RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"052605": {
+"customer": "HARRIS RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"052606": {
+"customer": "HARRIS RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"052607": {
+"customer": "HARRIS RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"052608": {
+"customer": "HARRIS RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"052609": {
+"customer": "HARRIS RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"052610": {
+"customer": "HARRIS RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"052700": {
+"customer": "ARTEMIS FOODS",
+"species": "Beef",
+"channel": "Retail"
+},
+"052701": {
+"customer": "ARTEMIS FOODS",
+"species": "Beef",
+"channel": "Food Service"
+},
+"052801": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"052802": {
+"customer": "JD FOOD",
+"species": "Turkey",
+"channel": "Food Service"
+},
+"052807": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Turkey",
+"channel": "Food Service"
+},
+"052812": {
+"customer": "JD FOOD",
+"species": "Turkey",
+"channel": "Food Service"
+},
+"052951": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Retail"
+},
+"052990": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"053000": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"053001": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"053004": {
+"customer": "GLOBAL PROTEIN",
+"species": "Pork",
+"channel": "Food Service"
+},
+"053005": {
+"customer": "GLOBAL PROTEIN",
+"species": "Pork",
+"channel": "Food Service"
+},
+"053100": {
+"customer": "GLOBAL PROTEIN",
+"species": "Pork",
+"channel": "Retail"
+},
+"053300": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"053301": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"053305": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"053313": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"053600": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"053800": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"053801": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"053804": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"053805": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"053999": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"055060": {
+"customer": "JD FOOD",
+"species": "Misc"
+},
+"058300": {
+"customer": "CREAM CO",
+"species": "Pork",
+"channel": "Food Service"
+},
+"060000": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060002": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060005": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060008": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060012": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"060019": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"060022": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"060028": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"060029": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"060030": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060035": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060039": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"060045": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060049": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"060052": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060068": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"060073": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060074": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060075": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060076": {
+"customer": "JD FOOD",
+"channel": "Food Service"
+},
+"060077": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"060084": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"060087": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060092": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"060095": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060097": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"060098": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"060116": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060117": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"060132": {
+"customer": "PANORAMA/WGB",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060150": {
+"customer": "PANORAMA/WGB",
+"species": "Beef",
+"channel": "Retail"
+},
+"060205": {
+"customer": "SUNFED RANCH",
+"species": "Beef"
+},
+"060216": {
+"customer": "OTHER"
+},
+"060217": {
+"customer": "OTHER"
+},
+"060255": {
+"customer": "MINDFUL MEATS",
+"channel": "Food Service"
+},
+"060409": {
+"customer": "EEL RIVER"
+},
+"060430": {
+"customer": "EEL RIVER"
+},
+"060431": {
+"customer": "EEL RIVER"
+},
+"060432": {
+"customer": "EEL RIVER"
+},
+"060433": {
+"customer": "EEL RIVER"
+},
+"060436": {
+"customer": "EEL RIVER"
+},
+"060440": {
+"customer": "EEL RIVER"
+},
+"060442": {
+"customer": "EEL RIVER",
+"species": "Beef"
+},
+"060452": {
+"customer": "CNB G1"
+},
+"060458": {
+"customer": "EEL RIVER",
+"species": "Beef"
+},
+"060532": {
+"customer": "WHOLE FOODS",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060541": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060542": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060543": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060544": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060547": {
+"customer": "EEL RIVER"
+},
+"060548": {
+"customer": "EEL RIVER"
+},
+"060549": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060550": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060552": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060553": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060554": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060558": {
+"customer": "EEL RIVER",
+"species": "Beef"
+},
+"060559": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060560": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060561": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060562": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060563": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060564": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060565": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060566": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060567": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060569": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060570": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060571": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060572": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060573": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060574": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060575": {
+"customer": "OCB"
+},
+"060578": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"060580": {
+"customer": "OCB",
+"species": "Beef"
+},
+"060581": {
+"customer": "OCB",
+"species": "Beef"
+},
+"060585": {
+"customer": "OCB"
+},
+"060630": {
+"customer": "TRIBALI",
+"species": "Beef",
+"channel": "Retail"
+},
+"060646": {
+"customer": "TRIBALI",
+"species": "Chicken",
+"channel": "Retail"
+},
+"060647": {
+"customer": "TRIBALI",
+"species": "Beef",
+"channel": "Retail"
+},
+"060649": {
+"customer": "TRIBALI",
+"channel": "Retail"
+},
+"060660": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"060661": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"060662": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060663": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060664": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060667": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060668": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060669": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"060670": {
+"customer": "MISHIMA RESERVE"
+},
+"060671": {
+"customer": "MISHIMA RESERVE"
+},
+"060673": {
+"customer": "MISHIMA RESERVE"
+},
+"060674": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"060679": {
+"customer": "MISHIMA RESERVE",
+"channel": "Further Processing"
+},
+"060680": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"060681": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"060682": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"060683": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"060684": {
+"customer": "MISHIMA RESERVE",
+"channel": "Retail"
+},
+"060686": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"060687": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"060688": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"060689": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"060691": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"060692": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"060693": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060698": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"060699": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"060730": {
+"customer": "GOON WITH THE SPOON",
+"species": "Beef",
+"channel": "Retail"
+},
+"060731": {
+"customer": "GOON WITH THE SPOON",
+"species": "Beef",
+"channel": "Retail"
+},
+"060732": {
+"customer": "GOON WITH THE SPOON",
+"species": "Turkey",
+"channel": "Retail"
+},
+"060733": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060734": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060735": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Turkey",
+"channel": "Food Service"
+},
+"060830": {
+"customer": "CNB G4",
+"species": "Beef"
+},
+"060831": {
+"customer": "CNB G4",
+"species": "Beef"
+},
+"060888": {
+"customer": "RANCHO GUEJITO",
+"channel": "Further Processing"
+},
+"060889": {
+"customer": "RANCHO GUEJITO",
+"channel": "Further Processing"
+},
+"060950": {
+"customer": "FIVE DOT RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"060961": {
+"customer": "CREAM CO",
+"species": "Beef"
+},
+"060971": {
+"customer": "CREAM CO",
+"species": "Beef"
+},
+"060996": {
+"customer": "RICHARDS GRASSFED BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"061165": {
+"customer": "OTHER",
+"species": "Beef"
+},
+"061166": {
+"customer": "OTHER",
+"species": "Beef"
+},
+"061167": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef"
+},
+"061168": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef"
+},
+"061171": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef"
+},
+"061180": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef"
+},
+"061181": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef"
+},
+"061182": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef"
+},
+"061183": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef"
+},
+"061184": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef"
+},
+"061198": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef"
+},
+"061336": {
+"customer": "EEL RIVER"
+},
+"061337": {
+"customer": "EEL RIVER"
+},
+"061503": {
+"customer": "MY FAVORITE FOODS"
+},
+"061507": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061526": {
+"customer": "MY FAVORITE FOODS"
+},
+"061535": {
+"customer": "MY FAVORITE FOODS"
+},
+"061561": {
+"customer": "ORGANIC PRAIRIE",
+"species": "Beef",
+"channel": "Retail"
+},
+"061562": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061580": {
+"customer": "ORGANIC PRAIRIE",
+"species": "Pork",
+"channel": "Retail"
+},
+"061590": {
+"customer": "HEARST RANCH",
+"species": "Beef"
+},
+"061600": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061601": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061608": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061610": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061611": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061612": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061614": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061615": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061616": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061617": {
+"customer": "CARMAN RANCH",
+"species": "Beef"
+},
+"061618": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061620": {
+"customer": "CARMAN RANCH"
+},
+"061621": {
+"customer": "CARMAN RANCH"
+},
+"061623": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061625": {
+"customer": "CARMAN RANCH",
+"species": "Beef"
+},
+"061638": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061639": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061644": {
+"customer": "CARMAN RANCH",
+"species": "Beef"
+},
+"061645": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061646": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061647": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061648": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061653": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061654": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061659": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061665": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061666": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061667": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061668": {
+"customer": "CARMAN RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061690": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061691": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061695": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061699": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061700": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061701": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061702": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061710": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061711": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061712": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061713": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061714": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061715": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061716": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061717": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061718": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061719": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061720": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061721": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061723": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061728": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061729": {
+"customer": "PACIFIC PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061730": {
+"customer": "GREEN COW BRAND",
+"species": "Beef"
+},
+"061760": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061761": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061762": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061763": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061765": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061768": {
+"customer": "GREEN COW BRAND",
+"species": "Lamb",
+"channel": "Food Service"
+},
+"061770": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061771": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061772": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061773": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061774": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061775": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061776": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061777": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061778": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061779": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061780": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061781": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061782": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061783": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061784": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061785": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061788": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061789": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"061790": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"061792": {
+"customer": "BRANDT",
+"channel": "Further Processing"
+},
+"061794": {
+"customer": "OTHER",
+"channel": "Further Processing"
+},
+"061795": {
+"customer": "OTHER",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"061796": {
+"customer": "OTHER"
+},
+"061797": {
+"customer": "OTHER",
+"channel": "Further Processing"
+},
+"061798": {
+"customer": "OTHER",
+"channel": "Further Processing"
+},
+"061799": {
+"customer": "OTHER"
+},
+"061814": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef"
+},
+"061823": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef"
+},
+"061824": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef"
+},
+"061830": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061831": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061832": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061833": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061834": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061835": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061836": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061854": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061857": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061861": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061864": {
+"customer": "STEMPLE CREEK RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"061910": {
+"customer": "PERENNIAL PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061911": {
+"customer": "PERENNIAL PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061912": {
+"customer": "PERENNIAL PASTURES",
+"species": "Beef",
+"channel": "Retail"
+},
+"061913": {
+"customer": "PERENNIAL PASTURES",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061920": {
+"customer": "PERENNIAL PASTURES",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061982": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"061985": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061986": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061987": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061988": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"061989": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"061994": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"061995": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"061996": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"061997": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"061998": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"061999": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062000": {
+"customer": "MCI",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062013": {
+"customer": "GOURMET BEEF",
+"species": "Beef"
+},
+"062019": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062020": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062021": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062022": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062023": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062024": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"062025": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"062026": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"062028": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062029": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062041": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"062042": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062043": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062044": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062045": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062048": {
+"customer": "GOURMET BEEF",
+"channel": "Further Processing"
+},
+"062049": {
+"customer": "GOURMET BEEF",
+"channel": "Further Processing"
+},
+"062050": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062051": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062052": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062053": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062054": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"062055": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"062056": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062057": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062058": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Retail"
+},
+"062059": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062060": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062061": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062062": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062063": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062064": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062066": {
+"customer": "GOURMET BEEF",
+"species": "Beef"
+},
+"062069": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062071": {
+"customer": "GREEN COW BRAND",
+"species": "Lamb",
+"channel": "Food Service"
+},
+"062072": {
+"customer": "GREEN COW BRAND",
+"species": "Lamb",
+"channel": "Food Service"
+},
+"062075": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062076": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"062077": {
+"customer": "GREEN COW BRAND",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"062080": {
+"customer": "GREEN COW BRAND",
+"species": "Lamb",
+"channel": "Food Service"
+},
+"062081": {
+"customer": "GREEN COW BRAND",
+"species": "Lamb",
+"channel": "Food Service"
+},
+"062082": {
+"customer": "GREEN COW BRAND",
+"species": "Lamb",
+"channel": "Food Service"
+},
+"062083": {
+"customer": "GREEN COW BRAND",
+"species": "Lamb",
+"channel": "Food Service"
+},
+"062090": {
+"customer": "GREEN COW BRAND",
+"species": "Lamb",
+"channel": "Retail"
+},
+"062091": {
+"customer": "GREEN COW BRAND",
+"species": "Lamb",
+"channel": "Retail"
+},
+"062092": {
+"customer": "GREEN COW BRAND",
+"species": "Lamb",
+"channel": "Retail"
+},
+"062093": {
+"customer": "GREEN COW BRAND",
+"species": "Lamb",
+"channel": "Food Service"
+},
+"062095": {
+"customer": "GREEN COW BRAND",
+"species": "Lamb",
+"channel": "Food Service"
+},
+"062096": {
+"customer": "GREEN COW BRAND",
+"species": "Lamb",
+"channel": "Food Service"
+},
+"062097": {
+"customer": "GREEN COW BRAND",
+"species": "Lamb",
+"channel": "Food Service"
+},
+"062098": {
+"customer": "GREEN COW BRAND",
+"species": "Lamb",
+"channel": "Further Processing"
+},
+"062099": {
+"customer": "GREEN COW BRAND",
+"species": "Lamb",
+"channel": "Further Processing"
+},
+"062110": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062111": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062112": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062116": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062118": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062122": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062124": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062125": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062129": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062133": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062134": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062135": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062136": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062137": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062140": {
+"customer": "LONG RANCH"
+},
+"062144": {
+"customer": "LONG RANCH"
+},
+"062148": {
+"customer": "LONG RANCH"
+},
+"062149": {
+"customer": "LONG RANCH"
+},
+"062154": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Retail"
+},
+"062155": {
+"customer": "LONG RANCH",
+"channel": "Food Service"
+},
+"062156": {
+"customer": "LONG RANCH"
+},
+"062157": {
+"customer": "LONG RANCH",
+"channel": "Food Service"
+},
+"062158": {
+"customer": "LONG RANCH"
+},
+"062160": {
+"customer": "LONG RANCH"
+},
+"062161": {
+"customer": "LONG RANCH",
+"channel": "Food Service"
+},
+"062162": {
+"customer": "LONG RANCH"
+},
+"062163": {
+"customer": "LONG RANCH"
+},
+"062164": {
+"customer": "LONG RANCH"
+},
+"062165": {
+"customer": "LONG RANCH"
+},
+"062166": {
+"customer": "LONG RANCH"
+},
+"062167": {
+"customer": "LONG RANCH"
+},
+"062168": {
+"customer": "LONG RANCH",
+"channel": "Food Service"
+},
+"062169": {
+"customer": "LONG RANCH"
+},
+"062171": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Retail"
+},
+"062172": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Retail"
+},
+"062173": {
+"customer": "LONG RANCH",
+"channel": "Food Service"
+},
+"062174": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062175": {
+"customer": "LONG RANCH"
+},
+"062176": {
+"customer": "LONG RANCH"
+},
+"062177": {
+"customer": "LONG RANCH"
+},
+"062178": {
+"customer": "LONG RANCH"
+},
+"062179": {
+"customer": "LONG RANCH"
+},
+"062190": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062191": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062192": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062196": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062201": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062202": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062203": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062204": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062205": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062206": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062207": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062212": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062213": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062214": {
+"customer": "LONG RANCH",
+"channel": "Food Service"
+},
+"062215": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062216": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062219": {
+"customer": "OTHER",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062222": {
+"customer": "OTHER",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062234": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062235": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062237": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062238": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062243": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062244": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062245": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062247": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062248": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062251": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062253": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062255": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062256": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062258": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062260": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"062261": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"062262": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"062263": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"062264": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"062265": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"062266": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"062267": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"062268": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"062269": {
+"customer": "EEL RIVER",
+"species": "Beef",
+"channel": "Retail"
+},
+"062270": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062271": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062422": {
+"customer": "PACHECO DISTRIBUTING"
+},
+"062428": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062454": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062455": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062458": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062461": {
+"customer": "PACHECO DISTRIBUTING",
+"channel": "Food Service"
+},
+"062462": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062463": {
+"customer": "PACHECO DISTRIBUTING",
+"channel": "Food Service"
+},
+"062464": {
+"customer": "PACHECO DISTRIBUTING",
+"channel": "Food Service"
+},
+"062466": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062468": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062469": {
+"customer": "PACHECO DISTRIBUTING"
+},
+"062472": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062474": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062475": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062476": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062478": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062479": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062480": {
+"customer": "PACHECO DISTRIBUTING",
+"channel": "Food Service"
+},
+"062481": {
+"customer": "PACHECO DISTRIBUTING",
+"channel": "Food Service"
+},
+"062482": {
+"customer": "PACHECO DISTRIBUTING",
+"channel": "Food Service"
+},
+"062483": {
+"customer": "PACHECO DISTRIBUTING",
+"channel": "Food Service"
+},
+"062485": {
+"customer": "PACHECO DISTRIBUTING",
+"channel": "Food Service"
+},
+"062486": {
+"customer": "PACHECO DISTRIBUTING",
+"channel": "Food Service"
+},
+"062487": {
+"customer": "PACHECO DISTRIBUTING",
+"channel": "Food Service"
+},
+"062488": {
+"customer": "PACHECO DISTRIBUTING",
+"channel": "Food Service"
+},
+"062491": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef"
+},
+"062492": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062493": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062494": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef"
+},
+"062495": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062497": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062498": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062499": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062500": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062501": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062502": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062503": {
+"customer": "PACHECO DISTRIBUTING",
+"channel": "Retail"
+},
+"062504": {
+"customer": "PACHECO DISTRIBUTING",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062630": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062631": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062632": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062633": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062634": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062635": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062636": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062637": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062638": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062639": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062640": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062647": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062648": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062650": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062651": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062652": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062653": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062654": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062656": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef"
+},
+"062657": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef"
+},
+"062661": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062662": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062663": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062664": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062665": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062666": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062667": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062668": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062669": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062670": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Pork",
+"channel": "Retail"
+},
+"062671": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Retail"
+},
+"062672": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Retail"
+},
+"062673": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062674": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062675": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062676": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062678": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062679": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062688": {
+"customer": "RANCHO GUEJITO",
+"species": "Beef",
+"channel": "Retail"
+},
+"062764": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062767": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062768": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062772": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062773": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062800": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Retail"
+},
+"062806": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062807": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Retail"
+},
+"062808": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Retail"
+},
+"062809": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062810": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062815": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062817": {
+"customer": "LONG RANCH",
+"species": "Pork",
+"channel": "Food Service"
+},
+"062910": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062911": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"062913": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"062941": {
+"customer": "GRANTS GRASSFED - TALLEY FARMS",
+"species": "Beef",
+"channel": "Retail"
+},
+"062947": {
+"customer": "GRANTS GRASSFED - TALLEY FARMS",
+"species": "Beef",
+"channel": "Retail"
+},
+"062949": {
+"customer": "GRANTS GRASSFED - TALLEY FARMS",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063011": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063012": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063013": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063014": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063015": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063016": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063027": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063028": {
+"customer": "GOURMET BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063060": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063061": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"063062": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063063": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063064": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063065": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063066": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063067": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063068": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063069": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063070": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063071": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063072": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063073": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063074": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063075": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063076": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063077": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063078": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063079": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063080": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063081": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063083": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063084": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063085": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063086": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063087": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063088": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063091": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063092": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063094": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063095": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef"
+},
+"063096": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef"
+},
+"063099": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"063100": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063101": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063103": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063104": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063106": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"063107": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"063110": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"063112": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Retail"
+},
+"063114": {
+"customer": "MARIPOSA RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064000": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064001": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064005": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064007": {
+"customer": "MISHIMA RESERVE"
+},
+"064010": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064011": {
+"customer": "MISHIMA RESERVE"
+},
+"064031": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064035": {
+"customer": "MISHIMA RESERVE"
+},
+"064037": {
+"customer": "MISHIMA RESERVE"
+},
+"064041": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064047": {
+"customer": "MISHIMA RESERVE"
+},
+"064076": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064078": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064082": {
+"customer": "MISHIMA RESERVE"
+},
+"064085": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064086": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064088": {
+"customer": "MISHIMA RESERVE"
+},
+"064089": {
+"customer": "MISHIMA RESERVE"
+},
+"064105": {
+"customer": "MISHIMA RESERVE"
+},
+"064106": {
+"customer": "MISHIMA RESERVE"
+},
+"064111": {
+"customer": "MISHIMA RESERVE"
+},
+"064117": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064118": {
+"customer": "MISHIMA RESERVE"
+},
+"064119": {
+"customer": "MISHIMA RESERVE"
+},
+"064123": {
+"customer": "MISHIMA RESERVE"
+},
+"064124": {
+"customer": "MISHIMA RESERVE"
+},
+"064131": {
+"customer": "MISHIMA RESERVE"
+},
+"064134": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064300": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064301": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064303": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064304": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064305": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064306": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064307": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064308": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064309": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064310": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064311": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064312": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064313": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064314": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064315": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064316": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064317": {
+"customer": "MISHIMA RESERVE",
+"channel": "Food Service"
+},
+"064321": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064322": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064323": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064324": {
+"customer": "MISHIMA RESERVE",
+"channel": "Retail"
+},
+"064325": {
+"customer": "MISHIMA RESERVE",
+"channel": "Food Service"
+},
+"064327": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064328": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064331": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064332": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064333": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064335": {
+"customer": "MISHIMA RESERVE",
+"channel": "Retail"
+},
+"064336": {
+"customer": "MISHIMA RESERVE",
+"channel": "Retail"
+},
+"064341": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064342": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064343": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064344": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064345": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064346": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064347": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064350": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064351": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064352": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064353": {
+"customer": "MISHIMA RESERVE",
+"channel": "Food Service"
+},
+"064354": {
+"customer": "MISHIMA RESERVE",
+"channel": "Food Service"
+},
+"064355": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064356": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064358": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064359": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064361": {
+"customer": "MISHIMA RESERVE",
+"channel": "Food Service"
+},
+"064362": {
+"customer": "MISHIMA RESERVE",
+"channel": "Food Service"
+},
+"064363": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064364": {
+"customer": "MISHIMA RESERVE",
+"channel": "Food Service"
+},
+"064365": {
+"customer": "MISHIMA RESERVE",
+"channel": "Food Service"
+},
+"064367": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064368": {
+"customer": "MISHIMA RESERVE",
+"channel": "Retail"
+},
+"064370": {
+"customer": "MISHIMA RESERVE"
+},
+"064371": {
+"customer": "MISHIMA RESERVE"
+},
+"064372": {
+"customer": "MISHIMA RESERVE",
+"channel": "Retail"
+},
+"064373": {
+"customer": "MISHIMA RESERVE"
+},
+"064374": {
+"customer": "MISHIMA RESERVE",
+"channel": "Food Service"
+},
+"064375": {
+"customer": "MISHIMA RESERVE",
+"channel": "Food Service"
+},
+"064376": {
+"customer": "MISHIMA RESERVE",
+"channel": "Food Service"
+},
+"064377": {
+"customer": "MISHIMA RESERVE"
+},
+"064380": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064387": {
+"customer": "MISHIMA RESERVE",
+"channel": "Food Service"
+},
+"064388": {
+"customer": "MISHIMA RESERVE",
+"channel": "Retail"
+},
+"064390": {
+"customer": "MISHIMA RESERVE",
+"channel": "Retail"
+},
+"064391": {
+"customer": "MISHIMA RESERVE",
+"channel": "Retail"
+},
+"064392": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064393": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064394": {
+"customer": "MISHIMA RESERVE",
+"channel": "Retail"
+},
+"064395": {
+"customer": "MISHIMA RESERVE",
+"channel": "Retail"
+},
+"064396": {
+"customer": "MISHIMA RESERVE",
+"channel": "Retail"
+},
+"064400": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064401": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064402": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064403": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064404": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064405": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064406": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064407": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064408": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064409": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064410": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064411": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064412": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064413": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064414": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064415": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064416": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064417": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064420": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064421": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064422": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064423": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064424": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064425": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064426": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064427": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064428": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064429": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064430": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064431": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064432": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064433": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064434": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064435": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064436": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064437": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064438": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064439": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064440": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064441": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064442": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064444": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064445": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064446": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064447": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064449": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064450": {
+"customer": "MISHIMA RESERVE",
+"channel": "Retail"
+},
+"064451": {
+"customer": "MISHIMA RESERVE"
+},
+"064452": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064453": {
+"customer": "MISHIMA RESERVE"
+},
+"064454": {
+"customer": "MISHIMA RESERVE"
+},
+"064460": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064461": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064462": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064463": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064464": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064465": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064466": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064467": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064468": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064469": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064470": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064471": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064472": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064473": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064474": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064475": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064476": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064477": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064478": {
+"customer": "MISHIMA RESERVE",
+"channel": "Retail"
+},
+"064479": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064480": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064481": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064482": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064483": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064484": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064485": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064486": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064487": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064490": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064491": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064492": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064493": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"064494": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064495": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064496": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"064497": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"064504": {
+"customer": "LLANO SECO",
+"species": "Pork"
+},
+"064550": {
+"customer": "LLANO SECO",
+"species": "Pork",
+"channel": "Retail"
+},
+"064551": {
+"customer": "LLANO SECO",
+"species": "Pork",
+"channel": "Retail"
+},
+"064552": {
+"customer": "LLANO SECO",
+"species": "Pork",
+"channel": "Retail"
+},
+"064554": {
+"customer": "LLANO SECO",
+"species": "Pork"
+},
+"064555": {
+"customer": "LLANO SECO",
+"species": "Pork",
+"channel": "Retail"
+},
+"064556": {
+"customer": "LLANO SECO",
+"species": "Pork",
+"channel": "Retail"
+},
+"064603": {
+"customer": "NFR BEEF",
+"species": "Beef"
+},
+"064670": {
+"customer": "NFR BEEF",
+"species": "Beef"
+},
+"064701": {
+"customer": "HEARTBRAND BEEF",
+"species": "Beef"
+},
+"064704": {
+"customer": "HEARTBRAND BEEF",
+"species": "Beef"
+},
+"064705": {
+"customer": "HEARTBRAND BEEF",
+"species": "Beef"
+},
+"064706": {
+"customer": "MIAMI BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"064708": {
+"customer": "MIAMI BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"064709": {
+"customer": "MIAMI BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"064712": {
+"customer": "HEARTBRAND BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"064715": {
+"customer": "MIAMI BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"064716": {
+"customer": "MIAMI BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"064717": {
+"customer": "MIAMI BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"064718": {
+"customer": "MIAMI BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"066203": {
+"customer": "HEARST RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"066204": {
+"customer": "HEARST RANCH",
+"species": "Beef",
+"channel": "Food Service"
+},
+"066301": {
+"customer": "HEWITT FOODS",
+"species": "Beef"
+},
+"066302": {
+"customer": "HEWITT FOODS",
+"species": "Beef",
+"channel": "Retail"
+},
+"066402": {
+"customer": "RAW FARM",
+"species": "Beef",
+"channel": "Retail"
+},
+"066406": {
+"customer": "RAW FARM",
+"species": "Beef",
+"channel": "Retail"
+},
+"070100": {
+"customer": "THE MEAT UP",
+"species": "Beef",
+"channel": "Retail"
+},
+"070101": {
+"customer": "THE MEAT UP",
+"species": "Beef",
+"channel": "Retail"
+},
+"070103": {
+"customer": "THE MEAT UP",
+"species": "Beef",
+"channel": "Retail"
+},
+"070104": {
+"customer": "THE MEAT UP",
+"species": "Beef",
+"channel": "Retail"
+},
+"070106": {
+"customer": "THE MEAT UP",
+"species": "Beef",
+"channel": "Retail"
+},
+"070114": {
+"customer": "THE MEAT UP",
+"species": "Beef",
+"channel": "Retail"
+},
+"070115": {
+"customer": "THE MEAT UP",
+"species": "Beef",
+"channel": "Retail"
+},
+"070116": {
+"customer": "THE MEAT UP",
+"species": "Beef",
+"channel": "Retail"
+},
+"070117": {
+"customer": "THE MEAT UP",
+"species": "Beef",
+"channel": "Retail"
+},
+"070120": {
+"customer": "JD FOOD",
+"species": "Misc",
+"channel": "Retail"
+},
+"070121": {
+"customer": "JD FOOD",
+"species": "Misc",
+"channel": "Retail"
+},
+"070122": {
+"customer": "JD FOOD",
+"species": "Misc",
+"channel": "Retail"
+},
+"070130": {
+"customer": "THE MEAT UP",
+"species": "Beef",
+"channel": "Retail"
+},
+"070131": {
+"customer": "THE MEAT UP",
+"species": "Beef",
+"channel": "Retail"
+},
+"070133": {
+"customer": "THE MEAT UP",
+"species": "Beef",
+"channel": "Retail"
+},
+"070135": {
+"customer": "THE MEAT UP",
+"species": "Beef",
+"channel": "Food Service"
+},
+"070136": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"070200": {
+"customer": "THE MEAT UP",
+"species": "Chicken",
+"channel": "Retail"
+},
+"070201": {
+"customer": "THE MEAT UP",
+"species": "Chicken",
+"channel": "Retail"
+},
+"070230": {
+"customer": "THE MEAT UP",
+"species": "Chicken",
+"channel": "Retail"
+},
+"070232": {
+"customer": "THE MEAT UP",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"070233": {
+"customer": "THE MEAT UP",
+"species": "Chicken",
+"channel": "Retail"
+},
+"070300": {
+"customer": "THE MEAT UP",
+"species": "Pork"
+},
+"070320": {
+"customer": "THE MEAT UP",
+"species": "Pork",
+"channel": "Food Service"
+},
+"070332": {
+"customer": "THE MEAT UP",
+"species": "Pork",
+"channel": "Food Service"
+},
+"070900": {
+"customer": "THE MEAT UP",
+"species": "Beef",
+"channel": "Food Service"
+},
+"071101": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071102": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071109": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071201": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071202": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071205": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071301": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071303": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071401": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071403": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071407": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071409": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071411": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071413": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071414": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071601": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071801": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071803": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071804": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071805": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"071806": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072101": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072102": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072103": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072201": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072301": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072304": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072401": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072403": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072405": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072407": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072408": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072409": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072603": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072605": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072607": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072801": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072805": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"072810": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"072811": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"072903": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"073101": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"073103": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"073301": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"073401": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"073403": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"073603": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"073801": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"073803": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"073804": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"073807": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074101": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074301": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074302": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074303": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074304": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074305": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074306": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074401": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074403": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"074404": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074405": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074406": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074407": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074409": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074411": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074412": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074413": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074414": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074415": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074601": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074603": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074800": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074801": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"074803": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074805": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074807": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074809": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074812": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074814": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074815": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074817": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"074818": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"074905": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075101": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075401": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075402": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075801": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075802": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075803": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075804": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075805": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075806": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075807": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075809": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075811": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"075812": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075813": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075814": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075817": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075818": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075819": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075820": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075821": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075822": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075824": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075825": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075829": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075830": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075900": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075902": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075904": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"075905": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"076401": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"076403": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"076405": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"076407": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"076409": {
+"customer": "JD FOOD"
+},
+"076801": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"076802": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"076803": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"076804": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"076805": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"076807": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"076808": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"076809": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"076903": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"077801": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"077803": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"077805": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"077807": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"077808": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"077809": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"077810": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"077814": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"077815": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"077816": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"077817": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"077818": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"077821": {
+"customer": "JD FOOD"
+},
+"64422": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef"
+},
+"655002": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655003": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655004": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655007": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655011": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655012": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655013": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655021": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655022": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655032": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655035": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655041": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655203": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655213": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655215": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655330": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655501": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655502": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655504": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655509": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655511": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655512": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655513": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655514": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"655521": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655522": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655523": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655524": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655530": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"655541": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655544": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655545": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655546": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655547": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655548": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655549": {
+"customer": "JD FOOD",
+"channel": "Food Service"
+},
+"655900": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655901": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655902": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"655903": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"656002": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656011": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656012": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656021": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656022": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656023": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656032": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656041": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656042": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656043": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656501": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656502": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656511": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656512": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656521": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656522": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656523": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"656541": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"660158": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"660999": {
+"customer": "STUFFED FOODS",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661005": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661025": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661032": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661038": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661191": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661193": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661195": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661196": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661249": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661256": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661271": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661275": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661331": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661341": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661346": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661347": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661348": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661349": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661352": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661354": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661356": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661357": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661358": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661360": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661372": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661373": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661374": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661377": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661379": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661395": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Retail"
+},
+"661405": {
+"customer": "GILLUM FAMILY FARMS",
+"species": "Beef",
+"channel": "Retail"
+},
+"661406": {
+"customer": "JD FOOD",
+"channel": "Food Service"
+},
+"661415": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661417": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"661418": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"661419": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"661426": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661427": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661431": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661432": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661433": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661435": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661436": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661437": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661438": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661439": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661440": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661442": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661446": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661448": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661449": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661451": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661454": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661456": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661467": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661468": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661471": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661472": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661601": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661632": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661635": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661685": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661687": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661688": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661689": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661690": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661696": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661697": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661698": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661699": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661704": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661705": {
+"customer": "CULINARY",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661710": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661711": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661712": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661714": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661722": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661724": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661731": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661732": {
+"customer": "AJINOMOTO WINDSOR",
+"species": "Beef"
+},
+"661739": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661742": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661743": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661746": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661748": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661749": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661752": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661753": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661754": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661757": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661758": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661759": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661761": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661769": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661770": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661774": {
+"customer": "OTHER",
+"channel": "Further Processing"
+},
+"661776": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661784": {
+"customer": "OTHER",
+"species": "Beef"
+},
+"661795": {
+"customer": "OTHER"
+},
+"661802": {
+"customer": "OTHER"
+},
+"661804": {
+"customer": "OTHER"
+},
+"661805": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661807": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661810": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661811": {
+"customer": "AJINOMOTO WINDSOR",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"661817": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661819": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661820": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661821": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661823": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661839": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661840": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661841": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661846": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661854": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661858": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661866": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661870": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661871": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661872": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661873": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661875": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"661876": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661877": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661883": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"661889": {
+"customer": "OTHER"
+},
+"661895": {
+"customer": "OTHER"
+},
+"661921": {
+"customer": "AJINOMOTO WINDSOR",
+"species": "Beef",
+"channel": "Further Process Cooker"
+},
+"661922": {
+"customer": "AJINOMOTO WINDSOR",
+"species": "Beef",
+"channel": "Further Process Cooker"
+},
+"661923": {
+"customer": "AJINOMOTO WINDSOR",
+"species": "Beef",
+"channel": "Further Process Cooker"
+},
+"661925": {
+"customer": "AJINOMOTO WINDSOR",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"661926": {
+"customer": "AJINOMOTO WINDSOR",
+"species": "Beef",
+"channel": "Further Process Cooker"
+},
+"661934": {
+"customer": "AJINOMOTO WINDSOR",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"661935": {
+"customer": "AJINOMOTO WINDSOR",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"661936": {
+"customer": "AJINOMOTO WINDSOR",
+"species": "Beef",
+"channel": "Further Process Cooker"
+},
+"661950": {
+"customer": "OTHER",
+"channel": "Further Processing"
+},
+"661951": {
+"customer": "OTHER",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"661953": {
+"customer": "OTHER",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"661954": {
+"customer": "OTHER",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"661957": {
+"customer": "OTHER"
+},
+"661958": {
+"customer": "OTHER"
+},
+"661968": {
+"customer": "CULINARY",
+"channel": "Further Process Cooker"
+},
+"661969": {
+"customer": "AJINOMOTO WINDSOR",
+"channel": "Further Process Cooker"
+},
+"662000": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"662003": {
+"customer": "AJINOMOTO WINDSOR",
+"species": "Beef",
+"channel": "Further Process Cooker"
+},
+"662006": {
+"customer": "CULINARY",
+"species": "Beef",
+"channel": "Further Process Cooker"
+},
+"662008": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"662022": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"662027": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"662028": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"662031": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"662032": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"662034": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"662042": {
+"customer": "MIAMI BEEF",
+"species": "Beef",
+"channel": "Food Service"
+},
+"662044": {
+"customer": "MIAMI BEEF",
+"species": "Beef"
+},
+"662049": {
+"customer": "OTHER",
+"species": "Beef",
+"channel": "Food Service"
+},
+"662064": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"662570": {
+"customer": "MCI",
+"species": "Beef",
+"channel": "Further Process Cooker"
+},
+"662571": {
+"customer": "MCI",
+"species": "Beef",
+"channel": "Further Process Cooker"
+},
+"662572": {
+"customer": "MCI",
+"species": "Beef",
+"channel": "Further Process Cooker"
+},
+"662837": {
+"customer": "MIAMI BEEF",
+"species": "Beef",
+"channel": "Retail"
+},
+"662924": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"662926": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"662932": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"662956": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"662958": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"662961": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"662962": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"662963": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"662965": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"662971": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"663011": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663019": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663022": {
+"customer": "JD FOOD",
+"species": "Lamb",
+"channel": "Food Service"
+},
+"663025": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663026": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663030": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663035": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663037": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663040": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663044": {
+"customer": "JD FOOD",
+"species": "Lamb",
+"channel": "Food Service"
+},
+"663045": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663046": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663049": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663050": {
+"customer": "JD FOOD",
+"species": "Lamb",
+"channel": "Food Service"
+},
+"663061": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663062": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663070": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663071": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663073": {
+"customer": "JD FOOD",
+"species": "Lamb",
+"channel": "Food Service"
+},
+"663074": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663075": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663076": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663077": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663082": {
+"customer": "JD FOOD",
+"species": "Lamb"
+},
+"663210": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663211": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663212": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663220": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663229": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663231": {
+"customer": "JD FOOD"
+},
+"663242": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663243": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663244": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663246": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663247": {
+"customer": "HFM",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663248": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663250": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663252": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663254": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663262": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663310": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663313": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663315": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663316": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663319": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663320": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663327": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663330": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663334": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663335": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663352": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663355": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663357": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663359": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663364": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663365": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663366": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663367": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663370": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663371": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663372": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663373": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663375": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663376": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663378": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663382": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663384": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663386": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663390": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663392": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663395": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663396": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663400": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663405": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663409": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663410": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663412": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663414": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663415": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663417": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663420": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663421": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663422": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663423": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663425": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663430": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663431": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663435": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663436": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663440": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Further Processing"
+},
+"663441": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Further Processing"
+},
+"663442": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Further Processing"
+},
+"663450": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663458": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663459": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663460": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663463": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663464": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663475": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"663490": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663493": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663494": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663497": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663504": {
+"customer": "SWEET WATER FARMS",
+"channel": "Food Service"
+},
+"663505": {
+"customer": "SWEET WATER FARMS",
+"channel": "Food Service"
+},
+"663509": {
+"customer": "SWEET WATER FARMS"
+},
+"663522": {
+"customer": "SWEET WATER FARMS"
+},
+"663524": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663525": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663526": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663527": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663528": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663529": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663530": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663531": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663532": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663533": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663534": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663535": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663536": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663537": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663538": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663539": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663547": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663548": {
+"customer": "SWEET WATER FARMS",
+"channel": "Further Processing"
+},
+"663549": {
+"customer": "SWEET WATER FARMS",
+"channel": "Further Processing"
+},
+"663550": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663551": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663553": {
+"customer": "SWEET WATER FARMS",
+"channel": "Food Service"
+},
+"663595": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663596": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663597": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663598": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663622": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663623": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663624": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663625": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663626": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663627": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663628": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663632": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663634": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663635": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663636": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663637": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663639": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663640": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663641": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663642": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663643": {
+"customer": "SWEET WATER FARMS",
+"channel": "Food Service"
+},
+"663644": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663645": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663646": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663647": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663648": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663649": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663656": {
+"customer": "SWEET WATER FARMS",
+"channel": "Food Service"
+},
+"663657": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663659": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663660": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663661": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663662": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663663": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663664": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663665": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663666": {
+"customer": "SWEET WATER FARMS",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663813": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"663881": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Further Processing"
+},
+"663882": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Further Processing"
+},
+"664071": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664075": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664120": {
+"customer": "AUTONOMY FARMS",
+"species": "Chicken",
+"channel": "Retail"
+},
+"664121": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664302": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664304": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664305": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664306": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664311": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664312": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664313": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664315": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Retail"
+},
+"664316": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664321": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Retail"
+},
+"664322": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664323": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664324": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Retail"
+},
+"664429": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664430": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664434": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664506": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"664511": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"664624": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664633": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664668": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664683": {
+"customer": "JD FOOD",
+"channel": "Food Service"
+},
+"664687": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664688": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664695": {
+"customer": "JD FOOD",
+"species": "Chicken"
+},
+"664696": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664699": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664754": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664912": {
+"customer": "JD FOOD",
+"species": "Chicken"
+},
+"664914": {
+"customer": "JD FOOD",
+"species": "Chicken"
+},
+"664922": {
+"customer": "JD FOOD",
+"species": "Chicken"
+},
+"664931": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664932": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664933": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664934": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664935": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"664938": {
+"customer": "JD FOOD",
+"species": "Chicken"
+},
+"665000": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665002": {
+"customer": "AUTONOMY FARMS",
+"species": "Beef",
+"channel": "Retail"
+},
+"665003": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665005": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665006": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665010": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665020": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"665025": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665027": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665028": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665038": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Further Process Cooker"
+},
+"665041": {
+"customer": "MISHIMA RESERVE",
+"species": "Beef",
+"channel": "Retail"
+},
+"665042": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"665047": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665060": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665101": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665105": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665133": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"665134": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665167": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665181": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665184": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665189": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665194": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665203": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665209": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665211": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665215": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665216": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665217": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665218": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665219": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665224": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665264": {
+"customer": "CNB BA",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665281": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665311": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665335": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665363": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665400": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"665500": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"665504": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"665505": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"665511": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"665553": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"665787": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"666540": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"666541": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"666542": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"666560": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"666561": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"666605": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"667001": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"667002": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667003": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"667004": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"667008": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"667101": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667129": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667138": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667168": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667174": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667186": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667189": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667190": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667193": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667217": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667218": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667219": {
+"customer": "BIRITE"
+},
+"667220": {
+"customer": "BIRITE"
+},
+"667225": {
+"customer": "BIRITE",
+"species": "Beef"
+},
+"667230": {
+"customer": "BIRITE"
+},
+"667237": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667238": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667240": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667249": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667250": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667251": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667253": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667254": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667255": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667260": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667262": {
+"customer": "BIRITE",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667263": {
+"customer": "BIRITE",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"667264": {
+"customer": "BIRITE",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"667270": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667271": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667277": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667310": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667313": {
+"customer": "BIRITE",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667314": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667315": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667317": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667322": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667326": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667327": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667328": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667329": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667330": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667331": {
+"customer": "BIRITE",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667333": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667334": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667335": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667336": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667341": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"667342": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667343": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667344": {
+"customer": "BIRITE",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667345": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667346": {
+"customer": "BIRITE",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667347": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667348": {
+"customer": "BIRITE",
+"channel": "Food Service"
+},
+"667349": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667352": {
+"customer": "BIRITE",
+"species": "Pork"
+},
+"667353": {
+"customer": "BIRITE",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667355": {
+"customer": "BIRITE",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667356": {
+"customer": "BIRITE",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667359": {
+"customer": "BIRITE",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667360": {
+"customer": "BIRITE",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667361": {
+"customer": "BIRITE",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667362": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667364": {
+"customer": "BIRITE",
+"channel": "Food Service"
+},
+"667365": {
+"customer": "BIRITE",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667367": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667369": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667370": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667371": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667372": {
+"customer": "BIRITE",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667373": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667374": {
+"customer": "BIRITE",
+"channel": "Food Service"
+},
+"667375": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667378": {
+"customer": "BIRITE",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667379": {
+"customer": "BIRITE",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667380": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667381": {
+"customer": "BIRITE",
+"species": "Pork",
+"channel": "Food Service"
+},
+"667382": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667383": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667384": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667385": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667386": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667387": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"667389": {
+"customer": "BIRITE",
+"channel": "Food Service"
+},
+"667390": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667391": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667392": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667393": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"667394": {
+"customer": "BIRITE",
+"species": "Chicken",
+"channel": "Food Service"
+},
+"670064": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670070": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"670071": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670072": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670080": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670083": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670087": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670100": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670101": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670102": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670103": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670104": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670107": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670109": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670110": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670116": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670117": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670118": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670120": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670121": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670122": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670124": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670127": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"670129": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670133": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670136": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670137": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"670139": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670141": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670147": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"670148": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670150": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670154": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670155": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670160": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670170": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670173": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670174": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670177": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670178": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670182": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"670220": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"671060": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"671070": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"671075": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"671078": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"671079": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"671080": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"671082": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"671091": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"671096": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"671098": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"671101": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"671102": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"671106": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"671109": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"671112": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"671114": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"671120": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"671131": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"671132": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"671137": {
+"customer": "GLOBAL PROTEIN",
+"species": "Beef",
+"channel": "Food Service"
+},
+"671150": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"671153": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"671400": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671401": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671402": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671403": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671404": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671406": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671407": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671408": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671409": {
+"customer": "JD FOOD",
+"species": "Lamb",
+"channel": "Retail"
+},
+"671410": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671411": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671412": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671413": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671414": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671415": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"671416": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"671417": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671418": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"671501": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671502": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671504": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671512": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Retail"
+},
+"671519": {
+"customer": "JD FOOD",
+"species": "Chicken",
+"channel": "Retail"
+},
+"672077": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"672080": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672082": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"672083": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672084": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672085": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"672088": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672089": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672092": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"672095": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"672097": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672098": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672100": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672101": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672102": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"672103": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"672113": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"672116": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"672118": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"672121": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"672125": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"672131": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"672301": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672302": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672303": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672304": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672305": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672306": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672307": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672308": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"672311": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"672315": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"672316": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673080": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673090": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673095": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"673096": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673097": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673100": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673102": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673106": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"673107": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"673108": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"673109": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673110": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"673115": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673118": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673124": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"673126": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"673127": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673131": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673133": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673134": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673135": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"673139": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673142": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673143": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"673163": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673164": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673168": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"673169": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673172": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673173": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673174": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673175": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673323": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673324": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673325": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673328": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"673330": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673335": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673344": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673345": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673346": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673350": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673351": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"673352": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673359": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673367": {
+"customer": "BIRITE",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673384": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"673390": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"673391": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"674110": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"674120": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"674160": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"674164": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"675160": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"675166": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"675167": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"675169": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"676101": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"676109": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"676120": {
+"customer": "GLOBAL PROTEIN",
+"species": "Beef",
+"channel": "Food Service"
+},
+"676126": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"676127": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"676200": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"676300": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"676301": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"676305": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"676621": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"676625": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"680004": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680005": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680006": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680007": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680008": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680009": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"680012": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680110": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680119": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680122": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680123": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"680126": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680127": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680128": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"680129": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680130": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680132": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680133": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"680134": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"680137": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"680138": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680139": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680141": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680142": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680149": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680151": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680154": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"680155": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680156": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680157": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680158": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680159": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680164": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680165": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680170": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680174": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680177": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680179": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680186": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"680188": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"680200": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680202": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"680203": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680206": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680207": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"680208": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680223": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680224": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"680225": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"681002": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"681003": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"681004": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"681005": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"681006": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"681008": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"681009": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"681010": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"681012": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"681013": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"681014": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"681016": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"681020": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"681021": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"681022": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"681033": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"681034": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"681037": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"681039": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"681051": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"681052": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"681055": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"681056": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"681057": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"681058": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"900105": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Further Processing"
+},
+"900114": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900118": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"900122": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"900134": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"900139": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"900140": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"900143": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"900165": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900179": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900183": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"900187": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"900190": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900191": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900194": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900400": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900401": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900402": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900403": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900404": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900405": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900406": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900408": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900409": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900497": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900500": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900501": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900502": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900504": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900505": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900506": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900508": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900509": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900510": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900512": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900513": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900514": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900521": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Retail"
+},
+"900524": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900525": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900527": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900531": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900533": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900546": {
+"customer": "BRANDT"
+},
+"900547": {
+"customer": "BRANDT"
+},
+"900551": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900555": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900560": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900565": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900566": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900599": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900600": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Retail"
+},
+"900601": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900602": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Retail"
+},
+"900659": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900665": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900666": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900667": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900669": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900670": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900671": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900677": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900680": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Retail"
+},
+"900681": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900684": {
+"customer": "BRANDT"
+},
+"900695": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900697": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900700": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900703": {
+"customer": "BRANDT"
+},
+"900705": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900709": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900710": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900713": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900714": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900715": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900716": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900724": {
+"customer": "BRANDT"
+},
+"900728": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900730": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900735": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900737": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900738": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900752": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900754": {
+"customer": "BRANDT"
+},
+"900764": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900767": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900770": {
+"customer": "SUNFED RANCH",
+"species": "Beef"
+},
+"900778": {
+"customer": "SUNFED RANCH",
+"species": "Beef"
+},
+"900780": {
+"customer": "SUNFED RANCH",
+"species": "Beef"
+},
+"900781": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900784": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900790": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900791": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900792": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900800": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900802": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900805": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900806": {
+"customer": "BRANDT"
+},
+"900808": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"900811": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900812": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"900815": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900816": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900824": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900826": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900827": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900828": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900829": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900830": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900833": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900834": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900835": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900838": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900839": {
+"customer": "BRANDT"
+},
+"900840": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900841": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900842": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900843": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900844": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900847": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900848": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900849": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900852": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900864": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900867": {
+"customer": "BRANDT"
+},
+"900868": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900869": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900871": {
+"customer": "BRANDT",
+"species": "Beef"
+},
+"900872": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900873": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900878": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900879": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900880": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900881": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900882": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900883": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900884": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900885": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900886": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900887": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900888": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900889": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900890": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900891": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900892": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900893": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900894": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900895": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900896": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900900": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900901": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900902": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900903": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900910": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900911": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900912": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900913": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900914": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900915": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900916": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900917": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900918": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900919": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900920": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900921": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900930": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900931": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900932": {
+"customer": "BRANDT",
+"channel": "Food Service"
+},
+"900933": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900934": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900935": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900940": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900950": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900951": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"900952": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"901100": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Retail"
+},
+"901101": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"901102": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"901103": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"901104": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"901105": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"901106": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"901107": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"901108": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"901131": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"901140": {
+"customer": "BRANDT",
+"species": "Beef",
+"channel": "Food Service"
+},
+"901205": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"901210": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"901215": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"901227": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"901228": {
+"customer": "JD FOOD",
+"species": "Pork",
+"channel": "Food Service"
+},
+"901230": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"901231": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"901256": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"901257": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"901258": {
+"customer": "JD FOOD",
+"species": "Pork"
+},
+"902105": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"902109": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"902111": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"902400": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"902401": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"902403": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"902406": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"902407": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"902408": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"902409": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"902410": {
+"customer": "JD FOOD",
+"species": "Beef"
+},
+"902411": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"902412": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"902449": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"902453": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"902458": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"902459": {
+"customer": "JD FOOD",
+"species": "Beef",
+"channel": "Food Service"
+},
+"911006": {
+"customer": "DIESTEL",
+"species": "Turkey",
+"channel": "Retail"
+},
+"911007": {
+"customer": "DIESTEL",
+"species": "Turkey",
+"channel": "Retail"
+},
+"911008": {
+"customer": "DIESTEL",
+"species": "Turkey",
+"channel": "Retail"
+},
+"911009": {
+"customer": "DIESTEL",
+"species": "Turkey",
+"channel": "Retail"
+},
+"911010": {
+"customer": "DIESTEL",
+"species": "Turkey",
+"channel": "Retail"
+},
+"911011": {
+"customer": "DIESTEL",
+"species": "Turkey",
+"channel": "Retail"
+},
+"911012": {
+"customer": "DIESTEL",
+"species": "Turkey",
+"channel": "Retail"
+}
+}
+}

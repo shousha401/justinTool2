@@ -167,16 +167,40 @@ decided, e.g. "Auto (Own)"), or pick Toll/Own to force an item either way. Overr
 are per-item, saved to `data/class-overrides.json` (gitignored), and the report
 recomputes on change. This is how you settle items the rule can't (e.g. JD Food).
 
-**Customer is overridable too — "transfer" an item.** A line's customer is inferred
-from the batch **notes** first, then the product **description** (`backend/tollRates.js`
-`parseCustomer`) — so named accounts (Mishima, Eel River, Mariposa, Miami, Hewitt, GFF…)
-are recognized wherever they're written, and a `CMP` token in a description is JD Food's
-own brand. There is **no real "CMP" customer** — anything unidentified is JD Food's own
-in-house production. When the guess is still wrong, the **Customer** column in Batch
+**Customer attribution — authoritative spec sheet, then a text guess.** A line's
+customer is resolved in this order: a **manual transfer** (below) wins; then the
+**spec-sheet customer** — an authoritative per-code owner from the Product Specs export
+(`reference/item-specs.json`, see below); then a **text guess** from the batch **notes**,
+then the product **description** (`backend/tollRates.js` `parseCustomer`). Named accounts
+(Mishima, Eel River, Mariposa, Miami, Hewitt, GFF…) are recognized wherever they're
+written, and a `CMP` token in a description is JD Food's own brand. There is **no real
+"CMP" customer** — anything unidentified is JD Food's own in-house production.
+
+**Transfer an item.** When attribution is still wrong, the **Customer** column in Batch
 Detail is a dropdown: pick a customer to **transfer that item** there. Transfers are
 per-item, saved to `data/customer-overrides.json` (gitignored), and flow everywhere —
 the report, the stored daily summaries, the Owner's Dashboard, and the Customers tab
 (they all roll up on one `customer` field).
+
+### Product Specs reference data
+
+`reference/item-specs.json` is an **authoritative per-item-code customer** table (plus
+species / production channel) extracted from the "Product Specs Data.xlsx" export. It
+covers finished goods (≈2,200 codes, 55 customers) and is the second link in the
+attribution chain above — beating the heuristic guess, losing only to a manual transfer.
+It's a **committed** file (not under the gitignored `data/`), so it deploys with the
+code. Regenerate it when the spreadsheet changes and commit the result:
+
+```bash
+python scripts/import-item-specs.py "C:/path/to/Product Specs Data.xlsx"
+```
+
+The sheet's long names ("MISHIMA RESERVE", "GILLUM FAMILY FARMS") are canonicalized to
+the app's short names ("Mishima", "GFF") at load by an `ALIAS` map in
+`backend/itemSpecs.js`; unmapped names become their own Title-Cased account (edit `ALIAS`
+to fold any of them into an existing customer). Changing the dataset bumps an internal
+fingerprint that marks stored daily summaries stale, so the Dashboard/Customers tab
+recompute automatically.
 
 ## Prices Today tab
 

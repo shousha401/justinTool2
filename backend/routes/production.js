@@ -4,6 +4,7 @@ const manualRates = require('../manualRates');
 const classOverrides = require('../classOverrides');
 const customerOverrides = require('../customerOverrides');
 const priceOverrides = require('../priceOverrides');
+const itemSpecs = require('../itemSpecs');
 const { KNOWN_CUSTOMERS } = require('../tollRates');
 
 const router = express.Router();
@@ -86,8 +87,11 @@ router.delete('/customer-overrides/:code', (req, res) => {
 });
 
 // GET /api/production/known-customers → canonical customer list for the dropdown
+// (the built-in names plus every customer the spec sheet introduced), deduped.
 router.get('/known-customers', (_req, res) => {
-  res.json({ customers: KNOWN_CUSTOMERS });
+  const customers = [...new Set([...KNOWN_CUSTOMERS, ...itemSpecs.getCustomers()])]
+    .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  res.json({ customers });
 });
 
 // ── Price overrides (forced price + wrong-source flag) ───────────────────────
