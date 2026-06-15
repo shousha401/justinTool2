@@ -161,6 +161,15 @@ lines have an inline **$/lb box**: type a rate and it's saved (`data/toll-rates.
 gitignored) and applied to that item everywhere. It's a fallback only — if a real toll
 sale later appears, the live price automatically takes over. Clear the box to remove it.
 
+**See how a line's numbers were derived — 🔎 explainer.** Every Batch Detail line has a
+**🔎** that opens a per-line breakdown: for the **customer**, **Toll/Own**, and **rate**
+it shows the full decision chain — every candidate that was considered, with the one that
+won checked — then the arithmetic behind revenue/cost/GP. So you can see exactly where a
+number came from (e.g. "customer Miami from the Product Specs sheet; rate $1.50/lb from a
+real Miami sale, not the $0.75/lb production standard") and fix anything wrong with the
+customer/type/rate controls built into the same panel. Each row carries a `trace` object
+(`backend/production.js`) holding those candidates.
+
 **Toll vs Own is also overridable.** The Type column in Batch Detail is an
 **Auto / Toll / Own** selector: "Auto" uses the automatic rule (and shows what it
 decided, e.g. "Auto (Own)"), or pick Toll/Own to force an item either way. Overrides

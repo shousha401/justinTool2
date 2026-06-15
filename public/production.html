@@ -94,6 +94,31 @@
   .err { color: #b42318; }
   .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px; }
   @keyframes sp { to { transform: rotate(360deg); } }
+  /* per-line "how we got this number" explainer */
+  button.explain { border: 1px solid var(--line); background: var(--card); color: var(--muted); border-radius: 6px; padding: 1px 7px; font-size: 12px; cursor: pointer; line-height: 1.4; }
+  button.explain:hover { border-color: var(--accent); color: var(--accent); }
+  .modal { position: fixed; inset: 0; background: rgba(20,28,40,.45); display: flex; align-items: center; justify-content: center; z-index: 20; }
+  .modal-card { background: var(--card); border-radius: 12px; max-width: 620px; width: 92%; max-height: 86vh; overflow: auto; box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+  .modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--card); }
+  .modal-head b { font-size: 14px; } .modal-head .sub2 { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .modal-head button.x { border: 1px solid var(--line); background: var(--card); color: var(--muted); border-radius: 6px; padding: 2px 9px; font-weight: 600; cursor: pointer; }
+  .xp { padding: 6px 16px 18px; }
+  .xp section { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
+  .xp h3 { margin: 0 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }
+  .xp .result { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+  .xp .result .badge { vertical-align: 2px; margin-left: 4px; }
+  .step { display: flex; gap: 8px; align-items: baseline; padding: 3px 0; font-size: 12.5px; border-top: 1px dashed var(--line); }
+  .step:first-of-type { border-top: 0; }
+  .step .lbl { flex: 0 0 168px; color: var(--muted); }
+  .step .val { flex: 1; }
+  .step.win { font-weight: 600; }
+  .step.win .lbl { color: var(--ink); }
+  .step .pick { color: var(--own); font-weight: 700; margin-right: 5px; }
+  .step .skip { color: #c2c8d0; }
+  .xp .ctl { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .xp .ctl label { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+  .xp .math { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+  .xp .note { font-size: 11.5px; color: var(--muted); margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -112,6 +137,8 @@
     falling back to a contract rate only if there's no recent toll sale) and
     <b class="own">Own</b> (we own the meat — revenue = sell value, less raw-material cost).
     Gross profit, less labor, is net contribution.
+    In <b>Batch Detail</b>, click <b>🔎</b> on any line to see exactly how its customer, type, and
+    rate were determined — and correct anything wrong right there.
   </div>
 </header>
 
@@ -132,6 +159,13 @@
   <div id="tollnote"></div>
   <div id="content"></div>
   <div id="state" class="empty"><span class="spin"></span> Loading…</div>
+</div>
+
+<div id="explainModal" class="modal" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-head"><div><b id="xpTitle"></b><div class="sub2" id="xpSub"></div></div><button id="xpClose" class="x" type="button">✕</button></div>
+    <div id="xpBody" class="xp"></div>
+  </div>
 </div>
 
 <script>
@@ -204,10 +238,11 @@ function renderSummary() {
 }
 
 function renderDetail() {
-  const head = `<th>Customer</th><th>Item / description</th><th class="num">Rm</th><th class="num">Type</th>
+  const head = `<th></th><th>Customer</th><th>Item / description</th><th class="num">Rm</th><th class="num">Type</th>
     <th class="num">CS</th><th class="num">Lbs</th><th class="num">$/lb</th><th class="num">Revenue</th>
     <th class="num">Source</th><th class="num">Raw material</th><th class="num">GP $</th><th class="num">GP %</th><th class="num">Yield</th>`;
-  const rows = REPORT.rows.map(r => `<tr>
+  const rows = REPORT.rows.map((r, i) => `<tr>
+    <td><button class="explain" data-i="${i}" title="How we got these numbers">🔎</button></td>
     <td><select class="custEdit ${r.customerOverride ? 'overridden' : ''}" data-code="${esc(r.item)}" title="Transfer this item to a customer">
       <option value="" ${!r.customerOverride ? 'selected' : ''}>Auto (${esc(r.autoCustomer || r.customer)})</option>
       ${CUSTOMERS.map(c => `<option value="${esc(c)}" ${r.customerOverride === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}
@@ -359,6 +394,129 @@ async function commitCustomer(sel) {
     sel.disabled = false;
   }
 }
+
+// ── Per-line "how we got this number" explainer ──────────────────────────────
+const rate$ = (n) => (n == null ? '—' : '$' + Number(n).toFixed(2));
+const shortC = (c) => String(c || '').split(/[(,]/)[0].trim();
+const dash = '<span class="skip">—</span>';
+function stepLine(label, valueHtml, isWin) {
+  const pick = isWin ? '<span class="pick">✓</span>' : '<span class="skip">·</span>';
+  return `<div class="step ${isWin ? 'win' : ''}"><div class="lbl">${pick}${esc(label)}</div><div class="val">${valueHtml}</div></div>`;
+}
+
+function explainCustomer(r) {
+  const t = r.trace.customer;
+  const steps = [
+    stepLine('Manual transfer', t.transfer ? esc(t.transfer) : dash, t.via === 'transfer'),
+    stepLine('Product Specs sheet', t.spec ? esc(t.spec) : dash, t.via === 'spec'),
+    stepLine('Notes / description guess', t.guess ? esc(t.guess) : dash, t.via === 'guess'),
+  ].join('');
+  const read = `<div class="note">Read from — notes: <b>${esc(t.notes || '(none)')}</b> · description: <b>${esc(t.description || '(none)')}</b></div>`;
+  const ctl = `<div class="ctl"><label>Correct:
+    <select class="custEdit ${r.customerOverride ? 'overridden' : ''}" data-code="${esc(r.item)}">
+      <option value="" ${!r.customerOverride ? 'selected' : ''}>Auto (${esc(r.autoCustomer || r.customer)})</option>
+      ${CUSTOMERS.map(c => `<option value="${esc(c)}" ${r.customerOverride === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}
+    </select></label></div>`;
+  return `<section><h3>Customer</h3><div class="result">${esc(t.chosen)}</div>${steps}${read}${ctl}</section>`;
+}
+
+function explainType(r) {
+  const t = r.trace.type;
+  const isToll = t.chosen === 'toll';
+  const reason = t.customerIsJdFood
+    ? 'Customer is JD Food → always Own (in-house production).'
+    : `Auto rule: batch input cost ${rate$(t.batchAvgIC)}/lb ${t.batchAvgIC < t.threshold ? '&lt;' : '≥'} ${rate$(t.threshold)} threshold`
+      + ` · recent toll sale? <b>${t.hasTollSale ? 'yes' : 'no'}</b> · ordinary sale? <b>${t.hasSale ? 'yes' : 'no'}</b>`;
+  const steps = [
+    stepLine('Manual override', t.override ? (t.override === 'toll' ? 'Toll' : 'Own') : dash, t.via === 'override'),
+    stepLine('Auto rule', t.autoToll ? 'Toll' : 'Own', t.via === 'auto'),
+  ].join('');
+  const ctl = `<div class="ctl"><label>Correct:
+    <select class="classEdit ${r.override ? 'overridden ' : ''}${isToll ? 'is-toll' : 'is-own'}" data-code="${esc(r.item)}">
+      <option value="" ${!r.override ? 'selected' : ''}>Auto (${t.autoToll ? 'Toll' : 'Own'})</option>
+      <option value="toll" ${r.override === 'toll' ? 'selected' : ''}>Toll</option>
+      <option value="own" ${r.override === 'own' ? 'selected' : ''}>Own</option>
+    </select></label></div>`;
+  return `<section><h3>Toll or Own</h3>
+    <div class="result">${isToll ? 'Toll' : 'Own'} <span class="badge ${isToll ? 'toll' : 'own'}">${isToll ? 'Toll' : 'Own'}</span></div>
+    <div class="note">${reason}</div>${steps}${ctl}</section>`;
+}
+
+function explainRate(r) {
+  const t = r.trace.rate;
+  const b = t.basis;
+  const liveStr = t.live ? `${rate$(t.live.price)}/lb · ${esc(shortC(t.live.customer))} ${esc(t.live.date || '')}` : dash;
+  const saleStr = t.sale ? `${rate$(t.sale.price)}/lb · ${esc(shortC(t.sale.customer))} ${esc(t.sale.date || '')}` : dash;
+  const contractStr = t.contract ? `${rate$(t.contract.rate)}/lb · ${esc(t.contract.source || '')}` : dash;
+  let steps;
+  if (r.isToll) {
+    steps = [
+      stepLine('Forced price', t.forced != null ? rate$(t.forced) + '/lb' : dash, b === 'forced'),
+      stepLine('Live toll sale', liveStr, b === 'live'),
+      stepLine('Manual rate', t.manual != null ? rate$(t.manual) + '/lb' : dash, b === 'manual'),
+      stepLine('Contract rate', contractStr, b === 'contract'),
+      stepLine('Last sale (no toll rate)', saleStr, b === 'sale'),
+      stepLine('No rate found', '$0 — needs a rate', b === 'none'),
+    ].join('');
+  } else {
+    steps = [
+      stepLine('Forced price', t.forced != null ? rate$(t.forced) + '/lb' : dash, b === 'forced'),
+      stepLine('Most recent real sale', saleStr, b === 'own' && t.sale != null),
+      stepLine('Manual rate', t.manual != null ? rate$(t.manual) + '/lb' : dash, b === 'manual'),
+      stepLine('Production sell value', t.productionValue != null ? `${rate$(r.lbs ? t.productionValue / r.lbs : null)}/lb (sell value ${fmt$(t.productionValue)})` : dash, b === 'own' && t.sale == null && t.productionValue != null),
+      stepLine('No price found', '$0 — needs a price', b === 'none'),
+    ].join('');
+  }
+  let ctl;
+  if (b === 'none' || b === 'manual' || b === 'sale') {
+    ctl = `<div class="ctl"><label>Set toll rate $/lb:
+      <input class="rateEdit ${b === 'manual' ? 'set' : ''}" type="number" step="0.01" min="0" data-code="${esc(r.item)}" value="${b === 'manual' && r.rate != null ? r.rate : ''}" placeholder="${b === 'sale' && r.rate != null ? '$' + r.rate.toFixed(2) : '$/lb'}" /></label></div>
+      <div class="note">A <b>forced price</b> (wins over everything Swarmbox pulls) can be set on the Prices Today tab.</div>`;
+  } else {
+    ctl = `<div class="note">To override this rate, use the <b>Prices Today</b> tab (forced price), or change Toll/Own above.</div>`;
+  }
+  return `<section><h3>Rate ($/lb)</h3><div class="result">${rate$(t.chosen)}${t.chosen != null ? '/lb' : ''}</div>${steps}${ctl}</section>`;
+}
+
+function explainMath(r) {
+  const a = r.trace.amounts;
+  const ownStd = !r.isToll && r.priceBasis === 'own' && r.trace.rate.sale == null && a.sellVal > 0;
+  const revLine = r.isToll
+    ? `revenue = rate ${rate$(r.rate)} × ${fmtN(a.lbs)} lbs = ${fmt$(a.revenue)}`
+    : (ownStd ? `revenue = production sell value = ${fmt$(a.revenue)}`
+              : `revenue = rate ${rate$(r.rate)} × ${fmtN(a.lbs)} lbs = ${fmt$(a.revenue)}`);
+  const costLine = r.isToll ? 'raw material = $0 (customer supplied the meat)' : `raw material (input cost) = ${fmt$(a.inputCost)}`;
+  return `<section><h3>The math</h3>
+    <div class="math">${fmtN(a.cs)} cases · ${fmtN(a.lbs)} lbs &nbsp;(from Swarmbox)</div>
+    <div class="math">${revLine}</div>
+    <div class="math">${costLine}</div>
+    <div class="math"><b>gross profit = revenue − raw material = ${fmt$(a.gp)}</b></div></section>`;
+}
+
+function openExplain(i) {
+  const r = REPORT && REPORT.rows[i];
+  if (!r || !r.trace) return;
+  $('xpTitle').textContent = r.description || r.item;
+  $('xpSub').textContent = `${r.item} · batch ${r.batch} · room ${r.room || '—'}`;
+  $('xpBody').innerHTML = explainCustomer(r) + explainType(r) + explainRate(r) + explainMath(r);
+  $('explainModal').style.display = 'flex';
+}
+function closeExplain() { $('explainModal').style.display = 'none'; }
+
+// A correction made inside the explainer reuses the same commit calls, then
+// closes (the table reloads underneath with the new number).
+$('xpBody').addEventListener('change', async (e) => {
+  const inp = e.target.closest('input.rateEdit'); if (inp) { await commitRate(inp); closeExplain(); return; }
+  const cls = e.target.closest('select.classEdit'); if (cls) { await commitClass(cls); closeExplain(); return; }
+  const cust = e.target.closest('select.custEdit'); if (cust) { await commitCustomer(cust); closeExplain(); return; }
+});
+$('xpBody').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.closest('input.rateEdit')) e.target.blur(); });
+$('content').addEventListener('click', (e) => {
+  const b = e.target.closest('button.explain'); if (b) openExplain(Number(b.dataset.i));
+});
+$('xpClose').onclick = closeExplain;
+$('explainModal').onclick = (e) => { if (e.target === $('explainModal')) closeExplain(); };
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeExplain(); });
 
 $('content').addEventListener('change', (e) => {
   const inp = e.target.closest('input.rateEdit');

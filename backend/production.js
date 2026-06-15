@@ -144,6 +144,7 @@ function classify(lines) {
       lbs: num(r.cost_quantity),
       sellVal: num(r.total_sales_cost),
       inputCostRaw: num(r.total_inventory_cost),
+      batchAvgIC,
       customer, autoCustomer, specCustomer, customerOverride,
       // Preliminary signal: the batch barely had input cost ⇒ customer supplied
       // the meat. Finalized in getProductionReport (a real toll price also counts).
@@ -163,7 +164,7 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
   const ownCounts = { sale: 0, manual: 0, standard: 0, none: 0 };
   let forcedCount = 0, flaggedCount = 0;
 
-  const rows = base.map(({ r, cs, lbs, sellVal, inputCostRaw, customer, autoCustomer, specCustomer, customerOverride, isToll, autoToll, override }) => {
+  const rows = base.map(({ r, cs, lbs, sellVal, inputCostRaw, batchAvgIC, customer, autoCustomer, specCustomer, customerOverride, isToll, autoToll, override, hasTollSale, hasSale }) => {
     let revenue, inputCost, rate, source, missingRate = false, priceBasis;
     const rec = sales.get(r.item);
     const forced = priceOverrides.get(r.item); // authoritative correction (wins over Swarmbox)
@@ -250,6 +251,47 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
     }
     const gp = revenue - inputCost;
 
+    // Full provenance for the per-line "how we got this number" drill-down: every
+    // candidate considered for customer, Toll/Own, and the rate — not just the
+    // winner — plus the arithmetic behind revenue/cost/GP.
+    const liveToll = rec && rec.toll ? { price: rec.toll.price, customer: rec.toll.customer, date: rec.toll.lastSoldDate } : null;
+    const anySale = rec && rec.any ? { price: rec.any.price, customer: rec.any.customer, date: rec.any.lastSoldDate } : null;
+    const manualRate = manualRates.getRate(r.item);
+    const contract = tollRate(r.item, itemLbs.get(r.item) || lbs);
+    const trace = {
+      customer: {
+        chosen: customer,
+        via: customerOverride ? 'transfer' : (specCustomer ? 'spec' : 'guess'),
+        transfer: customerOverride || null,
+        spec: specCustomer || null,
+        guess: autoCustomer || null,
+        notes: r.batch_notes || '',
+        description: r.description || '',
+      },
+      type: {
+        chosen: isToll ? 'toll' : 'own',
+        via: override ? 'override' : 'auto',
+        autoToll: !!autoToll,
+        override: override || null,
+        batchAvgIC,
+        threshold: TOLL_IC_PER_LB,
+        hasTollSale: !!hasTollSale,
+        hasSale: !!hasSale,
+        customerIsJdFood: customer === 'JD Food',
+      },
+      rate: {
+        basis: priceBasis,
+        chosen: rate,
+        forced: forced && forced.rate > 0 ? forced.rate : null,
+        live: liveToll,
+        manual: manualRate != null && manualRate > 0 ? manualRate : null,
+        contract: contract && contract.rate != null ? { rate: contract.rate, source: contract.source } : null,
+        sale: anySale,
+        productionValue: sellVal > 0 ? sellVal : null,
+      },
+      amounts: { cs, lbs, revenue, inputCost, inputCostRaw, gp, sellVal },
+    };
+
     return {
       batch: r.batch,
       item: r.item,
@@ -273,6 +315,7 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
       wrongSource: forced ? forced.wrongSource : null,
       forcedNote: forced ? forced.note : '',
       yieldPct: yieldByBatch.get(r.batch) ?? null,
+      trace,
     };
   });
 
@@ -351,6 +394,8 @@ async function getProductionReport({ date, force = false } = {}) {
     b.autoToll = auto;
     b.override = ov || null;
     b.isToll = ov ? ov === 'toll' : auto;
+    b.hasTollSale = hasToll;
+    b.hasSale = hasSale;
   }
 
   const report = buildReport(day, base, itemLbs, yieldByBatch, sales);
