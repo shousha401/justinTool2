@@ -20,6 +20,7 @@
 const { sweepCatalog } = require('./catalog');
 const { lastPrices } = require('./pricing');
 const { getCodes: discontinuedCodes } = require('./discontinued');
+const valueOverrides = require('./valueOverrides');
 const dbStore = require('./db');
 
 const TTL_MS = Number(process.env.VALUE_CACHE_TTL_MS) || 6 * 60 * 60 * 1000;
@@ -35,6 +36,87 @@ function localYmd(d = new Date()) {
   return `${d.getFullYear()}-${m}-${day}`;
 }
 
+// Overlay any manual value-override onto a row, per tier. The raw Swarmbox values
+// are captured once (cmpRaw/jdRaw…) so we can show them alongside and flip back to
+// them without a rebuild; the displayed cmpValue/jdValue become the *chosen*
+// source (manual when picked, else the live last-sale). Idempotent — safe to
+// re-run whenever an override changes. The DB snapshot stores the raw values
+// (saved before this runs), so price history stays real-sales-only.
+function decorate(row) {
+  if (row.cmpRaw === undefined) {
+    row.cmpRaw = row.cmpValue ?? null;
+    row.cmpRawUom = row.cmpValueUom ?? null;
+    row.cmpRawLastSold = row.cmpLastSoldDate ?? null;
+    row.jdRaw = row.jdValue ?? null;
+    row.jdRawUom = row.jdValueUom ?? null;
+    row.jdRawLastSold = row.jdLastSoldDate ?? null;
+    row.jdRawCustomer = row.jdCustomer ?? null;
+  }
+  const ov = valueOverrides.get(row.productCode);
+
+  // CMP → JD (internal)
+  const cmpManual = ov && ov.cmpManual > 0 ? ov.cmpManual : null;
+  const useCmpManual = cmpManual != null && (!ov || ov.cmpUse !== 'swarmbox');
+  if (useCmpManual) {
+    row.cmpValue = cmpManual;
+    row.cmpValueUom = (ov && ov.cmpUom) || 'LB';
+    row.cmpLastSoldDate = null;
+    row.cmpSource = 'manual';
+  } else {
+    row.cmpValue = row.cmpRaw;
+    row.cmpValueUom = row.cmpRawUom;
+    row.cmpLastSoldDate = row.cmpRawLastSold;
+    row.cmpSource = 'swarmbox';
+  }
+  row.cmpManual = cmpManual;
+  row.cmpManualUom = (ov && ov.cmpUom) || 'LB';
+  row.cmpUse = useCmpManual ? 'manual' : 'swarmbox';
+
+  // JD → customer (street)
+  const jdManual = ov && ov.jdManual > 0 ? ov.jdManual : null;
+  const useJdManual = jdManual != null && (!ov || ov.jdUse !== 'swarmbox');
+  if (useJdManual) {
+    row.jdValue = jdManual;
+    row.jdValueUom = (ov && ov.jdUom) || 'LB';
+    row.jdLastSoldDate = null;
+    row.jdCustomer = null;
+    row.jdSource = 'manual';
+  } else {
+    row.jdValue = row.jdRaw;
+    row.jdValueUom = row.jdRawUom;
+    row.jdLastSoldDate = row.jdRawLastSold;
+    row.jdCustomer = row.jdRawCustomer;
+    row.jdSource = 'swarmbox';
+  }
+  row.jdManual = jdManual;
+  row.jdManualUom = (ov && ov.jdUom) || 'LB';
+  row.jdUse = useJdManual ? 'manual' : 'swarmbox';
+
+  row.ovNote = (ov && ov.note) || '';
+  row.hasCmp = row.cmpValue != null;
+  row.hasJd = row.jdValue != null;
+  return row;
+}
+
+function recomputeCounts(c) {
+  let cmp = 0, jd = 0;
+  for (const r of c.rows) { if (r.hasCmp) cmp++; if (r.hasJd) jd++; }
+  c.itemCount = c.rows.length;
+  c.pricedCmp = cmp;
+  c.pricedJd = jd;
+}
+
+// Re-apply one item's override to the live cache so an edit takes effect instantly
+// (no 2–3 min rebuild). Returns the updated row, or null if it isn't in the cache.
+function reapplyValueOverride(code) {
+  if (!cache) return null;
+  const row = cache.rows.find((r) => r.productCode === String(code).trim());
+  if (!row) return null;
+  decorate(row);
+  recomputeCounts(cache);
+  return row;
+}
+
 // Boot: seed the in-memory cache from the last saved snapshot (instant). It may
 // be stale (yesterday's) — getValues serves it and refreshes in the background.
 try {
@@ -43,10 +125,10 @@ try {
     const disc = discontinuedCodes();
     if (disc.size) {
       snap.rows = snap.rows.filter((r) => !disc.has(r.productCode));
-      let cmp = 0, jd = 0;
-      for (const r of snap.rows) { if (r.hasCmp) cmp++; if (r.hasJd) jd++; }
-      snap.itemCount = snap.rows.length; snap.pricedCmp = cmp; snap.pricedJd = jd; snap.discontinued = disc.size;
+      snap.discontinued = disc.size;
     }
+    for (const r of snap.rows) decorate(r);   // overlay manual value-overrides
+    recomputeCounts(snap);
     cache = snap;
     console.log(`[Valuation] loaded snapshot ${snap.snapshotDate} from db (${snap.itemCount} items)`);
   }
@@ -99,13 +181,18 @@ async function build() {
   };
   console.log(`[Valuation] built ${rows.length} rows (JD-priced ${pricedJd}, CMP-priced ${pricedCmp}, ${disc.size} discontinued skipped) in ${cache.buildMs}ms`);
 
-  // Persist this build as today's snapshot (history). A DB hiccup must never
-  // fail the build — the in-memory cache is already populated above.
+  // Persist this build as today's snapshot (history) using the RAW Swarmbox
+  // values — overrides are a serve-time overlay, so price history stays
+  // real-sales-only. A DB hiccup must never fail the build.
   try {
     dbStore.saveSnapshot(localYmd(), rows, cache);
   } catch (e) {
     console.error('[Valuation] snapshot save failed:', e && e.message);
   }
+
+  // Now overlay manual value-overrides onto the live cache and recount.
+  for (const r of cache.rows) decorate(r);
+  recomputeCounts(cache);
   return cache;
 }
 
@@ -148,4 +235,4 @@ async function getValues({ force = false } = {}) {
   return startBuild();
 }
 
-module.exports = { getValues, getCachedRows, dropFromCache, priceHistory: dbStore.priceHistory };
+module.exports = { getValues, getCachedRows, dropFromCache, reapplyValueOverride, priceHistory: dbStore.priceHistory };

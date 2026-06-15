@@ -1,5 +1,6 @@
 const express = require('express');
-const { getValues, priceHistory } = require('../valuation');
+const { getValues, priceHistory, reapplyValueOverride } = require('../valuation');
+const valueOverrides = require('../valueOverrides');
 
 const router = express.Router();
 
@@ -12,6 +13,41 @@ router.get('/history', (req, res) => {
   } catch (err) {
     console.error('[Values] history failed:', err && err.message);
     res.status(500).json({ error: 'Failed to load history' });
+  }
+});
+
+// ── Manual value-overrides — per-item price corrections for the value table ────
+// GET    /api/values/overrides        → list every manual override
+// POST   /api/values/overrides        → set/merge one ({ code, cmpManual?, cmpUom?,
+//                                        cmpUse?, jdManual?, jdUom?, jdUse?, note? })
+// DELETE /api/values/overrides/:code  → clear an item's manual override
+router.get('/overrides', (_req, res) => {
+  res.json({ overrides: valueOverrides.getList() });
+});
+
+router.post('/overrides', (req, res) => {
+  const b = req.body || {};
+  const code = String(b.code || '').trim();
+  if (!code) return res.status(400).json({ error: 'code required' });
+  try {
+    valueOverrides.set(code, b);
+    reapplyValueOverride(code); // take effect on the live table immediately
+    res.json({ ok: true, override: valueOverrides.get(code) });
+  } catch (err) {
+    console.error('[Values] override save failed:', err && err.message);
+    res.status(500).json({ error: 'Failed to save override' });
+  }
+});
+
+router.delete('/overrides/:code', (req, res) => {
+  const code = String(req.params.code || '').trim();
+  try {
+    const removed = valueOverrides.remove(code);
+    reapplyValueOverride(code);
+    res.json({ ok: true, removed });
+  } catch (err) {
+    console.error('[Values] override delete failed:', err && err.message);
+    res.status(500).json({ error: 'Failed to clear override' });
   }
 });
 

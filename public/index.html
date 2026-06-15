@@ -96,6 +96,23 @@
   .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--card); }
   .modal-head b { font-size: 14px; }
   #histBody { padding: 8px 16px 16px; }
+  /* manual value-override */
+  td.val.manual { font-style: normal; }
+  .mtag { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .03em;
+    color: #fff; background: var(--accent); border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: 1px; }
+  button.x.edit:hover { border-color: var(--accent); color: var(--accent); }
+  .ed { padding: 14px 16px 18px; }
+  .ed .edDesc { color: var(--muted); font-size: 12.5px; margin-bottom: 12px; }
+  .ed .tier { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+  .ed .tier h3 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
+  .ed .tier h3.cmp { color: var(--cmp); } .ed .tier h3.jd { color: var(--jd); }
+  .ed .opt { display: flex; align-items: center; gap: 8px; padding: 5px 0; flex-wrap: wrap; }
+  .ed .opt > label { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-size: 13px; }
+  .ed .swrate { color: var(--muted); font-size: 12px; }
+  .ed input[type=number] { width: 92px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; text-align: right; font-size: 13px; }
+  .ed select.uomsel { padding: 5px 6px; border: 1px solid var(--line); border-radius: 6px; font-size: 12px; background: var(--card); color: var(--ink); }
+  .ed input.note { width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; font-size: 13px; margin: 2px 0 12px; }
+  .ed-actions { display: flex; gap: 8px; }
 </style>
 </head>
 <body>
@@ -115,6 +132,8 @@
     <b class="jd">JD&nbsp;→&nbsp;Customer</b> is what JD resells it for (street price).
     Both are the most recent real sale (any customer, price&nbsp;&gt;&nbsp;0); prices keep their
     native unit (e.g. <span class="pill">$/LB</span>). A blank means no recent sale in that tier.
+    If a pulled number is wrong, hit <b>✎</b> on the row to type the correct value and choose
+    whether the table uses <b>Swarmbox</b> or your <b>manual</b> rate (per tier).
   </div>
 </header>
 
@@ -153,6 +172,13 @@
   <div class="modal-card">
     <div class="modal-head"><b id="histTitle"></b><button id="histClose" class="x" type="button">✕</button></div>
     <div id="histBody"></div>
+  </div>
+</div>
+
+<div id="editModal" class="modal" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-head"><b id="editTitle"></b><button id="editClose" class="x" type="button">✕</button></div>
+    <div id="editBody"></div>
   </div>
 </div>
 
@@ -217,9 +243,23 @@ function rowsForView() {
   return rows;
 }
 
-function priceCell(val, uom, cls, title) {
-  if (val == null) return `<td class="none">—</td>`;
-  const t = title ? ` title="${title}"` : '';
+// One price cell for a tier ('cmp' | 'jd'): shows the *chosen* value (manual or
+// Swarmbox), tags a manual override, and reveals the live Swarmbox rate on hover.
+function valCellHtml(r, tier) {
+  const isCmp = tier === 'cmp';
+  const val = isCmp ? r.cmpValue : r.jdValue;
+  const uom = isCmp ? r.cmpValueUom : r.jdValueUom;
+  const src = isCmp ? r.cmpSource : r.jdSource;
+  const raw = isCmp ? r.cmpRaw : r.jdRaw;
+  const rawUom = isCmp ? r.cmpRawUom : r.jdRawUom;
+  const cls = isCmp ? 'val cmpcol' : 'val jdcol';
+  const sw = raw != null ? money(raw) + ' / ' + (rawUom || '—') : 'no recent sale';
+  if (val == null) return `<td class="none" title="No price — use ✎ to set one">—</td>`;
+  if (src === 'manual') {
+    return `<td class="${cls} manual" title="Manual override · Swarmbox: ${sw}">${money(val)}<span class="uom">/ ${uom || '—'}</span><span class="mtag">MANUAL</span></td>`;
+  }
+  const lastSold = isCmp ? r.cmpLastSoldDate : r.jdLastSoldDate;
+  const t = lastSold ? ` title="${(isCmp ? 'CMP→JD' : 'JD→Customer')} last sold ${lastSold}"` : '';
   return `<td class="${cls}"${t}>${money(val)}<span class="uom">/ ${uom || '—'}</span></td>`;
 }
 
@@ -240,11 +280,11 @@ function render() {
   body.innerHTML = rows.map(r => `<tr>
       <td class="code">${r.productCode}</td>
       <td class="desc">${escapeHtml(r.description)}</td>
-      ${priceCell(r.cmpValue, r.cmpValueUom, 'val cmpcol', r.cmpLastSoldDate ? 'CMP→JD last sold ' + r.cmpLastSoldDate : '')}
-      ${priceCell(r.jdValue, r.jdValueUom, 'val jdcol', '')}
+      ${valCellHtml(r, 'cmp')}
+      ${valCellHtml(r, 'jd')}
       <td class="date">${r.jdLastSoldDate || ''}</td>
       <td class="cust">${escapeHtml(r.jdCustomer || '')}</td>
-      <td class="act"><button class="x hist" data-code="${escapeHtml(r.productCode)}" title="Price history">📈</button> <button class="x" data-code="${escapeHtml(r.productCode)}" title="Discontinue this item">✕</button></td>
+      <td class="act"><button class="x edit" data-code="${escapeHtml(r.productCode)}" title="Set / correct value">✎</button> <button class="x hist" data-code="${escapeHtml(r.productCode)}" title="Price history">📈</button> <button class="x" data-code="${escapeHtml(r.productCode)}" title="Discontinue this item">✕</button></td>
     </tr>`).join('');
 }
 
@@ -361,6 +401,94 @@ async function openHistory(code) {
 }
 function closeHistory() { $('histModal').style.display = 'none'; }
 
+// ── Manual value editor — pick Swarmbox or a typed rate, per tier ─────────────
+const UOMS = ['LB', 'CS', 'EA'];
+
+function tierBlock(r, tier) {
+  const isCmp = tier === 'cmp';
+  const label = isCmp ? 'Internal (CMP → JD)' : 'Street (JD → Customer)';
+  const raw = isCmp ? r.cmpRaw : r.jdRaw;
+  const rawUom = isCmp ? r.cmpRawUom : r.jdRawUom;
+  const rawDate = isCmp ? r.cmpRawLastSold : r.jdRawLastSold;
+  const rawCust = isCmp ? '' : (r.jdRawCustomer || '');
+  const manual = isCmp ? r.cmpManual : r.jdManual;
+  const manualUom = (isCmp ? r.cmpManualUom : r.jdManualUom) || 'LB';
+  const useManual = (isCmp ? r.cmpUse : r.jdUse) === 'manual' && manual != null;
+  const sw = raw != null
+    ? money(raw) + ' / ' + (rawUom || '—') + (rawDate ? ' · last sold ' + rawDate : '') + (rawCust ? ' · ' + escapeHtml(rawCust) : '')
+    : 'no recent sale';
+  return `<div class="tier">
+    <h3 class="${tier}">${label}</h3>
+    <div class="opt">
+      <label><input type="radio" name="${tier}Use" value="swarmbox" ${!useManual ? 'checked' : ''}/> Use Swarmbox</label>
+      <span class="swrate">${sw}</span>
+    </div>
+    <div class="opt">
+      <label><input type="radio" name="${tier}Use" value="manual" ${useManual ? 'checked' : ''}/> Use manual</label>
+      <input type="number" step="0.01" min="0" id="${tier}Manual" value="${manual != null ? manual : ''}" placeholder="$/unit" />
+      <span class="swrate">/</span>
+      <select class="uomsel" id="${tier}Uom">${UOMS.map(u => `<option ${manualUom === u ? 'selected' : ''}>${u}</option>`).join('')}</select>
+    </div>
+  </div>`;
+}
+
+function openEditor(code) {
+  const r = ALL.find(x => x.productCode === code);
+  if (!r) return;
+  $('editTitle').textContent = 'Set value · ' + code;
+  $('editBody').innerHTML = `<div class="ed">
+    <div class="edDesc">${escapeHtml(r.description || '')}</div>
+    ${tierBlock(r, 'cmp')}
+    ${tierBlock(r, 'jd')}
+    <input type="text" class="note" id="ovNote" placeholder="note (optional) — why, or where it should pull from" value="${escapeHtml(r.ovNote || '')}" />
+    <div class="ed-actions">
+      <button class="primary" id="ovSave" type="button">Save</button>
+      <button id="ovClear" type="button">Clear override</button>
+    </div>
+  </div>`;
+  $('editModal').style.display = 'flex';
+  $('ovSave').onclick = () => saveEditor(code);
+  $('ovClear').onclick = () => clearEditor(code);
+}
+
+function closeEditor() { $('editModal').style.display = 'none'; }
+
+async function saveEditor(code) {
+  const pick = (name) => (document.querySelector(`input[name=${name}]:checked`) || {}).value || 'swarmbox';
+  const cmpUse = pick('cmpUse'), jdUse = pick('jdUse');
+  const cmpRaw = $('cmpManual').value.trim(), jdRaw = $('jdManual').value.trim();
+  const cmpManual = cmpRaw === '' ? '' : parseFloat(cmpRaw);
+  const jdManual = jdRaw === '' ? '' : parseFloat(jdRaw);
+  if (cmpUse === 'manual' && !(cmpManual > 0)) { alert('Enter a manual Internal value, or choose “Use Swarmbox”.'); return; }
+  if (jdUse === 'manual' && !(jdManual > 0)) { alert('Enter a manual Street value, or choose “Use Swarmbox”.'); return; }
+  const patch = {
+    code,
+    cmpManual, cmpUom: $('cmpUom').value, cmpUse,
+    jdManual, jdUom: $('jdUom').value, jdUse,
+    note: $('ovNote').value.trim(),
+  };
+  $('ovSave').disabled = true;
+  try {
+    const res = await fetch('/api/values/overrides', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    closeEditor();
+    await load(false);   // refetch the cached table — the overlay is already applied
+  } catch (e) {
+    alert('Could not save: ' + e.message);
+    $('ovSave').disabled = false;
+  }
+}
+
+async function clearEditor(code) {
+  try {
+    await fetch('/api/values/overrides/' + encodeURIComponent(code), { method: 'DELETE' });
+    closeEditor();
+    await load(false);
+  } catch (e) { alert('Could not clear: ' + e.message); }
+}
+
 $('q').oninput = render;
 $('filter').onchange = render;
 $('refresh').onclick = () => load(true);
@@ -390,6 +518,7 @@ $('body').addEventListener('click', (e) => {
   const btn = e.target.closest('button.x');
   if (!btn) return;
   const code = btn.dataset.code;
+  if (btn.classList.contains('edit')) { openEditor(code); return; }
   if (btn.classList.contains('hist')) { openHistory(code); return; }
   if (btn.classList.contains('restore')) { restore(code); return; }
   const desc = (btn.closest('tr').querySelector('.desc') || {}).textContent || '';
@@ -398,7 +527,9 @@ $('body').addEventListener('click', (e) => {
 
 $('histClose').onclick = closeHistory;
 $('histModal').onclick = (e) => { if (e.target === $('histModal')) closeHistory(); };
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeHistory(); });
+$('editClose').onclick = closeEditor;
+$('editModal').onclick = (e) => { if (e.target === $('editModal')) closeEditor(); };
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeHistory(); closeEditor(); } });
 
 (async () => { await load(false); await loadDisc(); })();
 </script>

@@ -50,6 +50,21 @@ it's cached and warmed on boot, so page loads hit the cache, not the build.
   never substitutes a number that isn't an actual selling price. `$0` / internal
   zero-price lines are ignored.
 
+### Correcting a value (manual override)
+
+When Swarmbox pulls the **wrong** number for a tier — or an item has no sale and you
+know its value anyway — the **✎** on a row opens an editor. For each tier (Internal
+CMP→JD and Street JD→Customer) you see the **live Swarmbox rate** and can type a
+**manual rate**, then choose **which source the table uses** (Swarmbox vs. manual) for
+that tier. Both numbers stay visible, so nothing is silently overwritten and you can
+flip back to the live rate without retyping. A manual cell is tagged **MANUAL** and its
+tooltip still shows what Swarmbox pulls.
+
+Overrides are per item code, saved to `data/value-overrides.json` (gitignored), and
+applied as a **serve-time overlay** — they take effect on the table immediately (no
+rebuild) and re-apply on every daily build. The **price history** (📈) and the SQLite
+snapshots stay **real-sales-only** — the overlay never pollutes them.
+
 ## Owner's Dashboard
 
 A period view (**7 / 14 / 30 days**) of production margin — the "how's the business
@@ -206,6 +221,9 @@ pm2 save
 | `POST /api/values/refresh` | Force a rebuild, return a summary only. |
 | `GET /api/values/export.csv` | The current table as a CSV download. |
 | `GET /api/values/history?code=…` | Day-by-day price snapshots for one item (`{ code, history: [{ date, cmpValue, jdValue, … }] }`). |
+| `GET /api/values/overrides` | Manual value-overrides (`{ overrides: [{ code, cmpManual, cmpUom, cmpUse, jdManual, jdUom, jdUse, note, updatedAt }] }`). |
+| `POST /api/values/overrides` | Set/merge a manual value-override (`{ code, cmpManual?, cmpUom?, cmpUse?, jdManual?, jdUom?, jdUse?, note? }`; `*Use` = `manual`\|`swarmbox`; only fields sent change). Applied to the live table immediately. |
+| `DELETE /api/values/overrides/:code` | Clear an item's manual value-override. |
 | `GET /api/production` | Margin report for the most recent production day. `?date=YYYY-MM-DD` for a specific day; `?refresh=1` to rebuild. |
 | `GET /api/production/dates` | Recent production days (newest first) with batch counts — drives the day picker. |
 | `GET /api/production/export.csv?date=…` | The day's batch-detail lines as a CSV download. |
