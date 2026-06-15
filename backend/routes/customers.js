@@ -1,5 +1,5 @@
 const express = require('express');
-const { recentDates, backfillSummaries } = require('../production');
+const { recentDates, pendingSummaryDays, refreshSummariesInBackground } = require('../production');
 const { loadProdSummaries } = require('../db');
 
 const router = express.Router();
@@ -15,7 +15,12 @@ router.get('/', async (req, res) => {
     const prevDates = allDates.slice(days, days * 2);
     if (!curDates.length) return res.json({ days, dayCount: 0, hasPrior: false, customers: [] });
 
-    await backfillSummaries(Math.min(days * 2, allDates.length)); // ensure both periods are computed
+    // Serve stored summaries INSTANTLY; recompute any stale day in the BACKGROUND
+    // (both periods' worth) and flag it so the client can re-fetch shortly. The
+    // page never blocks on the Swarmbox recompute.
+    const window = Math.min(days * 2, allDates.length);
+    const { pending } = await pendingSummaryDays(window);
+    if (pending) refreshSummariesInBackground(Math.max(30, window));
 
     const lo = (prevDates[prevDates.length - 1] || curDates[curDates.length - 1]);
     const hi = curDates[0];
@@ -59,6 +64,8 @@ router.get('/', async (req, res) => {
       from: curDates[curDates.length - 1], to: curDates[0],
       dayCount: cur.length,
       hasPrior: prev.length > 0,
+      refreshing: pending > 0,   // some days still recomputing in the background
+      pending,
       customers,
     });
   } catch (err) {

@@ -50,6 +50,7 @@
   .err { color: #b42318; }
   .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px; }
   @keyframes sp { to { transform: rotate(360deg); } }
+  .upd { display: flex; align-items: center; gap: 8px; background: #eef4ff; border: 1px solid #cfe0ff; color: #1a4fd0; border-radius: 10px; padding: 9px 13px; font-size: 12.5px; margin: 0 0 12px; }
 </style>
 </head>
 <body>
@@ -77,6 +78,7 @@
     <div class="seg"><button id="refresh" type="button">Refresh</button></div>
   </div>
 
+  <div id="updating" class="upd" style="display:none;"></div>
   <div class="card"><table>
     <thead><tr id="head"></tr></thead>
     <tbody id="body"></tbody>
@@ -155,6 +157,12 @@ function sortVal(c, k) {
 
 function render() {
   if (!DATA) return;
+  if (DATA.refreshing) {
+    $('updating').style.display = '';
+    $('updating').innerHTML = `<span class="spin"></span> Updating numbers in the background — ${DATA.pending} day(s) left. This happens once after an update; the page refreshes itself.`;
+  } else {
+    $('updating').style.display = 'none';
+  }
   renderHead();
   $('range').textContent = DATA.from ? `${DATA.from} → ${DATA.to} · ${DATA.dayCount} days · ${DATA.customers.length} customers${DATA.hasPrior ? '' : ' · no prior period'}` : '';
   const rows = [...DATA.customers].sort((a, b) => {
@@ -183,25 +191,39 @@ function render() {
   });
 }
 
-async function load() {
-  $('state').style.display = ''; $('state').className = 'empty';
-  $('state').innerHTML = '<span class="spin"></span> Crunching ' + days + ' days…';
+let refreshTimer = null;
+// `silent` = a background auto-refresh while the server recomputes stale days;
+// don't flash the big spinner, just swap the numbers in.
+async function load(silent) {
+  if (!silent) {
+    $('state').style.display = ''; $('state').className = 'empty';
+    $('state').innerHTML = '<span class="spin"></span> Crunching ' + days + ' days…';
+  }
   try {
     const res = await fetch('/api/customers?days=' + days);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     DATA = await res.json();
     render();
+    scheduleAutoRefresh();
   } catch (err) {
+    if (silent) return; // a failed background poll shouldn't wipe the page
     $('body').innerHTML = ''; $('state').style.display = ''; $('state').className = 'err';
     $('state').textContent = 'Could not load customers: ' + err.message;
   }
+}
+
+// While the server recomputes stale days, re-fetch every few seconds so the
+// scorecard fills in on its own. Stops once it's caught up.
+function scheduleAutoRefresh() {
+  if (refreshTimer) { clearTimeout(refreshTimer); refreshTimer = null; }
+  if (DATA && DATA.refreshing) refreshTimer = setTimeout(() => load(true), 7000);
 }
 
 document.querySelectorAll('.seg button[data-days]').forEach(b => b.onclick = () => {
   document.querySelectorAll('.seg button[data-days]').forEach(x => x.classList.remove('on'));
   b.classList.add('on'); days = Number(b.dataset.days); open.clear(); load();
 });
-$('refresh').onclick = load;
+$('refresh').onclick = () => load();
 load();
 </script>
 </body>

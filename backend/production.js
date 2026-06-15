@@ -462,6 +462,20 @@ async function backfillSummaries(days = 30) {
   return { requested: dates.length, filled: todo.length };
 }
 
+// How many of the last `days` production days lack a CURRENT-version stored
+// summary (missing, older code version, or built before the latest overrides) —
+// i.e. how many would a backfill recompute. Cheap: reads stored summaries, no
+// Swarmbox. Lets the dashboard/customers routes serve instantly and only kick a
+// background refresh when something's actually stale.
+async function pendingSummaryDays(days = 30) {
+  const dates = (await recentDates()).slice(0, days).map((d) => d.date);
+  if (!dates.length) return { total: 0, pending: 0 };
+  const sig = overrideSignature();
+  const stored = new Map(dbStore.loadProdSummaries(dates[dates.length - 1], dates[0]).map((s) => [s.date, s]));
+  const pending = dates.filter((d) => { const s = stored.get(d); return !s || s.v !== SUMMARY_VERSION || s.ov !== sig; });
+  return { total: dates.length, pending: pending.length, stored: dates.length - pending.length };
+}
+
 // Drop cached reports so the next request recomputes (e.g. after a manual rate
 // change). Cheap — a day's report is a single Swarmbox call.
 function clearCache() { reportCache.clear(); }
@@ -489,4 +503,4 @@ function refreshSummariesInBackground(days = 30) {
   })();
 }
 
-module.exports = { getProductionReport, recentDates, mostRecentDate, clearCache, backfillSummaries, refreshSummariesInBackground };
+module.exports = { getProductionReport, recentDates, mostRecentDate, clearCache, backfillSummaries, refreshSummariesInBackground, pendingSummaryDays };

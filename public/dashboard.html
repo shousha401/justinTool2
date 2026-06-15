@@ -48,6 +48,7 @@
   .err { color: #b42318; }
   .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px; }
   @keyframes sp { to { transform: rotate(360deg); } }
+  .upd { display: flex; align-items: center; gap: 8px; background: #eef4ff; border: 1px solid #cfe0ff; color: #1a4fd0; border-radius: 10px; padding: 9px 13px; font-size: 12.5px; margin: 0 0 12px; }
 </style>
 </head>
 <body>
@@ -76,6 +77,7 @@
     <button id="refresh" class="seg" style="border-radius:8px;"><span style="padding:8px 14px;display:inline-block;">Refresh</span></button>
   </div>
 
+  <div id="updating" class="upd" style="display:none;"></div>
   <div id="ribbon" class="ribbon"></div>
 
   <div class="card">
@@ -163,6 +165,12 @@ function itemTable(rows) {
 
 function render() {
   if (!DATA) return;
+  if (DATA.refreshing) {
+    $('updating').style.display = '';
+    $('updating').innerHTML = `<span class="spin"></span> Updating numbers in the background — ${DATA.pending} day(s) left. This happens once after an update; the page refreshes itself.`;
+  } else {
+    $('updating').style.display = 'none';
+  }
   $('range').textContent = DATA.from ? `${DATA.from} → ${DATA.to} · ${DATA.dayCount} days` : '';
   $('labor').value = labor || '';
   renderRibbon();
@@ -177,22 +185,36 @@ function render() {
   }
 }
 
-async function load() {
-  $('state').style.display = '';
-  $('state').className = 'empty';
-  $('state').innerHTML = '<span class="spin"></span> Crunching ' + days + ' days…';
+let refreshTimer = null;
+// `silent` = a background auto-refresh while the server recomputes stale days;
+// don't flash the big spinner, just swap the numbers in.
+async function load(silent) {
+  if (!silent) {
+    $('state').style.display = '';
+    $('state').className = 'empty';
+    $('state').innerHTML = '<span class="spin"></span> Crunching ' + days + ' days…';
+  }
   try {
     const res = await fetch('/api/dashboard?days=' + days);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     DATA = await res.json();
     $('state').style.display = 'none';
     render();
+    scheduleAutoRefresh();
   } catch (err) {
+    if (silent) return; // a failed background poll shouldn't wipe the page
     $('ribbon').innerHTML = ''; $('chart').innerHTML = '';
     $('state').style.display = '';
     $('state').className = 'err';
     $('state').textContent = 'Could not load dashboard: ' + err.message;
   }
+}
+
+// While the server is still recomputing stale days, re-fetch every few seconds so
+// the numbers fill in on their own (no manual reload). Stops once it's caught up.
+function scheduleAutoRefresh() {
+  if (refreshTimer) { clearTimeout(refreshTimer); refreshTimer = null; }
+  if (DATA && DATA.refreshing) refreshTimer = setTimeout(() => load(true), 7000);
 }
 
 document.querySelectorAll('.seg button[data-days]').forEach(b => {

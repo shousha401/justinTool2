@@ -78,6 +78,14 @@ production days on boot** — so it loads instantly with real history (productio
 recomputable from Swarmbox, so there's nothing to wait for). Days whose Swarmbox fetch
 errors out are **excluded, not shown as a false $0**.
 
+**The page never blocks on a recompute.** The Dashboard and Customers routes serve
+whatever summaries are already stored **immediately** and, if any day is stale (missing,
+older `SUMMARY_VERSION`, or built before the latest overrides), kick the recompute in the
+**background** and return `refreshing: true` with a `pending` day count. The page shows an
+"updating…" note and **re-fetches itself every few seconds** until it catches up — so a
+restart or a version bump (which marks every day stale) can no longer freeze the page for
+minutes the way an `await`-on-backfill did.
+
 ## Customers tab
 
 A profitability **scorecard**: every customer ranked by gross profit over the period
