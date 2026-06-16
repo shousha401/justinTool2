@@ -30,9 +30,15 @@ const dbStore = require('./db');
 
 const TTL_MS = Number(process.env.PRODUCTION_CACHE_TTL_MS) || 5 * 60 * 1000; // 5 min
 const RECENT_WINDOW_DAYS = 45;      // how far back the date picker / period comparisons look
-const SUMMARY_VERSION = 5;          // bump when the stored summary shape OR the numbers behind it change (forces re-backfill)
+const SUMMARY_VERSION = 6;          // bump when the stored summary shape OR the numbers behind it change (forces re-backfill)
 const TOLL_IC_PER_LB = 0.10;        // batch avg input cost below this ⇒ customer-supplied meat ⇒ toll
 const TOLL_LOOKBACK_DAYS = Number(process.env.TOLL_LOOKBACK_DAYS) || 90; // freshness window for the live toll price
+
+// Static "trim" / intermediate codes that are consumed internally (reused into
+// grind to make other items) and so never have sales of their own. We value them
+// at the production standard and never flag them as a "missing price" problem —
+// they aren't broken, they're just internal. Add more codes here as they come up.
+const INTERNAL_CODES = new Set(['662523']);
 
 const num = (v) => (v == null ? 0 : Number(v) || 0);
 function ymd(d) { return d.toISOString().slice(0, 10); }
@@ -168,6 +174,7 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
     let revenue, inputCost, rate, source, missingRate = false, priceBasis;
     const rec = sales.get(r.item);
     const forced = priceOverrides.get(r.item); // authoritative correction (wins over Swarmbox)
+    const isInternal = INTERNAL_CODES.has(r.item); // static trim reused into grind — no sales by design
     if (forced && forced.flagged) flaggedCount++;
 
     if (forced && forced.rate > 0) {
@@ -180,9 +187,24 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
       source = `forced $${rate.toFixed(2)}/lb${forced.note ? ' · ' + forced.note : ''}`;
       priceBasis = 'forced';
       forcedCount++;
+    } else if (isInternal) {
+      // Static trim / intermediate code (e.g. 662523) reused internally into grind.
+      // It has no sales by design, so value it at the production standard and never
+      // treat the absent sale as a "missing price" problem — it isn't broken.
+      inputCost = isToll ? 0 : inputCostRaw;
+      if (sellVal > 0) {
+        revenue = sellVal;
+        rate = lbs ? revenue / lbs : null;
+        source = 'internal trim · production value';
+      } else {
+        revenue = 0; rate = null;
+        source = 'internal trim · reused into grind';
+      }
+      priceBasis = 'internal';
     } else if (isToll) {
       inputCost = 0;
       const live = rec && rec.toll;
+      const sale = rec && rec.any;
       const manual = manualRates.getRate(r.item);
       if (live && live.price > 0) {
         rate = live.price;
@@ -190,6 +212,17 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
         source = `live $${rate.toFixed(2)}/lb · ${shortCust(live.customer)} ${live.lastSoldDate || ''}`.trim();
         priceBasis = 'live';
         counts.live++;
+      } else if (sale && sale.price > 0) {
+        // Prefer the item's most recent REAL sale over the contract rate tables.
+        // The contract sheets are a stale fallback ported from the old prototype;
+        // the actual recent sale is the truth. Contract is used only when there is
+        // no sale at all (below). This is why e.g. Miami 064718 now prices off its
+        // real ~$0.79 sale instead of the blanket 064* "MRCC steak" $2.75 contract.
+        rate = sale.price;
+        revenue = rate * lbs;
+        source = `sale $${rate.toFixed(2)}/lb · ${shortCust(sale.customer)} ${sale.lastSoldDate || ''}`.trim();
+        priceBasis = 'sale';
+        counts.sale++;
       } else if (manual != null && manual > 0) {
         rate = manual;
         revenue = manual * lbs;
@@ -198,21 +231,12 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
         counts.manual++;
       } else {
         const { rate: rt } = tollRate(r.item, itemLbs.get(r.item) || lbs);
-        const sale = rec && rec.any;
         if (rt != null) {
           rate = rt;
           revenue = rt * lbs;
-          source = `contract $${rt.toFixed(2)}/lb (no live sale)`;
+          source = `contract $${rt.toFixed(2)}/lb (no recent sale)`;
           priceBasis = 'contract';
           counts.contract++;
-        } else if (sale && sale.price > 0) {
-          // No toll fee on file, but the item has a real sale — use it so the line
-          // isn't a phantom $0 (and a Toll/Own flip always keeps a number).
-          rate = sale.price;
-          revenue = rate * lbs;
-          source = `sale $${rate.toFixed(2)}/lb · ${shortCust(sale.customer)} (no toll rate)`;
-          priceBasis = 'sale';
-          counts.sale++;
         } else {
           rate = null; revenue = 0; source = null; missingRate = true; priceBasis = 'none';
           counts.missing++;

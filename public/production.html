@@ -449,13 +449,18 @@ function explainRate(r) {
   const saleStr = t.sale ? `${rate$(t.sale.price)}/lb · ${esc(shortC(t.sale.customer))} ${esc(t.sale.date || '')}` : dash;
   const contractStr = t.contract ? `${rate$(t.contract.rate)}/lb · ${esc(t.contract.source || '')}` : dash;
   let steps;
-  if (r.isToll) {
+  if (b === 'internal') {
+    steps = [
+      stepLine('Internal trim', 'Reused into grind — no sales by design', true),
+      stepLine('Valued at', r.rate != null ? rate$(r.rate) + '/lb (production value)' : '$0 — internal, not flagged as missing', false),
+    ].join('');
+  } else if (r.isToll) {
     steps = [
       stepLine('Forced price', t.forced != null ? rate$(t.forced) + '/lb' : dash, b === 'forced'),
       stepLine('Live toll sale', liveStr, b === 'live'),
+      stepLine('Recent sale', saleStr, b === 'sale'),
       stepLine('Manual rate', t.manual != null ? rate$(t.manual) + '/lb' : dash, b === 'manual'),
-      stepLine('Contract rate', contractStr, b === 'contract'),
-      stepLine('Last sale (no toll rate)', saleStr, b === 'sale'),
+      stepLine('Contract rate (fallback)', contractStr, b === 'contract'),
       stepLine('No rate found', '$0 — needs a rate', b === 'none'),
     ].join('');
   } else {

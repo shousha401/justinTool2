@@ -52,6 +52,7 @@
   .src-live { color: var(--toll); font-size: 10.5px; } .src-own { color: var(--own); font-size: 10.5px; }
   .src-contract { color: #8a5a00; font-size: 10.5px; } .src-manual { color: var(--toll); font-size: 10.5px; }
   .src-sale { color: #6b4ea8; font-size: 10.5px; } .src-none { color: var(--neg); font-size: 10.5px; } .src-standard { color: var(--muted); font-size: 10.5px; }
+  .src-internal { color: var(--muted); font-size: 10.5px; }
   input.forceEdit { width: 70px; padding: 3px 6px; font-size: 12px; border: 1px solid var(--line); border-radius: 6px; text-align: right; background: var(--card); color: var(--ink); }
   input.forceEdit:focus { border-color: var(--accent); outline: none; }
   input.forceEdit.set { border-color: var(--own); font-weight: 600; }
@@ -128,7 +129,7 @@ function dedupe(rows) {
   })).sort((a, b) => (a.flagged === b.flagged ? b.revenue - a.revenue : (a.flagged ? -1 : 1)));
 }
 
-const BASIS_LABEL = { forced: 'forced ⚑', live: 'live toll sale', own: 'own sale', sale: 'sale (no toll rate)', contract: 'contract', manual: 'manual', standard: 'production value', none: 'no price' };
+const BASIS_LABEL = { forced: 'forced ⚑', live: 'live toll sale', own: 'own sale', sale: 'recent sale', contract: 'contract', manual: 'manual', standard: 'production value', internal: 'internal trim', none: 'no price' };
 const basisClass = (b) => 'src-' + (b || 'standard');
 
 function renderNote() {
