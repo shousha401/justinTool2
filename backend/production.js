@@ -30,14 +30,15 @@ const dbStore = require('./db');
 
 const TTL_MS = Number(process.env.PRODUCTION_CACHE_TTL_MS) || 5 * 60 * 1000; // 5 min
 const RECENT_WINDOW_DAYS = 45;      // how far back the date picker / period comparisons look
-const SUMMARY_VERSION = 6;          // bump when the stored summary shape OR the numbers behind it change (forces re-backfill)
+const SUMMARY_VERSION = 7;          // bump when the stored summary shape OR the numbers behind it change (forces re-backfill)
 const TOLL_IC_PER_LB = 0.10;        // batch avg input cost below this ⇒ customer-supplied meat ⇒ toll
 const TOLL_LOOKBACK_DAYS = Number(process.env.TOLL_LOOKBACK_DAYS) || 90; // freshness window for the live toll price
 
-// Static "trim" / intermediate codes that are consumed internally (reused into
-// grind to make other items) and so never have sales of their own. We value them
-// at the production standard and never flag them as a "missing price" problem —
-// they aren't broken, they're just internal. Add more codes here as they come up.
+// Manual supplement to the AUTO-detection of internal intermediates (see
+// buildReport): codes we always want treated as input-cost-only even if a given
+// day's input feed doesn't catch them. Auto-detection (an output line that is also
+// consumed as a component that day AND has no sale of its own — e.g. 662139 grind →
+// patties) handles new intermediates with no list to maintain; this is the fallback.
 const INTERNAL_CODES = new Set(['662523']);
 
 const num = (v) => (v == null ? 0 : Number(v) || 0);
@@ -165,16 +166,22 @@ function classify(lines) {
 // ── Report build ─────────────────────────────────────────────────────────────
 // livePrices: Map<item, { price, lastSoldDate, customer }> — most recent CMP-tier
 // toll sale within the lookback window.
-function buildReport(date, base, itemLbs, yieldByBatch, sales) {
+function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed) {
   const counts = { live: 0, manual: 0, contract: 0, sale: 0, missing: 0 };
   const ownCounts = { sale: 0, manual: 0, standard: 0, none: 0 };
-  let forcedCount = 0, flaggedCount = 0;
+  let forcedCount = 0, flaggedCount = 0, internalCount = 0;
 
   const rows = base.map(({ r, cs, lbs, sellVal, inputCostRaw, batchAvgIC, customer, autoCustomer, specCustomer, customerOverride, isToll, autoToll, override, hasTollSale, hasSale }) => {
-    let revenue, inputCost, rate, source, missingRate = false, priceBasis;
+    let revenue, inputCost, rate, source, missingRate = false, priceBasis, internal = false;
     const rec = sales.get(r.item);
     const forced = priceOverrides.get(r.item); // authoritative correction (wins over Swarmbox)
-    const isInternal = INTERNAL_CODES.has(r.item); // static trim reused into grind — no sales by design
+    // Internal intermediate: this item is consumed as a component into another batch
+    // today AND has no sale value of its own (e.g. 662139 grind → patties). The static
+    // INTERNAL_CODES list is a manual fallback. Either way it's input-cost-only and
+    // kept OUT of the margin totals — its cost lands on the finished good downstream.
+    const consumedRec = consumed && consumed.get(r.item);
+    const autoInternal = !!consumedRec && !(sellVal > 0);
+    const isInternal = INTERNAL_CODES.has(r.item) || autoInternal;
     if (forced && forced.flagged) flaggedCount++;
 
     if (forced && forced.rate > 0) {
@@ -188,18 +195,18 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
       priceBasis = 'forced';
       forcedCount++;
     } else if (isInternal) {
-      // Static trim / intermediate code (e.g. 662523) reused internally into grind.
-      // It has no sales by design, so value it at the production standard and never
-      // treat the absent sale as a "missing price" problem — it isn't broken.
+      // Internal intermediate (auto-detected as consumed-downstream-with-no-sale, or
+      // on the static INTERNAL_CODES list). Value it at INPUT COST ONLY and keep it
+      // out of the margin totals: its cost is realized on the finished good it feeds,
+      // so counting it here too would double-count and show a phantom loss.
+      internal = true;
+      internalCount++;
       inputCost = isToll ? 0 : inputCostRaw;
-      if (sellVal > 0) {
-        revenue = sellVal;
-        rate = lbs ? revenue / lbs : null;
-        source = 'internal trim · production value';
-      } else {
-        revenue = 0; rate = null;
-        source = 'internal trim · reused into grind';
-      }
+      revenue = 0;
+      rate = null;
+      source = autoInternal
+        ? 'internal intermediate · input cost only (reused downstream)'
+        : 'internal trim · input cost only';
       priceBasis = 'internal';
     } else if (isToll) {
       inputCost = 0;
@@ -273,7 +280,9 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
         ownCounts.none++;
       }
     }
-    const gp = revenue - inputCost;
+    // Internal intermediates are input-cost-only and excluded from the totals, so
+    // their line shows no gain/loss (the real margin is on the finished good they feed).
+    const gp = internal ? 0 : revenue - inputCost;
 
     // Full provenance for the per-line "how we got this number" drill-down: every
     // candidate considered for customer, Toll/Own, and the rate — not just the
@@ -312,6 +321,7 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
         contract: contract && contract.rate != null ? { rate: contract.rate, source: contract.source } : null,
         sale: anySale,
         productionValue: sellVal > 0 ? sellVal : null,
+        internal: internal ? { auto: autoInternal, consumedLbs: consumedRec ? consumedRec.lbs : null } : null,
       },
       amounts: { cs, lbs, revenue, inputCost, inputCostRaw, gp, sellVal },
     };
@@ -330,6 +340,7 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
       isToll,
       autoToll: !!autoToll,
       override: override || null,
+      internal,
       cs, lbs, rate, revenue, inputCost, gp,
       source, missingRate, priceBasis,
       // Price-override surface for the Prices Today page.
@@ -349,6 +360,9 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
   const totals = { cs: 0, lbs: 0, rev: 0, ic: 0, gp: 0, tollRev: 0, ownRev: 0 };
   const missingSet = new Set();
   for (const r of rows) {
+    // Internal intermediates are input-cost-only — leave them out of every rollup and
+    // total so their cost (already on the finished good they feed) isn't double-counted.
+    if (r.internal) continue;
     const rm = roomMap.get(r.room) || { room: r.room, cs: 0, lbs: 0, rev: 0, ic: 0, gp: 0 };
     rm.cs += r.cs; rm.lbs += r.lbs; rm.rev += r.revenue; rm.ic += r.inputCost; rm.gp += r.gp;
     roomMap.set(r.room, rm);
@@ -370,6 +384,7 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales) {
     tollPricing: counts,       // toll line counts: { live, manual, contract, missing }
     ownPricing: ownCounts,     // own line counts: { sale, standard }
     forcedCount, flaggedCount, // price-override line counts (Prices Today page)
+    internalCount,             // internal intermediates excluded from margin (input cost only)
     rooms: [...roomMap.values()].sort((a, b) => (a.room < b.room ? -1 : a.room > b.room ? 1 : 0)),
     customers: [...custMap.values()].sort((a, b) => b.rev - a.rev),
     rows,
@@ -385,11 +400,21 @@ async function getProductionReport({ date, force = false } = {}) {
   const hit = reportCache.get(day);
   if (!force && hit && Date.now() - hit.builtAt < TTL_MS) return hit.report;
 
-  const [outRes, sumRes] = await Promise.all([
+  const [outRes, sumRes, inRes] = await Promise.all([
     postRpc('production_output_cost', { p_date: day, p_product_designation: 'Finished Good' }),
     postRpc('production_batch_summary', { p_date: day }),
+    postRpc('production_input_cost', { p_date: day }),
   ]);
   const lines = outRes.ok ? outRes.data : [];
+  // Items consumed as components today → drives auto-detection of internal
+  // intermediates (an output that's reused into another batch with no sale of its own).
+  const consumed = new Map(); // item -> { lbs, cost }
+  if (inRes.ok) for (const r of inRes.data) {
+    const c = consumed.get(r.item) || { lbs: 0, cost: 0 };
+    c.lbs += num(r.cost_quantity);
+    c.cost += num(r.total_inventory_cost);
+    consumed.set(r.item, c);
+  }
   const yieldByBatch = new Map();
   if (sumRes.ok) for (const s of sumRes.data) {
     if (s.batch != null) yieldByBatch.set(s.batch, s.yield_pct != null ? Number(s.yield_pct) : null);
@@ -422,7 +447,7 @@ async function getProductionReport({ date, force = false } = {}) {
     b.hasSale = hasSale;
   }
 
-  const report = buildReport(day, base, itemLbs, yieldByBatch, sales);
+  const report = buildReport(day, base, itemLbs, yieldByBatch, sales, consumed);
   report.unavailable = !outRes.ok; // Swarmbox errored for this day — not a real $0
   reportCache.set(day, { report, builtAt: Date.now() });
   // Only persist days that actually loaded — never store a misleading $0 for a
@@ -457,6 +482,7 @@ function overrideSignature() {
 function summarize(report) {
   const custMap = new Map();
   for (const r of report.rows) {
+    if (r.internal) continue; // input-cost-only intermediates: excluded from stored margin too
     let c = custMap.get(r.customer);
     if (!c) { c = { customer: r.customer, lbs: 0, rev: 0, ic: 0, gp: 0, tollRev: 0, ownRev: 0, _items: new Map() }; custMap.set(r.customer, c); }
     c.lbs += r.lbs; c.rev += r.revenue; c.ic += r.inputCost; c.gp += r.gp;

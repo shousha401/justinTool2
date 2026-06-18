@@ -258,11 +258,11 @@ function renderDetail() {
     <td class="num">${(r.priceBasis === 'none' || r.priceBasis === 'manual' || r.priceBasis === 'sale')
       ? `<input class="rateEdit${r.priceBasis === 'manual' ? ' set' : ''}" type="number" step="0.01" min="0" data-code="${esc(r.item)}" value="${r.priceBasis === 'manual' && r.rate != null ? r.rate : ''}" placeholder="${r.priceBasis === 'sale' && r.rate != null ? '$' + r.rate.toFixed(2) : '$/lb'}" title="Type a $/lb toll rate (blank to clear)" />`
       : (r.rate != null ? '$' + r.rate.toFixed(2) : '—')}</td>
-    <td class="num">${fmt$(r.revenue)}</td>
+    <td class="num">${r.internal ? '—' : fmt$(r.revenue)}</td>
     <td class="num ${r.priceBasis === 'contract' ? 'src-contract' : r.priceBasis === 'manual' ? 'src-manual' : r.priceBasis === 'sale' ? 'src-sale' : r.priceBasis === 'none' ? 'src-none' : 'dim'}">${r.missingRate ? '⚠ no rate' : esc(r.source || '')}</td>
     <td class="num">${r.isToll ? '—' : fmt$(r.inputCost)}</td>
-    <td class="num ${sign(r.gp)}">${fmt$(r.gp)}</td>
-    <td class="num ${sign(r.gp)}">${gpPct(r.gp, r.revenue)}</td>
+    <td class="num ${r.internal ? 'dim' : sign(r.gp)}">${r.internal ? '<span title="Internal intermediate — input cost only, not counted in margin">internal</span>' : fmt$(r.gp)}</td>
+    <td class="num ${r.internal ? 'dim' : sign(r.gp)}">${r.internal ? '—' : gpPct(r.gp, r.revenue)}</td>
     <td class="num dim">${r.yieldPct != null ? r.yieldPct.toFixed(1) + '%' : '—'}</td>
   </tr>`).join('');
   $('content').innerHTML = `<div class="card"><h2>Batch detail — ${REPORT.rows.length} lines · ${fmtN(REPORT.totals.lbs)} lbs · ${fmtN(REPORT.totals.cs)} cases</h2>
@@ -286,7 +286,8 @@ function render() {
   const tp = REPORT.tollPricing || { live: 0, manual: 0, contract: 0, missing: 0 };
   const op = REPORT.ownPricing || { sale: 0, standard: 0 };
   $('tollnote').innerHTML = `Toll rates — ${tp.live} live · ${tp.manual || 0} manual · ${tp.contract} contract · ${tp.sale || 0} sale-price · ${tp.missing} no rate`
-    + ` &nbsp;|&nbsp; Own revenue — ${op.sale} from actual sales · ${op.manual || 0} manual · ${op.standard} from production value${op.none ? ` · ${op.none} no price` : ''}`;
+    + ` &nbsp;|&nbsp; Own revenue — ${op.sale} from actual sales · ${op.manual || 0} manual · ${op.standard} from production value${op.none ? ` · ${op.none} no price` : ''}`
+    + (REPORT.internalCount ? ` &nbsp;|&nbsp; ${REPORT.internalCount} internal intermediate${REPORT.internalCount > 1 ? 's' : ''} (input cost only, excluded from margin)` : '');
   renderRibbon();
   if (view === 'summary') renderSummary(); else renderDetail();
 }
@@ -450,9 +451,13 @@ function explainRate(r) {
   const contractStr = t.contract ? `${rate$(t.contract.rate)}/lb · ${esc(t.contract.source || '')}` : dash;
   let steps;
   if (b === 'internal') {
+    const intr = t.internal || {};
     steps = [
-      stepLine('Internal trim', 'Reused into grind — no sales by design', true),
-      stepLine('Valued at', r.rate != null ? rate$(r.rate) + '/lb (production value)' : '$0 — internal, not flagged as missing', false),
+      stepLine(intr.auto ? 'Auto-detected intermediate' : 'Internal (manual list)',
+        intr.auto
+          ? `Consumed as a component into another batch${intr.consumedLbs ? ' (' + fmtN(intr.consumedLbs) + ' lbs)' : ''} — no sale of its own`
+          : 'On the internal-codes list — no sales by design', true),
+      stepLine('Valued at', 'Input cost only — excluded from margin (its cost lands on the finished good it feeds)', false),
     ].join('');
   } else if (r.isToll) {
     steps = [
@@ -485,6 +490,13 @@ function explainRate(r) {
 
 function explainMath(r) {
   const a = r.trace.amounts;
+  if (r.internal) {
+    return `<section><h3>The math</h3>
+      <div class="math">${fmtN(a.cs)} cases · ${fmtN(a.lbs)} lbs &nbsp;(from Swarmbox)</div>
+      <div class="math">raw material (input cost) = ${fmt$(a.inputCost)}</div>
+      <div class="math"><b>internal intermediate — input cost only, excluded from margin</b></div>
+      <div class="note">This item is consumed into another batch (e.g. grind → patties). Its cost is counted on the finished good it feeds, so it's left out of revenue / GP here to avoid double-counting.</div></section>`;
+  }
   const ownStd = !r.isToll && r.priceBasis === 'own' && r.trace.rate.sale == null && a.sellVal > 0;
   const revLine = r.isToll
     ? `revenue = rate ${rate$(r.rate)} × ${fmtN(a.lbs)} lbs = ${fmt$(a.revenue)}`
