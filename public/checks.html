@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sanity Check — production data flags</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --ink: #1c2430; --muted: #75808f;
+    --line: #e6e9ee; --accent: #1f6feb; --accent-d: #1a5fd0;
+    --high: #b42318; --high-bg: #fef3f2; --high-bd: #fbd5cf;
+    --med: #b25e00; --med-bg: #fff7e6; --med-bd: #ffe1a6;
+    --low: #6b4ea8; --low-bg: #f4f0fb; --low-bd: #e0d4f5;
+    --info: #5a6675; --info-bg: #f1f3f6; --info-bd: #e2e6ec;
+    --pos: #1D9E75; --neg: #D85A30;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+  .topnav { display: flex; gap: 4px; padding: 10px 24px 0; border-bottom: 1px solid var(--line); background: var(--card); flex-wrap: wrap; }
+  .topnav a { text-decoration: none; color: var(--muted); font-size: 13px; font-weight: 600;
+    padding: 9px 14px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .topnav a:hover { color: var(--ink); }
+  .topnav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+  header { padding: 22px 24px 14px; }
+  h1 { margin: 0 0 4px; font-size: 20px; }
+  .sub { color: var(--muted); font-size: 13px; max-width: 900px; }
+  .wrap { padding: 0 24px 40px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 14px 0;
+    padding: 12px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+  select { padding: 8px 11px; font-size: 13px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--card); color: var(--ink); cursor: pointer; }
+  select:focus { border-color: var(--accent); outline: none; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; background: var(--card); color: var(--muted);
+    padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .seg button.on { background: var(--accent); color: #fff; }
+  button, a.btn { appearance: none; cursor: pointer; text-decoration: none; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); padding: 8px 13px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover { background: var(--accent-d); }
+  button:disabled { opacity: .55; cursor: default; }
+  label.fld { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+  .grow { margin-left: auto; }
+  .ribbon { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 14px 0; }
+  .metric { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .mL { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .mV { font-size: 22px; font-weight: 600; }
+  .mV.high { color: var(--high); } .mV.med { color: var(--med); } .mV.ok { color: var(--pos); }
+  .mS { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* flagged batch cards */
+  .flag { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--line);
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+  .flag.high { border-left-color: var(--high); }
+  .flag.medium { border-left-color: var(--med); }
+  .flag.low { border-left-color: var(--low); }
+  .flag.info { border-left-color: var(--info); }
+  .flag-head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; }
+  .flag-head b { font-size: 14px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  .flag-head .proc { font-weight: 600; }
+  .flag-head .meta { color: var(--muted); font-size: 12px; }
+  .pill { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+  .pill.high { background: var(--high-bg); color: var(--high); border: 1px solid var(--high-bd); }
+  .pill.medium { background: var(--med-bg); color: var(--med); border: 1px solid var(--med-bd); }
+  .pill.low { background: var(--low-bg); color: var(--low); border: 1px solid var(--low-bd); }
+  .pill.info { background: var(--info-bg); color: var(--info); border: 1px solid var(--info-bd); }
+  .nums { display: flex; flex-wrap: wrap; gap: 14px; margin: 9px 0 4px; font-variant-numeric: tabular-nums; }
+  .nums span { font-size: 12px; color: var(--muted); }
+  .nums b { color: var(--ink); }
+  .nums b.neg { color: var(--neg); } .nums b.pos { color: var(--pos); }
+  .reasons { margin: 6px 0 0; padding: 0; list-style: none; }
+  .reasons li { font-size: 12.5px; padding: 6px 0 6px 22px; position: relative; border-top: 1px dashed var(--line); }
+  .reasons li:first-child { border-top: 0; }
+  .reasons li::before { position: absolute; left: 0; top: 6px; }
+  .reasons li.high::before { content: "🔴"; } .reasons li.medium::before { content: "🟠"; }
+  .reasons li.low::before { content: "🟡"; } .reasons li.info::before { content: "⚪"; }
+  .notes { color: var(--muted); font-size: 11.5px; margin-top: 6px; font-style: italic; }
+  details.lines { margin-top: 8px; }
+  details.lines summary { cursor: pointer; font-size: 12px; color: var(--accent); font-weight: 600; }
+  .io { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+  @media (max-width: 680px) { .io { grid-template-columns: 1fr; } }
+  .io h4 { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; }
+  .io h4.in { color: var(--neg); } .io h4.out { color: var(--pos); }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th { text-align: left; font-size: 10.5px; color: var(--muted); font-weight: 600; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+  th.num, td.num { text-align: right; }
+  td { padding: 4px 6px; border-bottom: 1px solid var(--line); font-size: 11.5px; vertical-align: top; }
+  td.dup { background: var(--low-bg); }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  .dim { color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+  .card h2 { font-size: 13px; font-weight: 600; margin: 0 0 12px; }
+  .rangerow { cursor: pointer; }
+  .rangerow:hover { background: #fafbfc; }
+  .barcell { display: inline-block; height: 8px; border-radius: 4px; vertical-align: middle; }
+  .warn { background: var(--med-bg); border: 1px solid var(--med-bd); color: var(--med); border-radius: 10px; padding: 10px 14px; font-size: 12.5px; margin: 14px 0; }
+  .empty, .err { padding: 40px; text-align: center; color: var(--muted); }
+  .empty.good { color: var(--pos); font-weight: 600; }
+  .err { color: var(--high); }
+  .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a href="/dashboard.html">Dashboard</a>
+  <a href="/customers.html">Customers</a>
+  <a href="/">Product Value</a>
+  <a href="/production.html">Production Margin</a>
+  <a href="/prices.html">Prices Today</a>
+  <a href="/checks.html" class="active">Sanity Check</a>
+</nav>
+<header>
+  <h1>Sanity Check</h1>
+  <div class="sub">
+    Catches production batches whose numbers can't physically be true — before anyone reports off them.
+    The big one: a <b>cut or grind that ends with more weight than it started</b> (yield over 100%).
+    Also flags batches that lost almost all their weight, made something from no input, or list the same
+    item as both an input and an output. All read-only from Swarmbox.
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="bar">
+    <label class="fld">Day <select id="date"></select></label>
+    <div class="seg">
+      <button id="vDay" class="on" type="button">This day</button>
+      <button id="vRange" type="button">Last 30 days</button>
+    </div>
+    <span class="grow"></span>
+    <button id="refresh" class="primary" type="button">Refresh</button>
+  </div>
+
+  <div id="warn" class="warn" style="display:none;"></div>
+  <div id="ribbon" class="ribbon"></div>
+  <div id="content"></div>
+  <div id="state" class="empty"><span class="spin"></span> Loading…</div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const fmtN = (n) => Math.round(n || 0).toLocaleString();
+const SEV_LABEL = { high: 'High', medium: 'Medium', low: 'Low', info: 'Info' };
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+let view = 'day';
+let DAY = null;
+let RANGE = null;
+
+// ── Day view ─────────────────────────────────────────────────────────────────
+function lineTable(rows, dupSet) {
+  if (!rows || !rows.length) return '<div class="dim" style="font-size:11.5px;">— none —</div>';
+  const body = rows.map(r => {
+    const dup = dupSet.has(r.item);
+    return `<tr><td class="mono ${dup ? 'dup' : ''}">${esc(r.item)}</td>
+      <td class="${dup ? 'dup' : ''}">${esc(r.description)}<span class="dim"> ${esc(r.designation)}</span></td>
+      <td class="num ${dup ? 'dup' : ''}">${fmtN(r.lbs)}</td></tr>`;
+  }).join('');
+  return `<table><thead><tr><th>Item</th><th>Description</th><th class="num">Lbs</th></tr></thead><tbody>${body}</tbody></table>`;
+}
+
+function flagCard(f) {
+  const dupSet = new Set();
+  const inItems = new Set((f.inputs || []).map(r => r.item));
+  for (const o of (f.outputs || [])) if (inItems.has(o.item)) dupSet.add(o.item);
+
+  const reasons = f.flags.map(x => `<li class="${x.severity}">${esc(x.message)}</li>`).join('');
+  const gainCls = f.gain > 0 ? 'neg' : 'pos';
+  const yld = f.yieldPct != null ? f.yieldPct.toFixed(1) + '%' : '—';
+  return `<div class="flag ${f.topSeverity}">
+    <div class="flag-head">
+      <span class="pill ${f.topSeverity}">${SEV_LABEL[f.topSeverity]}</span>
+      <b>${esc(f.batch)}</b>
+      <span class="proc">${esc(f.process || '—')}</span>
+      <span class="meta">${esc(f.room)}${f.line ? ' · ' + esc(f.line) : ''}</span>
+    </div>
+    <div class="nums">
+      <span>Input <b>${fmtN(f.input)}</b> lb</span>
+      <span>Output <b>${fmtN(f.output)}</b> lb</span>
+      ${f.wip ? `<span>WIP <b>${fmtN(f.wip)}</b> lb</span>` : ''}
+      <span>Yield <b class="${f.yieldPct != null && f.yieldPct > 100 ? 'neg' : ''}">${yld}</b></span>
+      <span>${f.gain > 0 ? 'Gain' : 'Loss'} <b class="${gainCls}">${fmtN(Math.abs(f.gain))}</b> lb</span>
+    </div>
+    <ul class="reasons">${reasons}</ul>
+    ${f.notes ? `<div class="notes">“${esc(f.notes.trim())}”</div>` : ''}
+    <details class="lines"><summary>Show input vs output lines (${(f.inputs || []).length} in · ${(f.outputs || []).length} out)</summary>
+      <div class="io">
+        <div><h4 class="in">Inputs (consumed)</h4>${lineTable(f.inputs, dupSet)}</div>
+        <div><h4 class="out">Outputs (produced)</h4>${lineTable(f.outputs, dupSet)}</div>
+      </div>
+    </details>
+  </div>`;
+}
+
+function renderDay() {
+  const c = DAY.counts;
+  $('ribbon').innerHTML = `
+    <div class="metric"><div class="mL">Batches scanned</div><div class="mV">${fmtN(DAY.scanned)}</div><div class="mS">${DAY.date}</div></div>
+    <div class="metric"><div class="mL">Flagged</div><div class="mV ${c.batches ? 'med' : 'ok'}">${fmtN(c.batches)}</div><div class="mS">${c.batches ? 'need a look' : 'all clean'}</div></div>
+    <div class="metric"><div class="mL">High</div><div class="mV ${c.high ? 'high' : 'ok'}">${fmtN(c.high)}</div><div class="mS">impossible</div></div>
+    <div class="metric"><div class="mL">Medium</div><div class="mV ${c.medium ? 'med' : 'ok'}">${fmtN(c.medium)}</div><div class="mS">suspicious</div></div>
+    <div class="metric"><div class="mL">Low / Info</div><div class="mV">${fmtN(c.low + c.info)}</div><div class="mS">worth confirming</div></div>`;
+
+  if (DAY.unavailable) {
+    $('content').innerHTML = '';
+    $('state').style.display = ''; $('state').className = 'err';
+    $('state').textContent = 'Swarmbox returned an error for this day — try Refresh or pick another day.';
+    return;
+  }
+  if (!DAY.flagged.length) {
+    $('content').innerHTML = '';
+    $('state').style.display = ''; $('state').className = 'empty good';
+    $('state').innerHTML = `✓ Nothing looks wrong on ${DAY.date} — all ${fmtN(DAY.scanned)} batches balance.`;
+    return;
+  }
+  $('state').style.display = 'none';
+  $('content').innerHTML = DAY.flagged.map(flagCard).join('');
+}
+
+// ── Range view ───────────────────────────────────────────────────────────────
+function renderRange() {
+  const t = RANGE.totals;
+  $('ribbon').innerHTML = `
+    <div class="metric"><div class="mL">Days scanned</div><div class="mV">${fmtN(RANGE.days.length)}</div><div class="mS">most recent first</div></div>
+    <div class="metric"><div class="mL">Flagged batches</div><div class="mV ${t.flagged ? 'med' : 'ok'}">${fmtN(t.flagged)}</div><div class="mS">of ${fmtN(t.batches)}</div></div>
+    <div class="metric"><div class="mL">High</div><div class="mV ${t.high ? 'high' : 'ok'}">${fmtN(t.high)}</div><div class="mS">impossible</div></div>
+    <div class="metric"><div class="mL">Medium</div><div class="mV ${t.medium ? 'med' : 'ok'}">${fmtN(t.medium)}</div><div class="mS">suspicious</div></div>`;
+
+  const max = Math.max(1, ...RANGE.days.map(d => d.flagged));
+  const rows = RANGE.days.map(d => `<tr class="rangerow" data-date="${d.date}">
+    <td><b>${d.date}</b></td>
+    <td class="num dim">${fmtN(d.batches)}</td>
+    <td class="num"><b class="${d.flagged ? '' : 'dim'}">${fmtN(d.flagged)}</b></td>
+    <td class="num">${d.high ? `<span style="color:var(--high)">${d.high}</span>` : '<span class="dim">0</span>'}</td>
+    <td class="num">${d.medium ? `<span style="color:var(--med)">${d.medium}</span>` : '<span class="dim">0</span>'}</td>
+    <td class="num dim">${d.low + d.info}</td>
+    <td><span class="barcell" style="width:${Math.round((d.flagged / max) * 140)}px;background:${d.high ? 'var(--high)' : d.medium ? 'var(--med)' : 'var(--line)'}"></span></td>
+  </tr>`).join('');
+  $('state').style.display = 'none';
+  $('content').innerHTML = `<div class="card"><h2>Last ${RANGE.days.length} production days — click a day to inspect it</h2>
+    <div style="overflow-x:auto"><table>
+      <thead><tr><th>Day</th><th class="num">Batches</th><th class="num">Flagged</th><th class="num">High</th><th class="num">Med</th><th class="num">Low/Info</th><th></th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+    <div class="dim" style="font-size:11.5px;margin-top:10px;">Range scan uses the fast batch-balance checks only. Open a day for the full set (incl. same-item-in-&-out).</div>
+  </div>`;
+  document.querySelectorAll('.rangerow').forEach(tr => {
+    tr.onclick = () => { $('date').value = tr.dataset.date; view = 'day'; syncSeg(); loadDay(tr.dataset.date); };
+  });
+}
+
+// ── Loading ──────────────────────────────────────────────────────────────────
+function syncSeg() { $('vDay').classList.toggle('on', view === 'day'); $('vRange').classList.toggle('on', view === 'range'); }
+function busy(msg) { $('state').style.display = ''; $('state').className = 'empty'; $('state').innerHTML = '<span class="spin"></span> ' + msg; $('refresh').disabled = true; }
+function fail(msg) { $('ribbon').innerHTML = ''; $('content').innerHTML = ''; $('state').style.display = ''; $('state').className = 'err'; $('state').textContent = msg; }
+
+async function loadDay(date, refresh) {
+  busy(refresh ? 'Refreshing from Swarmbox…' : 'Checking ' + (date || 'latest') + '…');
+  try {
+    const qs = new URLSearchParams();
+    if (date) qs.set('date', date);
+    if (refresh) qs.set('refresh', '1');
+    const res = await fetch('/api/checks?' + qs.toString());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    DAY = await res.json();
+    renderDay();
+  } catch (err) { fail('Could not run sanity check: ' + err.message); }
+  finally { $('refresh').disabled = false; }
+}
+
+async function loadRange(refresh) {
+  busy('Scanning last 30 days…');
+  try {
+    const res = await fetch('/api/checks/range?days=30' + (refresh ? '&refresh=1' : ''));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    RANGE = await res.json();
+    renderRange();
+  } catch (err) { fail('Could not scan range: ' + err.message); }
+  finally { $('refresh').disabled = false; }
+}
+
+async function loadDates() {
+  const res = await fetch('/api/checks/dates');
+  const data = await res.json();
+  const dates = data.dates || [];
+  $('date').innerHTML = dates.map(d => `<option value="${d.date}">${d.date} (${d.batches} batches)</option>`).join('');
+  return dates.length ? dates[0].date : '';
+}
+
+$('date').onchange = (e) => { view = 'day'; syncSeg(); loadDay(e.target.value); };
+$('vDay').onclick = () => { if (view === 'day') return; view = 'day'; syncSeg(); loadDay($('date').value); };
+$('vRange').onclick = () => { if (view === 'range') return; view = 'range'; syncSeg(); loadRange(); };
+$('refresh').onclick = () => view === 'day' ? loadDay($('date').value, true) : loadRange(true);
+
+(async () => {
+  try {
+    const latest = await loadDates();
+    await loadDay(latest);
+  } catch (err) { fail('Could not load production dates: ' + err.message); }
+})();
+</script>
+</body>
+</html>
