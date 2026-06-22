@@ -100,6 +100,19 @@
   .err { color: var(--high); }
   .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px; }
   @keyframes sp { to { transform: rotate(360deg); } }
+  input[type=text] { padding: 8px 10px; font-size: 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
+  input[type=text]:focus { border-color: var(--accent); outline: none; }
+  /* per-flag diagnostic question */
+  .ask { margin-top: 7px; padding: 8px 10px; background: var(--info-bg); border: 1px solid var(--info-bd); border-radius: 8px; }
+  .ask .q { font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .ask .opts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+  .opt { font-size: 11.5px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--ink); cursor: pointer; font-weight: 600; }
+  .opt:hover { border-color: var(--accent); color: var(--accent); }
+  .opt.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .ask .fbnote { width: 100%; }
+  .ask .ans { font-size: 11px; color: var(--pos); margin-top: 6px; font-weight: 600; }
+  .ask .ans.empty { color: var(--muted); font-weight: 400; }
+  .ask .ans .clear { color: var(--muted); cursor: pointer; font-weight: 600; margin-left: 8px; text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -129,6 +142,8 @@
       <button id="vRange" type="button">Last 30 days</button>
     </div>
     <span class="grow"></span>
+    <label class="fld">Your name <input id="who" type="text" placeholder="who's answering" style="width:140px;" /></label>
+    <a id="fbcsv" class="btn" href="/api/checks/feedback.csv">Export answers</a>
     <button id="refresh" class="primary" type="button">Refresh</button>
   </div>
 
@@ -150,6 +165,12 @@ function esc(s) {
 let view = 'day';
 let DAY = null;
 let RANGE = null;
+let WHO = localStorage.getItem('checks_who') || '';
+
+function answeredHtml(fb) {
+  const when = fb.at ? ' · ' + String(fb.at).slice(0, 10) : '';
+  return `✓ “${esc(fb.answer || '—')}”${fb.by ? ' · ' + esc(fb.by) : ''}${when} <span class="clear">clear</span>`;
+}
 
 // ── Day view ─────────────────────────────────────────────────────────────────
 function lineTable(rows, dupSet) {
@@ -170,7 +191,17 @@ function flagCard(f) {
   const inItems = new Set((f.inputs || []).map(r => r.item));
   for (const o of (f.outputs || [])) if (inItems.has(o.item)) dupSet.add(o.item);
 
-  const reasons = f.flags.map(x => `<li class="${x.severity}">${esc(x.message)}</li>`).join('');
+  const reasons = f.flags.map(x => {
+    const fb = x.feedback;
+    const ask = x.question ? `
+      <div class="ask" data-batch="${esc(f.batch)}" data-rule="${esc(x.rule)}" data-date="${esc(f.date)}">
+        <div class="q">${esc(x.question.q)}</div>
+        <div class="opts">${x.question.options.map(o => `<button type="button" class="opt ${fb && fb.answer === o ? 'selected' : ''}" data-answer="${esc(o)}">${esc(o)}</button>`).join('')}</div>
+        <input class="fbnote" type="text" placeholder="Add a detail that helps us fix it (optional)" value="${fb ? esc(fb.note) : ''}" />
+        <div class="ans ${fb ? '' : 'empty'}">${fb ? answeredHtml(fb) : 'Not answered yet'}</div>
+      </div>` : '';
+    return `<li class="${x.severity}">${esc(x.message)}${ask}</li>`;
+  }).join('');
   const gainCls = f.gain > 0 ? 'neg' : 'pos';
   const yld = f.yieldPct != null ? f.yieldPct.toFixed(1) + '%' : '—';
   return `<div class="flag ${f.topSeverity}">
@@ -299,6 +330,49 @@ $('date').onchange = (e) => { view = 'day'; syncSeg(); loadDay(e.target.value); 
 $('vDay').onclick = () => { if (view === 'day') return; view = 'day'; syncSeg(); loadDay($('date').value); };
 $('vRange').onclick = () => { if (view === 'range') return; view = 'range'; syncSeg(); loadRange(); };
 $('refresh').onclick = () => view === 'day' ? loadDay($('date').value, true) : loadRange(true);
+
+// ── Diagnostic feedback (who's answering + per-flag save/clear) ───────────────
+$('who').value = WHO;
+$('who').onchange = (e) => { WHO = e.target.value.trim(); localStorage.setItem('checks_who', WHO); };
+
+async function commitAsk(group) {
+  if (!group) return;
+  const sel = group.querySelector('.opt.selected');
+  const answer = sel ? sel.dataset.answer : '';
+  const note = group.querySelector('.fbnote').value.trim();
+  if (!answer && !note) return; // nothing picked yet
+  if (!WHO) { alert('Enter your name in the top bar first, so we know who answered.'); $('who').focus(); return; }
+  const ans = group.querySelector('.ans');
+  ans.className = 'ans'; ans.textContent = 'Saving…';
+  try {
+    const res = await fetch('/api/checks/feedback', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ batch: group.dataset.batch, rule: group.dataset.rule, date: group.dataset.date, answer, note, by: WHO }),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const fb = (await res.json()).feedback;
+    if (fb) { ans.className = 'ans'; ans.innerHTML = answeredHtml({ answer: fb.answer, note: fb.note, by: fb.by, at: fb.updatedAt }); }
+    else { ans.className = 'ans empty'; ans.textContent = 'Not answered yet'; }
+  } catch (err) { ans.className = 'ans empty'; ans.textContent = 'Could not save: ' + err.message; }
+}
+
+async function clearAsk(group) {
+  try {
+    await fetch(`/api/checks/feedback/${encodeURIComponent(group.dataset.batch)}/${encodeURIComponent(group.dataset.rule)}`, { method: 'DELETE' });
+    group.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
+    group.querySelector('.fbnote').value = '';
+    const ans = group.querySelector('.ans'); ans.className = 'ans empty'; ans.textContent = 'Not answered yet';
+  } catch (err) { alert('Could not clear: ' + err.message); }
+}
+
+// Delegated — #content is replaced on every load, but the node itself persists.
+$('content').addEventListener('click', (e) => {
+  const opt = e.target.closest('.opt');
+  if (opt) { const g = opt.closest('.ask'); g.querySelectorAll('.opt').forEach(o => o.classList.toggle('selected', o === opt)); commitAsk(g); return; }
+  const clr = e.target.closest('.ans .clear');
+  if (clr) { clearAsk(clr.closest('.ask')); }
+});
+$('content').addEventListener('change', (e) => { const n = e.target.closest('.fbnote'); if (n) commitAsk(n.closest('.ask')); });
 
 (async () => {
   try {

@@ -22,6 +22,43 @@
 
 const { postRpc } = require('./swarmbox');
 const { recentDates, mostRecentDate } = require('./production');
+const checkFeedback = require('./checkFeedback');
+
+// ── Diagnostic questions (one per rule) ──────────────────────────────────────
+// A flag says "this can't be true"; only a person knows WHY. For each rule we ask
+// one question with the likely causes, so the answers reveal the upstream fix.
+// The frontend renders these; the answer text is validated loosely (free "Other"
+// is allowed via the note), so adding/editing an option here needs no UI change.
+const QUESTIONS = {
+  'weight-gain': {
+    q: 'Output weighs more than input — what happened?',
+    options: ['Missed / under-scanned an input', 'Output double-counted', 'Wrong unit (case/each entered as lbs)', 'Something really was added (correct)', 'Not sure'],
+  },
+  'low-yield': {
+    q: 'Yield looks too low — why?',
+    options: ['Missed an output scan', 'Heavy trim/fat loss is normal here', 'Cooking / render loss (expected)', 'Mis-entry', 'Not sure'],
+  },
+  'no-output': {
+    q: 'Material was consumed but no output recorded — why?',
+    options: ['Output not scanned yet', 'Scanned to the wrong batch', 'Batch cancelled', 'Not sure'],
+  },
+  'output-no-input': {
+    q: 'Output recorded but no input — why?',
+    options: ['Input not scanned yet', 'Customer-supplied meat (toll)', 'Scanned to the wrong batch', 'Not sure'],
+  },
+  'item-both-sides': {
+    q: 'Same item is on both the input and output side — is that right?',
+    options: ['Yes — re-grade / partial (correct)', 'No — mis-entry', 'Not sure'],
+  },
+  'mixed-uom': {
+    q: 'This batch mixes pounds with case/each units — is that expected?',
+    options: ['Expected (seasoning / packaging in EA/CS)', 'Should all be in pounds', 'Not sure'],
+  },
+  'empty-batch': {
+    q: 'Batch has no quantities — why?',
+    options: ['Cancelled', 'Not started yet', 'Test / duplicate', 'Not sure'],
+  },
+};
 
 const TTL_MS = Number(process.env.CHECKS_CACHE_TTL_MS) || 5 * 60 * 1000; // 5 min
 const RANGE_DAYS = Number(process.env.CHECKS_RANGE_DAYS) || 30;
@@ -217,6 +254,13 @@ async function getDayChecks({ date, force = false } = {}) {
     }
 
     if (!flags.length) continue;
+    // Stitch the diagnostic question + any saved human answer onto each flag.
+    const answers = checkFeedback.forBatch(b.batch);
+    for (const fl of flags) {
+      fl.question = QUESTIONS[fl.rule] || null;
+      const a = answers[fl.rule];
+      fl.feedback = a ? { answer: a.answer, note: a.note, by: a.by, at: a.updatedAt } : null;
+    }
     const sev = topSeverity(flags);
     counts[sev]++;
     counts.batches++;
@@ -297,4 +341,4 @@ async function getRangeChecks({ days = RANGE_DAYS, force = false } = {}) {
 
 function clearCache() { dayCache.clear(); rangeCache = null; }
 
-module.exports = { getDayChecks, getRangeChecks, clearCache, batchFlags, classifyProcess, mixedUomSet };
+module.exports = { getDayChecks, getRangeChecks, clearCache, batchFlags, classifyProcess, mixedUomSet, QUESTIONS };
