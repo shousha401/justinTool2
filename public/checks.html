@@ -156,11 +156,13 @@ function lineTable(rows, dupSet) {
   if (!rows || !rows.length) return '<div class="dim" style="font-size:11.5px;">— none —</div>';
   const body = rows.map(r => {
     const dup = dupSet.has(r.item);
+    const nonLb = r.uom && String(r.uom).toUpperCase() !== 'LB';
     return `<tr><td class="mono ${dup ? 'dup' : ''}">${esc(r.item)}</td>
       <td class="${dup ? 'dup' : ''}">${esc(r.description)}<span class="dim"> ${esc(r.designation)}</span></td>
-      <td class="num ${dup ? 'dup' : ''}">${fmtN(r.lbs)}</td></tr>`;
+      <td class="num ${dup ? 'dup' : ''}">${fmtN(r.lbs)}</td>
+      <td class="num ${nonLb ? '' : 'dim'}" ${nonLb ? 'style="color:var(--med);font-weight:600"' : ''}>${esc(r.uom || '')}</td></tr>`;
   }).join('');
-  return `<table><thead><tr><th>Item</th><th>Description</th><th class="num">Lbs</th></tr></thead><tbody>${body}</tbody></table>`;
+  return `<table><thead><tr><th>Item</th><th>Description</th><th class="num">Qty</th><th class="num">UOM</th></tr></thead><tbody>${body}</tbody></table>`;
 }
 
 function flagCard(f) {
@@ -198,12 +200,14 @@ function flagCard(f) {
 
 function renderDay() {
   const c = DAY.counts;
+  const actionable = c.high + c.medium + c.low;
   $('ribbon').innerHTML = `
     <div class="metric"><div class="mL">Batches scanned</div><div class="mV">${fmtN(DAY.scanned)}</div><div class="mS">${DAY.date}</div></div>
-    <div class="metric"><div class="mL">Flagged</div><div class="mV ${c.batches ? 'med' : 'ok'}">${fmtN(c.batches)}</div><div class="mS">${c.batches ? 'need a look' : 'all clean'}</div></div>
+    <div class="metric"><div class="mL">Flagged</div><div class="mV ${actionable ? 'med' : 'ok'}">${fmtN(actionable)}</div><div class="mS">${actionable ? 'need a look' : 'all clean'}</div></div>
     <div class="metric"><div class="mL">High</div><div class="mV ${c.high ? 'high' : 'ok'}">${fmtN(c.high)}</div><div class="mS">impossible</div></div>
     <div class="metric"><div class="mL">Medium</div><div class="mV ${c.medium ? 'med' : 'ok'}">${fmtN(c.medium)}</div><div class="mS">suspicious</div></div>
-    <div class="metric"><div class="mL">Low / Info</div><div class="mV">${fmtN(c.low + c.info)}</div><div class="mS">worth confirming</div></div>`;
+    <div class="metric"><div class="mL">Low</div><div class="mV">${fmtN(c.low)}</div><div class="mS">worth confirming</div></div>
+    <div class="metric"><div class="mL">Info</div><div class="mV">${fmtN(c.info)}</div><div class="mS">mixed-UOM / empty</div></div>`;
 
   if (DAY.unavailable) {
     $('content').innerHTML = '';
@@ -226,9 +230,10 @@ function renderRange() {
   const t = RANGE.totals;
   $('ribbon').innerHTML = `
     <div class="metric"><div class="mL">Days scanned</div><div class="mV">${fmtN(RANGE.days.length)}</div><div class="mS">most recent first</div></div>
-    <div class="metric"><div class="mL">Flagged batches</div><div class="mV ${t.flagged ? 'med' : 'ok'}">${fmtN(t.flagged)}</div><div class="mS">of ${fmtN(t.batches)}</div></div>
+    <div class="metric"><div class="mL">Flagged batches</div><div class="mV ${t.flagged ? 'med' : 'ok'}">${fmtN(t.flagged)}</div><div class="mS">of ${fmtN(t.batches)} · need a look</div></div>
     <div class="metric"><div class="mL">High</div><div class="mV ${t.high ? 'high' : 'ok'}">${fmtN(t.high)}</div><div class="mS">impossible</div></div>
-    <div class="metric"><div class="mL">Medium</div><div class="mV ${t.medium ? 'med' : 'ok'}">${fmtN(t.medium)}</div><div class="mS">suspicious</div></div>`;
+    <div class="metric"><div class="mL">Medium</div><div class="mV ${t.medium ? 'med' : 'ok'}">${fmtN(t.medium)}</div><div class="mS">suspicious</div></div>
+    <div class="metric"><div class="mL">Mixed-UOM</div><div class="mV">${fmtN(t.mixedUom || 0)}</div><div class="mS">yield not comparable</div></div>`;
 
   const max = Math.max(1, ...RANGE.days.map(d => d.flagged));
   const rows = RANGE.days.map(d => `<tr class="rangerow" data-date="${d.date}">
