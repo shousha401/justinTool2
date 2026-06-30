@@ -6,19 +6,35 @@ const path = require('path');
 const { getValues } = require('./backend/valuation');
 const { getProductionReport, backfillSummaries } = require('./backend/production');
 
+// SANITY-ONLY mode: run JUST the Sanity Check feature, with none of the heavy
+// Swarmbox builds (price valuation, production margin, dashboard backfill, daily
+// refresh). Turn it on with `node server.js --sanity` / `npm run sanity`, or
+// SANITY_ONLY=1. Lets you spot-check production data on a dev PC without the app
+// hammering Swarmbox. Sanity Check still queries Swarmbox, but only lightly and
+// only when you open the page.
+const SANITY_ONLY = process.argv.includes('--sanity')
+  || process.env.SANITY_ONLY === '1' || process.env.SANITY_ONLY === 'true';
+
 const app = express();
 app.use(express.json({ limit: '256kb' }));
+app.locals.sanityOnly = SANITY_ONLY; // so routes/pages can adapt (e.g. hide other tabs)
 
-app.use('/api/values', require('./backend/routes/values'));
-app.use('/api/production', require('./backend/routes/production'));
+// The Sanity Check API is always on.
 app.use('/api/checks', require('./backend/routes/checks'));
-app.use('/api/discontinued', require('./backend/routes/discontinued'));
-app.use('/api/dashboard', require('./backend/routes/dashboard'));
-app.use('/api/customers', require('./backend/routes/customers'));
+
+// The rest (and their on-demand Swarmbox pulls) only mount in full mode.
+if (!SANITY_ONLY) {
+  app.use('/api/values', require('./backend/routes/values'));
+  app.use('/api/production', require('./backend/routes/production'));
+  app.use('/api/discontinued', require('./backend/routes/discontinued'));
+  app.use('/api/dashboard', require('./backend/routes/dashboard'));
+  app.use('/api/customers', require('./backend/routes/customers'));
+}
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
 app.get('/', (_req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
+  // In sanity-only mode the landing page IS the Sanity Check.
+  res.sendFile(path.join(PUBLIC_DIR, SANITY_ONLY ? 'checks.html' : 'index.html'));
 });
 app.use(express.static(PUBLIC_DIR));
 
@@ -43,6 +59,12 @@ function scheduleDailyRefresh() {
 
 const PORT = Number(process.env.PORT) || 3004;
 app.listen(PORT, () => {
+  if (SANITY_ONLY) {
+    console.log(`[ValueTool] SANITY-ONLY mode → http://localhost:${PORT}/checks.html`);
+    console.log('[ValueTool] heavy Swarmbox builds (pricing, production, dashboard, daily refresh) are DISABLED.');
+    return;
+  }
+
   console.log(`[ValueTool] Product Value report on http://localhost:${PORT}`);
 
   // Warm the cache on boot so the first page load is instant. With a saved

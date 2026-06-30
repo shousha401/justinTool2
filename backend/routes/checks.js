@@ -5,6 +5,12 @@ const checkFeedback = require('../checkFeedback');
 
 const router = express.Router();
 
+// GET /api/checks/mode → tells the page whether the app is running sanity-only
+// (so it can hide the other tabs that aren't mounted in this mode).
+router.get('/mode', (req, res) => {
+  res.json({ sanityOnly: !!req.app.locals.sanityOnly });
+});
+
 // ── Diagnostic feedback (the human "why" on each flag) ───────────────────────
 // GET /api/checks/feedback → every saved answer (newest first), for review/export
 router.get('/feedback', (_req, res) => {

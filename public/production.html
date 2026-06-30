@@ -491,10 +491,16 @@ function explainRate(r) {
 
 function explainMath(r) {
   const a = r.trace.amounts;
+  // Break raw material into $/lb × lbs (same shape as the revenue line) so the
+  // input cost can be sanity-checked against the rate at a glance.
+  const icPerLb = a.lbs ? a.inputCost / a.lbs : null;
+  const rmLine = icPerLb != null
+    ? `raw material (input cost) = ${rate$(icPerLb)}/lb × ${fmtN(a.lbs)} lbs = ${fmt$(a.inputCost)}`
+    : `raw material (input cost) = ${fmt$(a.inputCost)}`;
   if (r.internal) {
     return `<section><h3>The math</h3>
       <div class="math">${fmtN(a.cs)} cases · ${fmtN(a.lbs)} lbs &nbsp;(from Swarmbox)</div>
-      <div class="math">raw material (input cost) = ${fmt$(a.inputCost)}</div>
+      <div class="math">${rmLine}</div>
       <div class="math"><b>internal intermediate — input cost only, excluded from margin</b></div>
       <div class="note">This item is consumed into another batch (e.g. grind → patties). Its cost is counted on the finished good it feeds, so it's left out of revenue / GP here to avoid double-counting.</div></section>`;
   }
@@ -503,7 +509,7 @@ function explainMath(r) {
     ? `revenue = rate ${rate$(r.rate)} × ${fmtN(a.lbs)} lbs = ${fmt$(a.revenue)}`
     : (ownStd ? `revenue = production sell value = ${fmt$(a.revenue)}`
               : `revenue = rate ${rate$(r.rate)} × ${fmtN(a.lbs)} lbs = ${fmt$(a.revenue)}`);
-  const costLine = r.isToll ? 'raw material = $0 (customer supplied the meat)' : `raw material (input cost) = ${fmt$(a.inputCost)}`;
+  const costLine = r.isToll ? 'raw material = $0 (customer supplied the meat)' : rmLine;
   return `<section><h3>The math</h3>
     <div class="math">${fmtN(a.cs)} cases · ${fmtN(a.lbs)} lbs &nbsp;(from Swarmbox)</div>
     <div class="math">${revLine}</div>

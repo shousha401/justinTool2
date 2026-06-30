@@ -374,7 +374,21 @@ $('content').addEventListener('click', (e) => {
 });
 $('content').addEventListener('change', (e) => { const n = e.target.closest('.fbnote'); if (n) commitAsk(n.closest('.ask')); });
 
+// In sanity-only mode the other tabs aren't running — hide them so nobody lands
+// on a broken page.
+async function applyMode() {
+  try {
+    const m = await (await fetch('/api/checks/mode')).json();
+    if (m.sanityOnly) {
+      document.querySelectorAll('.topnav a').forEach(a => {
+        if (!a.getAttribute('href').startsWith('/checks')) a.style.display = 'none';
+      });
+    }
+  } catch (_) { /* leave nav as-is */ }
+}
+
 (async () => {
+  applyMode();
   try {
     const latest = await loadDates();
     await loadDay(latest);

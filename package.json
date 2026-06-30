@@ -5,7 +5,8 @@
   "description": "Product Value tool — last selling price per in-stock item, over Swarmbox PostgREST",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "sanity": "node server.js --sanity"
   },
   "engines": {
     "node": ">=22.5"
