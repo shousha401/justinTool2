@@ -247,7 +247,7 @@ function renderDetail() {
     <td><select class="custEdit ${r.customerOverride ? 'overridden' : ''}" data-code="${esc(r.item)}" title="Transfer this item to a customer">
       <option value="" ${!r.customerOverride ? 'selected' : ''}>Auto (${esc(r.autoCustomer || r.customer)})</option>
       ${CUSTOMERS.map(c => `<option value="${esc(c)}" ${r.customerOverride === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}
-    </select><div class="dim">${esc(r.notes.slice(0, 42))}</div></td>
+    </select><div class="dim">${esc((r.notes || '').slice(0, 42))}</div></td>
     <td>${esc(r.description)}<div class="dim mono">${esc(r.item)}</div></td>
     <td class="num dim">${esc(r.room)}</td>
     <td class="num"><select class="classEdit ${r.override ? 'overridden ' : ''}${r.isToll ? 'is-toll' : 'is-own'}" data-code="${esc(r.item)}" title="Force this item Toll or Own">

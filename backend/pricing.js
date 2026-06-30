@@ -63,12 +63,14 @@ function record(out, item, tier, row, price) {
   }
 }
 
-// Stop widening an item once it has ANY recent sale. The widest window then only
-// runs for items with no recent sale at all, so heavy active sellers (already
-// priced) are never re-fetched over the full 360 days. The rare cost: an item
-// whose two tiers straddle the first-window boundary can miss its older tier —
-// but active items sell in both tiers well within 60 days.
-const hasAnyPrice = (rec) => !!(rec && (rec.cmp || rec.jd));
+// Stop widening an item only once BOTH tiers are found. Stopping at the first
+// tier (the old behavior) silently dropped the slower tier for any item that
+// sells fast in one tier but slow in the other — e.g. a produced good billed
+// CMP->JD weekly but resold JD->customer every ~90 days would keep its CMP value
+// and never query 360d for its street price. The cost of "both": items that
+// genuinely sell in only one tier never complete, so they fall through to the
+// widest window — correct, just not free.
+const hasBothPrices = (rec) => !!(rec && rec.cmp && rec.jd);
 
 // Fetch lines for `codes` in one window; split-and-retry on failure so a few
 // huge-history items can't time out a batch or silently drop data. Never throws.
@@ -130,10 +132,10 @@ async function lastPrices(codes, lookbackDays) {
   for (const days of tiers) {
     if (remaining.length === 0) break;
     await priceWindow(remaining, days, out);
-    // Widen for any item still missing a tier. An item that only ever sells in
-    // one tier never "completes" and falls through to the widest window — which
-    // is correct; we just can't stop early for it.
-    remaining = remaining.filter((c) => !hasAnyPrice(out.get(c)));
+    // Widen for any item still missing EITHER tier. An item that only ever sells
+    // in one tier never "completes" and falls through to the widest window —
+    // which is correct; we just can't stop early for it.
+    remaining = remaining.filter((c) => !hasBothPrices(out.get(c)));
     let cmp = 0, jd = 0;
     for (const rec of out.values()) { if (rec.cmp) cmp++; if (rec.jd) jd++; }
     console.log(`[Pricing] ${days}d window: JD-priced ${jd}, CMP-priced ${cmp} of ${all.length} (${remaining.length} with no recent sale)`);

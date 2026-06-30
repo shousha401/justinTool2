@@ -184,21 +184,15 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed) {
     const isInternal = INTERNAL_CODES.has(r.item) || autoInternal;
     if (forced && forced.flagged) flaggedCount++;
 
-    if (forced && forced.rate > 0) {
-      // A typed correction WINS over everything Swarmbox pulls (live/own/sale/
-      // contract/standard) — this is the "Swarmbox is wrong; here's the right
-      // number" override on the Prices Today page.
-      rate = forced.rate;
-      inputCost = isToll ? 0 : inputCostRaw;
-      revenue = rate * lbs;
-      source = `forced $${rate.toFixed(2)}/lb${forced.note ? ' · ' + forced.note : ''}`;
-      priceBasis = 'forced';
-      forcedCount++;
-    } else if (isInternal) {
+    if (isInternal) {
       // Internal intermediate (auto-detected as consumed-downstream-with-no-sale, or
       // on the static INTERNAL_CODES list). Value it at INPUT COST ONLY and keep it
       // out of the margin totals: its cost is realized on the finished good it feeds,
       // so counting it here too would double-count and show a phantom loss.
+      // NOTE: this is checked BEFORE the forced price on purpose — a forced rate on a
+      // consumed intermediate would add phantom revenue here while its cost still
+      // lands on the finished good downstream (double-count). Forcing a price can't
+      // turn an intermediate into a sold good; it stays input-cost-only.
       internal = true;
       internalCount++;
       inputCost = isToll ? 0 : inputCostRaw;
@@ -208,6 +202,16 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed) {
         ? 'internal intermediate · input cost only (reused downstream)'
         : 'internal trim · input cost only';
       priceBasis = 'internal';
+    } else if (forced && forced.rate > 0) {
+      // A typed correction WINS over everything Swarmbox pulls (live/own/sale/
+      // contract/standard) — this is the "Swarmbox is wrong; here's the right
+      // number" override on the Prices Today page.
+      rate = forced.rate;
+      inputCost = isToll ? 0 : inputCostRaw;
+      revenue = rate * lbs;
+      source = `forced $${rate.toFixed(2)}/lb${forced.note ? ' · ' + forced.note : ''}`;
+      priceBasis = 'forced';
+      forcedCount++;
     } else if (isToll) {
       inputCost = 0;
       const live = rec && rec.toll;
@@ -438,7 +442,15 @@ async function getProductionReport({ date, force = false } = {}) {
     // Low input cost flags a likely toll job — but only when the item has no
     // ordinary sale. If there's a real CMP sale (to a non-toll customer), it's an
     // own product that merely recorded ~$0 input this batch, not a toll job.
-    const auto = b.customer !== 'JD Food' && (hasToll || (b.lowInputCost && !hasSale));
+    // Low input alone is NOT enough: an own product can legitimately record ~$0
+    // input on a given batch (components issued on another batch/day, or a data
+    // gap) with no sale in the window — flipping it to toll would silently zero
+    // its real cost and overstate GP. Require a corroborating signal: the item is
+    // a recognized toll family (has a contract rate). True toll jobs with no
+    // contract rate and no toll sale stay Own (conservative) and can be forced via
+    // the Toll/Own override.
+    const hasContractRate = tollRate(b.r.item, itemLbs.get(b.r.item) || b.lbs).rate != null;
+    const auto = b.customer !== 'JD Food' && (hasToll || (b.lowInputCost && !hasSale && hasContractRate));
     const ov = classOverrides.getMode(b.r.item);
     b.autoToll = auto;
     b.override = ov || null;

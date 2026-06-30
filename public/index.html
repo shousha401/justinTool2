@@ -279,7 +279,7 @@ function render() {
   $('state').textContent = '';
   $('state').className = '';
   body.innerHTML = rows.map(r => `<tr>
-      <td class="code">${r.productCode}</td>
+      <td class="code">${escapeHtml(r.productCode)}</td>
       <td class="desc">${escapeHtml(r.description)}</td>
       ${valCellHtml(r, 'cmp')}
       ${valCellHtml(r, 'jd')}
