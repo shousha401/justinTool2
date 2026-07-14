@@ -86,7 +86,7 @@ const isTollCustomer = (name) => {
 //      standard sell value — often a flat placeholder ($1.00/lb).
 // Both produce a plausible-looking report full of wrong money. So a failure here
 // must fail the DAY, not quietly reshape it. Never throws.
-async function fetchCmpSales(codes) {
+async function fetchCmpSales(codes, background = false) {
   const out = new Map();
   if (!codes.length) return { sales: out, ok: true };
   const end = new Date();
@@ -99,7 +99,7 @@ async function fetchCmpSales(codes) {
   // Parallel (the swarmbox semaphore still caps real concurrency), each chunk
   // retried on transient failure rather than abandoned on the first blip.
   const results = await Promise.all(chunks.map((chunk) => withRetry(
-    () => postRpc(SALE_RPC, { p_items: chunk, p_start_delivery_date: startYmd, p_end_delivery_date: endYmd }),
+    () => postRpc(SALE_RPC, { p_items: chunk, p_start_delivery_date: startYmd, p_end_delivery_date: endYmd }, { background }),
     { attempts: 3, label: `sales ${chunk.length} items` },
   )));
 
@@ -465,15 +465,18 @@ function dayRetryable(day) {
   if (f.givenUp) return false;
   return Date.now() >= f.retryAfter;
 }
-async function getProductionReport({ date, force = false } = {}) {
+// `background: true` marks work nobody is waiting on (the 30-day summary backfill),
+// so it can't occupy every Swarmbox slot and leave a page spinning. A report the
+// Production tab actually asked for stays foreground.
+async function getProductionReport({ date, force = false, background = false } = {}) {
   const day = date || (await mostRecentDate());
   const hit = reportCache.get(day);
   if (!force && hit && Date.now() - hit.builtAt < TTL_MS) return hit.report;
 
   const [outRes, sumRes, inRes] = await Promise.all([
-    postRpc('production_output_cost', { p_date: day, p_product_designation: 'Finished Good' }),
-    postRpc('production_batch_summary', { p_date: day }),
-    postRpc('production_input_cost', { p_date: day }),
+    postRpc('production_output_cost', { p_date: day, p_product_designation: 'Finished Good' }, { background }),
+    postRpc('production_batch_summary', { p_date: day }, { background }),
+    postRpc('production_input_cost', { p_date: day }, { background }),
   ]);
   const lines = outRes.ok ? outRes.data : [];
   // Items consumed as components today → drives auto-detection of internal
@@ -495,7 +498,7 @@ async function getProductionReport({ date, force = false } = {}) {
   // One sales lookup for every item that day → real prices for both toll (toll
   // rate) and own (actual revenue, vs the production standard sell value).
   const allCodes = [...new Set(base.map((b) => b.r.item))];
-  const { sales, ok: salesOk } = await fetchCmpSales(allCodes);
+  const { sales, ok: salesOk } = await fetchCmpSales(allCodes, background);
 
   // Finalize toll classification. A manual Toll/Own override wins; otherwise a
   // non-CMP line is toll if the customer supplied the meat (≈$0 input) OR the item
@@ -611,7 +614,8 @@ async function backfillSummaries(days = 30) {
   const todo = stale.filter(dayRetryable);
   const skipped = stale.length - todo.length;
   for (const d of todo) {
-    try { await getProductionReport({ date: d }); } catch (e) { /* keep going */ }
+    // background: the backfill is bulk work behind an already-served page.
+    try { await getProductionReport({ date: d, background: true }); } catch (e) { /* keep going */ }
   }
   if (todo.length) console.log(`[Production] backfilled ${todo.length} day summaries${skipped ? ` (${skipped} skipped — unavailable/backing off)` : ''}`);
   return { requested: dates.length, filled: todo.length, skipped };

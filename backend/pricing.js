@@ -90,7 +90,8 @@ const hasBothPrices = (rec) => !!(rec && rec.cmp && rec.jd);
 // which is a wrong answer presented as a fact.
 async function fetchLines(codes, startYmd, endYmd, lost) {
   const res = await withRetry(
-    () => postRpc(RPC, { p_items: codes, p_start_delivery_date: startYmd, p_end_delivery_date: endYmd }),
+    // background: the price build is hundreds of calls that nobody is waiting on.
+    () => postRpc(RPC, { p_items: codes, p_start_delivery_date: startYmd, p_end_delivery_date: endYmd }, { background: true }),
     {
       attempts: 3,
       label: `pricing ${codes.length} items`,

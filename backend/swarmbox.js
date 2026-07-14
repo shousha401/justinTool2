@@ -105,22 +105,54 @@ async function mapWithConcurrency(list, limit, worker) {
   return out;
 }
 
-// Process-wide semaphore. Each route call makes one Swarmbox RPC, so this only
-// matters when concurrent route calls land (multi-tab, future parallelism),
-// but it's a cheap guardrail that keeps the back end bounded.
+// Process-wide semaphore, with a reserved lane for user-facing calls.
+//
+// This used to be one FIFO queue on the assumption that "each route call makes one
+// Swarmbox RPC, so this only matters when concurrent route calls land". That is no
+// longer true: the catalog sweep fires ~120 calls at once and the price build
+// hundreds more. With a single queue, a page that needs one fresh call (e.g.
+// /api/production/dates) lands BEHIND the entire multi-minute build and just spins
+// — the background rebuild starves the interactive pages.
+//
+// So calls are split into two classes:
+//   foreground (default) — someone is waiting on it. Served first, may use every slot.
+//   background           — the sweep / price build / summary backfill. Capped at
+//                          CONCURRENCY - RESERVED so at least one slot is ALWAYS
+//                          free for a user request, no matter how big the build is.
+const RESERVED = Math.min(
+  Number(process.env.SWARMBOX_RESERVED_SLOTS) || 1,
+  Math.max(1, CONCURRENCY - 1),
+);
+const BG_LIMIT = Math.max(1, CONCURRENCY - RESERVED);
+
 let inFlight = 0;
-const waiters = [];
-function acquireSlot() {
-  if (inFlight < CONCURRENCY) {
-    inFlight++;
-    return Promise.resolve();
-  }
-  return new Promise((resolve) => waiters.push(resolve));
+let bgInFlight = 0;
+const fgWaiters = [];
+const bgWaiters = [];
+
+const canRun = (bg) => inFlight < CONCURRENCY && (!bg || bgInFlight < BG_LIMIT);
+
+function take(bg) {
+  inFlight++;
+  if (bg) bgInFlight++;
 }
-function releaseSlot() {
-  const next = waiters.shift();
-  if (next) { next(); return; }
+
+function acquireSlot(bg) {
+  if (canRun(bg)) { take(bg); return Promise.resolve(); }
+  return new Promise((resolve) => (bg ? bgWaiters : fgWaiters).push(resolve));
+}
+
+// Hand the freed slot on, foreground first — a waiting page must never sit behind
+// the remainder of a background build.
+function pump() {
+  while (fgWaiters.length && canRun(false)) { take(false); fgWaiters.shift()(); }
+  while (bgWaiters.length && canRun(true)) { take(true); bgWaiters.shift()(); }
+}
+
+function releaseSlot(bg) {
   inFlight--;
+  if (bg) bgInFlight--;
+  pump();
 }
 
 // p_items wire format. Swagger documents a JSON string array; some PostgREST
@@ -166,9 +198,12 @@ async function postOnce(rpcName, body) {
 // On first call with an array p_items, if PostgREST rejects the function
 // signature, retries once with the Postgres array-literal form and caches
 // the working format for the rest of the process.
-async function postRpc(rpcName, body) {
+//
+// Pass { background: true } for bulk work nobody is waiting on (the sweep, the
+// price build, the summary backfill) so it can't consume the slots a page needs.
+async function postRpc(rpcName, body, { background = false } = {}) {
   if (breakerOpen()) return BREAKER_RESULT;
-  await acquireSlot();
+  await acquireSlot(background);
   try {
     const hasArrayItems = Array.isArray(body && body.p_items);
     let result = await postOnce(rpcName, applyPItemsFormat(body));
@@ -190,16 +225,16 @@ async function postRpc(rpcName, body) {
     noteResult(result.ok);
     return result;
   } finally {
-    releaseSlot();
+    releaseSlot(background);
   }
 }
 
 // GET a PostgREST table/view (e.g. "sales_demand?item=in.(...)"). Same no-auth,
 // same timeout + concurrency guardrail as postRpc. Never throws — returns
 // { ok, status, data?, text? }.
-async function getRows(pathAndQuery) {
+async function getRows(pathAndQuery, { background = false } = {}) {
   if (breakerOpen()) return BREAKER_RESULT;
-  await acquireSlot();
+  await acquireSlot(background);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
@@ -221,7 +256,7 @@ async function getRows(pathAndQuery) {
     return { ok: false, status: 0, text: String((err && err.message) || err) };
   } finally {
     clearTimeout(timer);
-    releaseSlot();
+    releaseSlot(background);
   }
 }
 

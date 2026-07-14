@@ -52,7 +52,9 @@ async function sweepPrefix(prefix) {
   const q = `rpc/inventory_detail?p_item=${encodeURIComponent(prefix + '%')}&select=item,description`;
   let used = 0;
   const res = await withRetry(
-    () => { used++; return getRows(q); },
+    // background: nobody is waiting on the sweep, and it fires ~120 calls at once —
+    // it must not be allowed to occupy every Swarmbox slot and starve the pages.
+    () => { used++; return getRows(q, { background: true }); },
     { attempts: ATTEMPTS, label: `catalog ${prefix}%`, retryOn: (r) => isTransient(r) && !isTimeout(r) },
   );
   return { prefix, res, used };

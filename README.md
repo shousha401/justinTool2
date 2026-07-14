@@ -317,6 +317,14 @@ Likewise, a **degraded sweep never overwrites a good price table** — a partial
 would silently delete real products — and an item whose price lookup failed keeps its last
 known price instead of being blanked, because "we couldn't ask" is not "no recent sale".
 
+**Background work never starves a page.** Swarmbox calls are split into two classes.
+Foreground (someone is waiting on it — a page load) may use every slot and is served
+first. Background (the sweep, the price build, the summary backfill) is capped at
+`SWARMBOX_CONCURRENCY - SWARMBOX_RESERVED_SLOTS`, so at least one slot is always free for
+a user request. Without this, the sweep's ~120 simultaneous calls take the whole pool and
+a page needing one fresh call (e.g. Production Margin's date list) queues behind the
+entire multi-minute rebuild and just spins.
+
 ## Configuration (`.env`)
 
 | Var | Default | Purpose |
@@ -325,6 +333,7 @@ known price instead of being blanked, because "we couldn't ask" is not "no recen
 | `SWARMBOX_BASE_URL` | `https://jdfood.swarmbox.com:443/pg-api` | Swarmbox REST base. |
 | `SWARMBOX_TIMEOUT_MS` | `30000` | Per-request timeout. |
 | `SWARMBOX_CONCURRENCY` | `4` | Process-wide cap on parallel Swarmbox calls. |
+| `SWARMBOX_RESERVED_SLOTS` | `1` | Slots held back for user-facing calls, so a background rebuild can't starve a page. |
 | `SWARMBOX_BREAKER_FAILS` | `40` | Consecutive failures before *all* calls pause (`SWARMBOX_BREAKER=off` to disable). |
 | `SWARMBOX_BREAKER_COOLDOWN_MS` | `60000` | How long the circuit stays open. |
 | `VALUE_LOOKBACK_DAYS` | `360` | Sales window for "last price" (max 360). |
