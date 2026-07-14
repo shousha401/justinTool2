@@ -16,7 +16,7 @@
 // recent window first, widen to the full 360d only for items still missing a
 // tier), and split-on-timeout retry. Read-only.
 
-const { postRpc, normalizeItemCode } = require('./swarmbox');
+const { postRpc, normalizeItemCode, withRetry, isTimeout, isTransient } = require('./swarmbox');
 
 const MAX_LOOKBACK_DAYS = 360;           // Swarmbox caps item-filtered queries here
 const TIER_WINDOWS = [60, MAX_LOOKBACK_DAYS]; // try 60 days first, then widen
@@ -26,8 +26,13 @@ const SELECT = 'item,delivery_date,price,price_uom,order_uom,company,customer_na
 // URL as `${BASE}/rpc/${name}`, so this yields `.../rpc/sales_order_lines?select=...`.
 const RPC = `sales_order_lines?select=${SELECT}`;
 
+// LOCAL calendar date, not UTC — toISOString() rolls over to tomorrow every
+// afternoon (5pm Pacific = next day UTC), which shifts the whole sales window by a
+// day. Matches valuation.js's snapshot key, which was already local.
 function ymd(d) {
-  return d.toISOString().slice(0, 10);
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
 }
 
 // Which price tier a line belongs to:
@@ -72,29 +77,47 @@ function record(out, item, tier, row, price) {
 // widest window — correct, just not free.
 const hasBothPrices = (rec) => !!(rec && rec.cmp && rec.jd);
 
-// Fetch lines for `codes` in one window; split-and-retry on failure so a few
-// huge-history items can't time out a batch or silently drop data. Never throws.
-async function fetchLines(codes, startYmd, endYmd) {
-  const res = await postRpc(RPC, {
-    p_items: codes,
-    p_start_delivery_date: startYmd,
-    p_end_delivery_date: endYmd,
-  });
+// Fetch lines for `codes` in one window. Never throws.
+//
+// Like catalog.js, this splits ONLY on a timeout — the one failure that can mean
+// "this batch has too much history to serve in time", where halving genuinely
+// helps. Any other failure is retried in place with backoff; splitting a batch
+// because Swarmbox returned a 500 just doubles the load on an API that is already
+// failing.
+//
+// Codes we ultimately cannot read are reported in `lost`, NOT silently dropped.
+// A dropped code looks exactly like "this item has no recent sale" downstream —
+// which is a wrong answer presented as a fact.
+async function fetchLines(codes, startYmd, endYmd, lost) {
+  const res = await withRetry(
+    () => postRpc(RPC, { p_items: codes, p_start_delivery_date: startYmd, p_end_delivery_date: endYmd }),
+    {
+      attempts: 3,
+      label: `pricing ${codes.length} items`,
+      // Don't retry a timeout — halving the batch is the fix for "too much history
+      // to serve in 30s", and re-requesting the same heavy batch twice more just
+      // burns another 60s before we halve it anyway.
+      retryOn: (r) => isTransient(r) && !isTimeout(r),
+    },
+  );
   if (res.ok) return res.data;
-  if (codes.length <= MIN_SPLIT) {
-    console.error(`[Pricing] giving up on ${codes.length}-item slice (${res.status}): ${(res.text || '').slice(0, 100)}`);
-    return [];
+
+  if (isTimeout(res) && codes.length > MIN_SPLIT) {
+    const mid = Math.ceil(codes.length / 2);
+    const [a, b] = await Promise.all([
+      fetchLines(codes.slice(0, mid), startYmd, endYmd, lost),
+      fetchLines(codes.slice(mid), startYmd, endYmd, lost),
+    ]);
+    return a.concat(b);
   }
-  const mid = Math.ceil(codes.length / 2);
-  const [a, b] = await Promise.all([
-    fetchLines(codes.slice(0, mid), startYmd, endYmd),
-    fetchLines(codes.slice(mid), startYmd, endYmd),
-  ]);
-  return a.concat(b);
+
+  console.error(`[Pricing] lost ${codes.length}-item slice (${res.status || 'err'}): ${(res.text || '').slice(0, 100)}`);
+  for (const c of codes) lost.add(c);
+  return [];
 }
 
 // Price `codes` against one time window, merging both tiers into `out`.
-async function priceWindow(codes, days, out) {
+async function priceWindow(codes, days, out, lost) {
   const end = new Date();
   const start = new Date(end.getTime() - days * 86400000);
   const startYmd = ymd(start);
@@ -104,7 +127,7 @@ async function priceWindow(codes, days, out) {
   const chunks = [];
   for (let i = 0; i < codes.length; i += chunkSize) chunks.push(codes.slice(i, i + chunkSize));
 
-  const rowsPerChunk = await Promise.all(chunks.map((chunk) => fetchLines(chunk, startYmd, endYmd)));
+  const rowsPerChunk = await Promise.all(chunks.map((chunk) => fetchLines(chunk, startYmd, endYmd, lost)));
 
   for (const rows of rowsPerChunk) {
     for (const r of rows) {
@@ -119,19 +142,31 @@ async function priceWindow(codes, days, out) {
   }
 }
 
-// codes: array of item codes. Returns Map<item, { cmp: {...}|null, jd: {...}|null }>
-// — the newest real sale in each tier within the lookback window. Never throws.
+// codes: array of item codes. Returns { prices, lost }:
+//   prices — Map<item, { cmp: {...}|null, jd: {...}|null }>, the newest real sale
+//            in each tier within the lookback window.
+//   lost   — Set<item> whose price lookup FAILED. These are NOT "no recent sale";
+//            we simply don't know. Callers must not record a blank for them.
+// Never throws.
 async function lastPrices(codes, lookbackDays) {
   const maxDays = Math.min(MAX_LOOKBACK_DAYS, Math.max(1, Number(lookbackDays) || MAX_LOOKBACK_DAYS));
   const tiers = [...new Set(TIER_WINDOWS.filter((w) => w < maxDays).concat(maxDays))].sort((a, b) => a - b);
 
   const all = [...new Set(codes.map(normalizeItemCode).filter((c) => c && c !== '000000'))];
   const out = new Map();
+  const lost = new Set();
   let remaining = all;
 
   for (const days of tiers) {
     if (remaining.length === 0) break;
-    await priceWindow(remaining, days, out);
+    const windowLost = new Set();
+    await priceWindow(remaining, days, out, windowLost);
+    // A code lost in this window may still be read in the next (wider) one, so
+    // only hold it as lost while it stays unread. Anything still lost after the
+    // final window is genuinely unknown.
+    for (const c of windowLost) lost.add(c);
+    for (const c of out.keys()) lost.delete(c);
+
     // Widen for any item still missing EITHER tier. An item that only ever sells
     // in one tier never "completes" and falls through to the widest window —
     // which is correct; we just can't stop early for it.
@@ -141,7 +176,8 @@ async function lastPrices(codes, lookbackDays) {
     console.log(`[Pricing] ${days}d window: JD-priced ${jd}, CMP-priced ${cmp} of ${all.length} (${remaining.length} with no recent sale)`);
   }
 
-  return out;
+  if (lost.size) console.error(`[Pricing] ${lost.size} item(s) could not be priced (Swarmbox failed) — they will NOT be recorded as "no sale"`);
+  return { prices: out, lost };
 }
 
 module.exports = { lastPrices };

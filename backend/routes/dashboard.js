@@ -16,7 +16,9 @@ router.get('/', async (req, res) => {
     // Serve whatever's already stored INSTANTLY; if any day is stale (missing /
     // old version / pre-override), recompute in the BACKGROUND and tell the client
     // so it can re-fetch shortly. No page load ever blocks on the Swarmbox recompute.
-    const { pending } = await pendingSummaryDays(days);
+    // `unavailable` days are ones Swarmbox will not serve; they are NOT pending, so
+    // they can't hold the page in a permanent "updating…" poll loop.
+    const { pending, unavailable, unavailableDates } = await pendingSummaryDays(days);
     if (pending) refreshSummariesInBackground(Math.max(30, days));
 
     const from = dateList[dateList.length - 1];
@@ -64,6 +66,8 @@ router.get('/', async (req, res) => {
       dayCount: daily.length,
       refreshing: pending > 0,   // some days still recomputing in the background
       pending,
+      unavailable,               // days Swarmbox won't serve — excluded, not $0
+      unavailableDates,
       daily,
       totals,
       topCustomers: customers.slice(0, 8),

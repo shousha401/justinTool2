@@ -18,8 +18,10 @@ router.get('/', async (req, res) => {
     // Serve stored summaries INSTANTLY; recompute any stale day in the BACKGROUND
     // (both periods' worth) and flag it so the client can re-fetch shortly. The
     // page never blocks on the Swarmbox recompute.
+    // `unavailable` days are ones Swarmbox will not serve; they are NOT pending, so
+    // they can't hold the page in a permanent "updating…" poll loop.
     const window = Math.min(days * 2, allDates.length);
-    const { pending } = await pendingSummaryDays(window);
+    const { pending, unavailable } = await pendingSummaryDays(window);
     if (pending) refreshSummariesInBackground(Math.max(30, window));
 
     const lo = (prevDates[prevDates.length - 1] || curDates[curDates.length - 1]);
@@ -66,6 +68,7 @@ router.get('/', async (req, res) => {
       hasPrior: prev.length > 0,
       refreshing: pending > 0,   // some days still recomputing in the background
       pending,
+      unavailable,               // days Swarmbox won't serve — excluded, not $0
       customers,
     });
   } catch (err) {

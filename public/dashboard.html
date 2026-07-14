@@ -169,6 +169,14 @@ function render() {
   if (DATA.refreshing) {
     $('updating').style.display = '';
     $('updating').innerHTML = `<span class="spin"></span> Updating numbers in the background — ${DATA.pending} day(s) left. This happens once after an update; the page refreshes itself.`;
+  } else if (DATA.unavailable > 0) {
+    // Swarmbox wouldn't serve these days. They're excluded from the totals rather
+    // than counted as $0 — say so, or the gap silently reads as "no production".
+    const days = (DATA.unavailableDates || []).join(', ');
+    $('updating').style.display = '';
+    $('updating').textContent =
+      `${DATA.unavailable} production day(s) couldn't be read from Swarmbox${days ? ` (${days})` : ''}`
+      + ' — excluded from these totals, not counted as $0. They\'ll be retried automatically.';
   } else {
     $('updating').style.display = 'none';
   }

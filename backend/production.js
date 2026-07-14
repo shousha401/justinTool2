@@ -19,7 +19,7 @@
 //
 // Read-only. Cached per date (short TTL — today's numbers move during the shift).
 
-const { postRpc } = require('./swarmbox');
+const { postRpc, withRetry } = require('./swarmbox');
 const { tollRate, parseCustomer, ROOM_LABEL } = require('./tollRates');
 const manualRates = require('./manualRates');
 const classOverrides = require('./classOverrides');
@@ -42,7 +42,14 @@ const TOLL_LOOKBACK_DAYS = Number(process.env.TOLL_LOOKBACK_DAYS) || 90; // fres
 const INTERNAL_CODES = new Set(['662523']);
 
 const num = (v) => (v == null ? 0 : Number(v) || 0);
-function ymd(d) { return d.toISOString().slice(0, 10); }
+// LOCAL calendar date, not UTC. toISOString() would roll over to tomorrow every
+// afternoon (5pm Pacific = next day UTC), so "today" — and every window that ends
+// at today — would silently point at a production day that hasn't happened yet.
+function ymd(d) {
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+}
 const shortCust = (c) => String(c || '').split(/[(,]/)[0].trim();
 
 // ── Live sale prices ─────────────────────────────────────────────────────────
@@ -65,22 +72,40 @@ const isTollCustomer = (name) => {
   return n.includes('TOLL') || n.startsWith('GOURMET BEEF') || n.startsWith('DIESTEL');
 };
 
-// Returns Map<item, { any, toll }> — newest CMP-tier sale to any / to a toll
-// customer, each { price, lastSoldDate, customer } or null. Never throws.
+// Returns { sales, ok }.
+//   sales — Map<item, { any, toll }>, newest CMP-tier sale to any / to a toll
+//           customer, each { price, lastSoldDate, customer } or null.
+//   ok    — false if ANY chunk failed after retries.
+//
+// `ok` is not cosmetic. This map does not just decorate the report — it DRIVES it:
+// classification reads hasToll/hasSale from it, and the rate falls out of it. A
+// silently-dropped chunk therefore does two expensive things at once:
+//   1. Toll lines flip to OWN (no toll sale visible ⇒ auto-toll says "own"), which
+//      un-zeroes their input cost and craters the margin.
+//   2. Own lines lose their real sale price and fall back to the production
+//      standard sell value — often a flat placeholder ($1.00/lb).
+// Both produce a plausible-looking report full of wrong money. So a failure here
+// must fail the DAY, not quietly reshape it. Never throws.
 async function fetchCmpSales(codes) {
   const out = new Map();
-  if (!codes.length) return out;
+  if (!codes.length) return { sales: out, ok: true };
   const end = new Date();
   const startYmd = ymd(new Date(end.getTime() - TOLL_LOOKBACK_DAYS * 86400000));
   const endYmd = ymd(end);
   const CHUNK = 100;
-  for (let i = 0; i < codes.length; i += CHUNK) {
-    const res = await postRpc(SALE_RPC, {
-      p_items: codes.slice(i, i + CHUNK),
-      p_start_delivery_date: startYmd,
-      p_end_delivery_date: endYmd,
-    });
-    if (!res.ok) continue;
+  const chunks = [];
+  for (let i = 0; i < codes.length; i += CHUNK) chunks.push(codes.slice(i, i + CHUNK));
+
+  // Parallel (the swarmbox semaphore still caps real concurrency), each chunk
+  // retried on transient failure rather than abandoned on the first blip.
+  const results = await Promise.all(chunks.map((chunk) => withRetry(
+    () => postRpc(SALE_RPC, { p_items: chunk, p_start_delivery_date: startYmd, p_end_delivery_date: endYmd }),
+    { attempts: 3, label: `sales ${chunk.length} items` },
+  )));
+
+  let failed = 0;
+  for (const res of results) {
+    if (!res.ok) { failed++; continue; }
     for (const r of res.data) {
       if (String(r.company || '').toUpperCase() !== 'CMP') continue;     // CMP's own billings (not JD-tier street)
       const price = num(r.price);
@@ -94,7 +119,10 @@ async function fetchCmpSales(codes) {
       if (isTollCustomer(r.customer_name) && (!rec.toll || date > rec.toll.lastSoldDate)) rec.toll = sale;
     }
   }
-  return out;
+  if (failed) {
+    console.error(`[Production] ${failed}/${chunks.length} sales chunk(s) unreadable after retries — this day's margin cannot be trusted`);
+  }
+  return { sales: out, ok: failed === 0 };
 }
 
 // ── Date discovery ───────────────────────────────────────────────────────────
@@ -399,6 +427,44 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed) {
 // ── Public API (cached per date) ─────────────────────────────────────────────
 const reportCache = new Map(); // date -> { report, builtAt }
 
+// ── Failed-day backoff ───────────────────────────────────────────────────────
+// A day whose Swarmbox fetch errors is (correctly) never persisted — but without
+// this, "not persisted" reads as "missing" forever, and that spins a treadmill:
+//
+//   dashboard load → pendingSummaryDays sees the day missing → pending > 0
+//   → refreshSummariesInBackground() → response says refreshing:true
+//   → the page re-polls every few seconds → each poll sets refreshQueued
+//   → the do/while in refreshSummariesInBackground never exits
+//   → the broken day is re-fetched from Swarmbox every TTL, forever,
+//     for as long as anyone has the tab open — and the UI says "updating…" forever.
+//
+// So: remember the days that failed, back off exponentially, and after
+// MAX_DAY_ATTEMPTS stop retrying and report the day as genuinely unavailable.
+// Any success clears the record.
+const failedDays = new Map(); // date -> { attempts, retryAfter, givenUp }
+const FAIL_BACKOFF_MS = [5 * 60e3, 15 * 60e3, 30 * 60e3, 60 * 60e3, 4 * 60 * 60e3];
+const MAX_DAY_ATTEMPTS = Number(process.env.PRODUCTION_MAX_DAY_ATTEMPTS) || 6;
+
+function noteDayFailed(day) {
+  const f = failedDays.get(day) || { attempts: 0, retryAfter: 0, givenUp: false };
+  f.attempts++;
+  f.givenUp = f.attempts >= MAX_DAY_ATTEMPTS;
+  const backoff = FAIL_BACKOFF_MS[Math.min(f.attempts - 1, FAIL_BACKOFF_MS.length - 1)];
+  f.retryAfter = Date.now() + backoff;
+  failedDays.set(day, f);
+  console.warn(
+    `[Production] ${day} unavailable (attempt ${f.attempts}/${MAX_DAY_ATTEMPTS})`
+    + (f.givenUp ? ' — giving up; reporting it as unavailable' : ` — next retry in ${Math.round(backoff / 60e3)}m`)
+  );
+}
+// May we (re)build this day right now? Retryable unless it's in backoff or we've
+// given up on it entirely.
+function dayRetryable(day) {
+  const f = failedDays.get(day);
+  if (!f) return true;
+  if (f.givenUp) return false;
+  return Date.now() >= f.retryAfter;
+}
 async function getProductionReport({ date, force = false } = {}) {
   const day = date || (await mostRecentDate());
   const hit = reportCache.get(day);
@@ -429,7 +495,7 @@ async function getProductionReport({ date, force = false } = {}) {
   // One sales lookup for every item that day → real prices for both toll (toll
   // rate) and own (actual revenue, vs the production standard sell value).
   const allCodes = [...new Set(base.map((b) => b.r.item))];
-  const sales = await fetchCmpSales(allCodes);
+  const { sales, ok: salesOk } = await fetchCmpSales(allCodes);
 
   // Finalize toll classification. A manual Toll/Own override wins; otherwise a
   // non-CMP line is toll if the customer supplied the meat (≈$0 input) OR the item
@@ -460,15 +526,32 @@ async function getProductionReport({ date, force = false } = {}) {
   }
 
   const report = buildReport(day, base, itemLbs, yieldByBatch, sales, consumed);
-  report.unavailable = !outRes.ok; // Swarmbox errored for this day — not a real $0
+
+  // A day is TRUSTWORTHY only if every input behind its money came back.
+  //   - output fetch failed  ⇒ there are no lines at all (a false $0 day).
+  //   - sales fetch failed   ⇒ there ARE lines, but their classification and rates
+  //                            were computed from an incomplete sales map, so the
+  //                            margin is silently wrong. This is the more dangerous
+  //                            case precisely because the report still looks normal.
+  // Previously only outRes gated persistence, so a failed sales fetch wrote bad
+  // money straight into prod_summary, where the Dashboard served it as fact.
+  report.unavailable = !outRes.ok;
+  report.pricesIncomplete = outRes.ok && !salesOk;
+  const trustworthy = outRes.ok && salesOk;
+
   reportCache.set(day, { report, builtAt: Date.now() });
-  // Only persist days that actually loaded — never store a misleading $0 for a
-  // day whose output fetch errored (e.g. Swarmbox's intermittent 400 on some days).
-  if (outRes.ok) {
+  if (trustworthy) {
+    failedDays.delete(day);
     try { dbStore.saveProdSummary(summarize(report)); } catch (e) { console.error('[Production] summary save failed:', e && e.message); }
+  } else {
+    noteDayFailed(day);
   }
+
   const c = report.tollPricing;
-  console.log(`[Production] ${day}: ${outRes.ok ? report.rows.length + ' lines' : 'UNAVAILABLE (Swarmbox error)'}, GP $${Math.round(report.totals.gp).toLocaleString()} (toll: ${c.live} live, ${c.contract} contract, ${c.missing} missing)`);
+  const status = !outRes.ok ? 'UNAVAILABLE (Swarmbox error)'
+    : !salesOk ? `${report.rows.length} lines — NOT SAVED (sales fetch incomplete; margin unreliable)`
+    : `${report.rows.length} lines`;
+  console.log(`[Production] ${day}: ${status}, GP $${Math.round(report.totals.gp).toLocaleString()} (toll: ${c.live} live, ${c.contract} contract, ${c.missing} missing)`);
   return report;
 }
 
@@ -507,35 +590,60 @@ function summarize(report) {
   return { date: report.date, builtAt: report.builtAt, lines: report.rows.length, v: SUMMARY_VERSION, ov: overrideSignature(), totals: report.totals, customers };
 }
 
+// Is this day's stored summary missing or out of date?
+const isStale = (stored, sig, d) => {
+  const s = stored.get(d);
+  return !s || s.v !== SUMMARY_VERSION || s.ov !== sig;
+};
+
 // Ensure the last `days` production days have a CURRENT-version stored summary
 // (computes any missing or out-of-date — building a day saves its summary).
+// Days that keep failing are skipped while they're in backoff, so a permanently
+// broken day can't keep this running forever.
 async function backfillSummaries(days = 30) {
   const dates = (await recentDates()).slice(0, days).map((d) => d.date);
-  if (!dates.length) return { requested: 0, filled: 0 };
+  if (!dates.length) return { requested: 0, filled: 0, skipped: 0 };
   const sig = overrideSignature();
   const stored = new Map(dbStore.loadProdSummaries(dates[dates.length - 1], dates[0]).map((s) => [s.date, s]));
   // Recompute a day if it's missing, built by an older code version, or built
   // before the current set of overrides (a transfer/correction since then).
-  const todo = dates.filter((d) => { const s = stored.get(d); return !s || s.v !== SUMMARY_VERSION || s.ov !== sig; });
+  const stale = dates.filter((d) => isStale(stored, sig, d));
+  const todo = stale.filter(dayRetryable);
+  const skipped = stale.length - todo.length;
   for (const d of todo) {
     try { await getProductionReport({ date: d }); } catch (e) { /* keep going */ }
   }
-  if (todo.length) console.log(`[Production] backfilled ${todo.length} day summaries`);
-  return { requested: dates.length, filled: todo.length };
+  if (todo.length) console.log(`[Production] backfilled ${todo.length} day summaries${skipped ? ` (${skipped} skipped — unavailable/backing off)` : ''}`);
+  return { requested: dates.length, filled: todo.length, skipped };
 }
 
 // How many of the last `days` production days lack a CURRENT-version stored
-// summary (missing, older code version, or built before the latest overrides) —
-// i.e. how many would a backfill recompute. Cheap: reads stored summaries, no
-// Swarmbox. Lets the dashboard/customers routes serve instantly and only kick a
-// background refresh when something's actually stale.
+// summary AND could actually be rebuilt right now — i.e. how many a backfill would
+// really recompute. Cheap: reads stored summaries, no Swarmbox. Lets the
+// dashboard/customers routes serve instantly and only kick a background refresh
+// when something's actually stale.
+//
+// Days we've given up on are counted as `unavailable`, NOT `pending`. That
+// distinction is what lets the page stop polling: `pending` is what drives the
+// "updating…" state, and a day that will never build must not hold it open forever.
 async function pendingSummaryDays(days = 30) {
   const dates = (await recentDates()).slice(0, days).map((d) => d.date);
-  if (!dates.length) return { total: 0, pending: 0 };
+  if (!dates.length) return { total: 0, pending: 0, unavailable: 0 };
   const sig = overrideSignature();
   const stored = new Map(dbStore.loadProdSummaries(dates[dates.length - 1], dates[0]).map((s) => [s.date, s]));
-  const pending = dates.filter((d) => { const s = stored.get(d); return !s || s.v !== SUMMARY_VERSION || s.ov !== sig; });
-  return { total: dates.length, pending: pending.length, stored: dates.length - pending.length };
+  const stale = dates.filter((d) => isStale(stored, sig, d));
+  const pending = stale.filter(dayRetryable);
+  // Stale but NOT retryable right now = we have no summary and aren't about to get
+  // one (the day is in backoff, or we've given up on it). Say so, rather than
+  // leaving a silent hole the user reads as "no production that day".
+  const unavailable = stale.filter((d) => !dayRetryable(d));
+  return {
+    total: dates.length,
+    pending: pending.length,
+    stored: dates.length - stale.length,
+    unavailable: unavailable.length,
+    unavailableDates: unavailable,
+  };
 }
 
 // Drop cached reports so the next request recomputes (e.g. after a manual rate

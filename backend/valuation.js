@@ -138,16 +138,71 @@ try {
 
 async function build() {
   const startedAt = Date.now();
-  const catalog = await sweepCatalog();                 // [{ item, description }]
+  const { items: catalog, degraded, failed } = await sweepCatalog();
+
+  // A degraded sweep read only PART of the code space, so `catalog` is not the
+  // live product universe — it's the universe minus whatever Swarmbox wouldn't
+  // serve. Rebuilding from it would silently delete real items from the table and
+  // write that hole into today's snapshot as if those products no longer exist.
+  // Keep serving the last good table instead; the next refresh retries.
+  if (degraded && cache) {
+    console.error(
+      `[Valuation] sweep DEGRADED (${failed.length} slice(s) unreadable, ${catalog.length} items vs ${cache.itemCount} cached)`
+      + ' — keeping the last good table; not rebuilding.'
+    );
+    cache.degradedAt = Date.now();
+    return cache;
+  }
+
   // Drop discontinued codes BEFORE pricing — they never hit the price API.
   const disc = discontinuedCodes();
   const active = disc.size ? catalog.filter((c) => !disc.has(c.item)) : catalog;
-  const prices = await lastPrices(active.map((c) => c.item), LOOKBACK_DAYS);
+  const { prices, lost } = await lastPrices(active.map((c) => c.item), LOOKBACK_DAYS);
+
+  // The last-known RAW (real-sale) values of a row from the previous build.
+  // decorate() overwrites cmpValue/jdValue with the chosen source, stashing the
+  // Swarmbox originals in cmpRaw/jdRaw — so read those when they exist.
+  const prev = cache ? new Map(cache.rows.map((r) => [r.productCode, r])) : new Map();
+  const lastKnown = (r) => ({
+    cmpValue: r.cmpRaw !== undefined ? r.cmpRaw : r.cmpValue,
+    cmpValueUom: r.cmpRawUom !== undefined ? r.cmpRawUom : r.cmpValueUom,
+    cmpLastSoldDate: r.cmpRawLastSold !== undefined ? r.cmpRawLastSold : r.cmpLastSoldDate,
+    jdValue: r.jdRaw !== undefined ? r.jdRaw : r.jdValue,
+    jdValueUom: r.jdRawUom !== undefined ? r.jdRawUom : r.jdValueUom,
+    jdLastSoldDate: r.jdRawLastSold !== undefined ? r.jdRawLastSold : r.jdLastSoldDate,
+    jdCustomer: r.jdRawCustomer !== undefined ? r.jdRawCustomer : r.jdCustomer,
+  });
+  const BLANK = {
+    cmpValue: null, cmpValueUom: null, cmpLastSoldDate: null,
+    jdValue: null, jdValueUom: null, jdLastSoldDate: null, jdCustomer: null,
+  };
 
   let pricedJd = 0;
   let pricedCmp = 0;
+  let carried = 0;
   const rows = active.map((c) => {
     const p = prices.get(c.item);
+
+    // Swarmbox wouldn't tell us this item's price. That is NOT the same as "no
+    // recent sale" — but a blank row renders identically to one, so writing a
+    // blank would state a falsehood as fact (and bake it into price history).
+    // The column means "last selling price", and the last selling price does not
+    // change just because today's query failed: carry it forward.
+    if (!p && lost.has(c.item)) {
+      const known = prev.has(c.item) ? lastKnown(prev.get(c.item)) : BLANK;
+      if (known.cmpValue != null) pricedCmp++;
+      if (known.jdValue != null) pricedJd++;
+      if (known.cmpValue != null || known.jdValue != null) carried++;
+      return {
+        productCode: c.item,
+        description: c.description || '',
+        ...known,
+        hasCmp: known.cmpValue != null,
+        hasJd: known.jdValue != null,
+        priceUnavailable: true, // lookup failed; the value above is last-known, not fresh
+      };
+    }
+
     const jd = p && p.jd;
     const cmp = p && p.cmp;
     if (jd) pricedJd++;
@@ -168,6 +223,9 @@ async function build() {
       hasJd: !!jd,
     };
   });
+  if (lost.size) {
+    console.warn(`[Valuation] ${lost.size} item(s) unpriceable this build — ${carried} kept their last known price, ${lost.size - carried} left blank (never seen before)`);
+  }
 
   cache = {
     rows,
@@ -178,16 +236,25 @@ async function build() {
     pricedJd,
     pricedCmp,
     discontinued: disc.size,
+    degraded: !!degraded,
   };
   console.log(`[Valuation] built ${rows.length} rows (JD-priced ${pricedJd}, CMP-priced ${pricedCmp}, ${disc.size} discontinued skipped) in ${cache.buildMs}ms`);
 
   // Persist this build as today's snapshot (history) using the RAW Swarmbox
   // values — overrides are a serve-time overlay, so price history stays
   // real-sales-only. A DB hiccup must never fail the build.
-  try {
-    dbStore.saveSnapshot(localYmd(), rows, cache);
-  } catch (e) {
-    console.error('[Valuation] snapshot save failed:', e && e.message);
+  //
+  // A degraded sweep is served (it's better than nothing on a cold start) but NOT
+  // persisted: a partial catalog written as a day's snapshot would become the
+  // "last good table" the next restart loads, making the data loss permanent.
+  if (degraded) {
+    console.error('[Valuation] sweep degraded and no prior table to fall back on — serving partial results, NOT saving a snapshot.');
+  } else {
+    try {
+      dbStore.saveSnapshot(localYmd(), rows, cache);
+    } catch (e) {
+      console.error('[Valuation] snapshot save failed:', e && e.message);
+    }
   }
 
   // Now overlay manual value-overrides onto the live cache and recount.

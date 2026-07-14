@@ -288,6 +288,35 @@ pm2 save
 | `POST /api/discontinued/bulk-unsold` | Discontinue every item with no sale in either tier. |
 | `DELETE /api/discontinued/:code` | Restore an item (reappears on the next value-table rebuild). |
 
+## When Swarmbox misbehaves
+
+Swarmbox is intermittently flaky (some production days just return a 400 forever).
+Two rules keep that from turning into either a wrong number or a request storm:
+
+**A failure is not a "split".** The catalog sweep subdivides a code prefix into ten
+finer ones when the slice is genuinely too big — and *only* then (an oversized result,
+or a timeout, which can mean the same thing). Any other failure is **retried in place**
+with backoff. Treating a plain error as "too big" is what turns one bad prefix into
+10 → 100 → 1,000 → 10,000 calls against an API that is already struggling; a whole-API
+outage could reach ~1.1M calls, and every extra call makes the outage worse. The same
+rule applies to the pricing batches. `CATALOG_CALL_BUDGET` caps a sweep regardless, and
+a process-wide **circuit breaker** pauses *all* Swarmbox calls after `SWARMBOX_BREAKER_FAILS`
+consecutive failures.
+
+**A day's numbers are all-or-nothing.** A production day is only stored if *every* input
+behind its money came back — the output fetch **and** the sales fetch. The sales map does
+not merely decorate the report, it drives it: classification reads toll/own from it and the
+rate falls out of it. A silently-dropped sales chunk flips toll lines to Own (un-zeroing
+their input cost) and drops own lines back to the flat production standard, producing a
+normal-looking report full of wrong money. So a day that can't be fully read is **excluded
+and labelled**, never persisted as a $0 or a phantom loss. Failed days back off
+(5m → 15m → 30m → 1h → 4h) instead of being retried forever, and the Dashboard says how
+many days are missing rather than quietly averaging over the hole.
+
+Likewise, a **degraded sweep never overwrites a good price table** — a partial catalog
+would silently delete real products — and an item whose price lookup failed keeps its last
+known price instead of being blanked, because "we couldn't ask" is not "no recent sale".
+
 ## Configuration (`.env`)
 
 | Var | Default | Purpose |
@@ -296,7 +325,12 @@ pm2 save
 | `SWARMBOX_BASE_URL` | `https://jdfood.swarmbox.com:443/pg-api` | Swarmbox REST base. |
 | `SWARMBOX_TIMEOUT_MS` | `30000` | Per-request timeout. |
 | `SWARMBOX_CONCURRENCY` | `4` | Process-wide cap on parallel Swarmbox calls. |
+| `SWARMBOX_BREAKER_FAILS` | `40` | Consecutive failures before *all* calls pause (`SWARMBOX_BREAKER=off` to disable). |
+| `SWARMBOX_BREAKER_COOLDOWN_MS` | `60000` | How long the circuit stays open. |
 | `VALUE_LOOKBACK_DAYS` | `360` | Sales window for "last price" (max 360). |
 | `VALUE_CACHE_TTL_MS` | `21600000` | How long a built table is reused (6h). |
 | `CATALOG_ROW_BUDGET` | `50000` | Subdivide a wildcard prefix above this many rows. |
+| `CATALOG_ATTEMPTS` | `3` | Tries per prefix before the slice is written off (timeouts are split, not retried). |
+| `CATALOG_CALL_BUDGET` | `1500` | Hard ceiling on Swarmbox calls per sweep — abort rather than storm. |
 | `PRODUCTION_CACHE_TTL_MS` | `300000` | How long a built day's margin report is reused (5m). |
+| `PRODUCTION_MAX_DAY_ATTEMPTS` | `6` | Give up rebuilding a broken day after this many failures. |
