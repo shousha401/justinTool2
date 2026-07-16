@@ -21,6 +21,9 @@ app.locals.sanityOnly = SANITY_ONLY; // so routes/pages can adapt (e.g. hide oth
 
 // The Sanity Check API is always on.
 app.use('/api/checks', require('./backend/routes/checks'));
+// So is the question queue — it's our own annotation layer (no Swarmbox), and a
+// question asked in sanity-only mode should still reach the person who answers it.
+app.use('/api/questions', require('./backend/routes/questions'));
 
 // The rest (and their on-demand Swarmbox pulls) only mount in full mode.
 if (!SANITY_ONLY) {

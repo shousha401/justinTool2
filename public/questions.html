@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Questions — "why is this number that?"</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --ink: #1c2430; --muted: #75808f;
+    --line: #e6e9ee; --accent: #1f6feb; --accent-d: #1a5fd0;
+    --toll: #1f6feb; --own: #0a7d33; --chip: #eef2f7;
+    --pos: #1D9E75; --neg: #D85A30; --secbg: #f1f3f6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  }
+  .topnav { display: flex; gap: 4px; padding: 10px 24px 0; border-bottom: 1px solid var(--line); background: var(--card); }
+  .topnav a {
+    text-decoration: none; color: var(--muted); font-size: 13px; font-weight: 600;
+    padding: 9px 14px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .topnav a:hover { color: var(--ink); }
+  .topnav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+  header { padding: 22px 24px 14px; }
+  h1 { margin: 0 0 4px; font-size: 20px; }
+  .sub { color: var(--muted); font-size: 13px; max-width: 860px; }
+  .wrap { padding: 0 24px 40px; }
+  .bar {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    margin: 14px 0; padding: 12px 14px; background: var(--card);
+    border: 1px solid var(--line); border-radius: 10px;
+  }
+  input[type=text] {
+    padding: 8px 11px; font-size: 13px; border: 1px solid var(--line);
+    border-radius: 8px; background: var(--card); color: var(--ink);
+  }
+  input:focus, textarea:focus { border-color: var(--accent); outline: none; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; background: var(--card); color: var(--muted); padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .seg button.on { background: var(--accent); color: #fff; }
+  button, a.btn {
+    appearance: none; cursor: pointer; text-decoration: none;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    padding: 8px 13px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover { background: var(--accent-d); }
+  button.danger { color: var(--neg); }
+  button:disabled { opacity: .55; cursor: default; }
+  .grow { margin-left: auto; }
+  .q { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
+  .q.open { border-left: 3px solid var(--neg); }
+  .q.answered { border-left: 3px solid var(--own); }
+  .qhead { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+  .qhead b { font-size: 13.5px; }
+  .chip { display: inline-block; font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--chip); color: var(--muted); }
+  .chip.field { background: #e7f0fe; color: var(--toll); }
+  .chip.open { background: #fdeee7; color: var(--neg); }
+  .chip.done { background: #e6f6ec; color: var(--own); }
+  .qtext { margin: 8px 0 2px; font-size: 13.5px; }
+  .meta { color: var(--muted); font-size: 11.5px; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  .snap { margin-top: 10px; background: var(--secbg); border-radius: 8px; padding: 8px 10px; font-size: 11.5px; color: var(--muted); }
+  .snap b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .snap .cell { display: inline-block; margin-right: 14px; padding: 2px 0; }
+  .ans { margin-top: 10px; padding: 10px 12px; border-left: 3px solid var(--own); background: #f4faf6; border-radius: 0 8px 8px 0; font-size: 13px; }
+  .ans .meta { margin-top: 4px; }
+  .answer-form { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .answer-form textarea { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 8px; font: inherit; resize: vertical; }
+  .answer-form .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .answer-form input[type=text] { flex: 0 0 200px; }
+  .empty, .err { padding: 40px; text-align: center; color: var(--muted); }
+  .err { color: #b42318; }
+  .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a href="/dashboard.html">Dashboard</a>
+  <a href="/customers.html">Customers</a>
+  <a href="/">Product Value</a>
+  <a href="/production.html">Production Margin</a>
+  <a href="/prices.html">Prices Today</a>
+  <a href="/checks.html">Sanity Check</a>
+  <a href="/questions.html" class="active">Questions</a>
+</nav>
+<header>
+  <h1>Questions</h1>
+  <div class="sub">
+    Every "this number doesn't look right" asked from the Production Margin explainer lands here,
+    <b>with the numbers exactly as the asker saw them</b> — so it stays answerable even after the
+    report is rebuilt with different rates or overrides. Answer it here and the answer shows up
+    right back on that line's explainer.
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="bar">
+    <div class="seg">
+      <button id="fOpen" type="button">Open</button>
+      <button id="fAnswered" type="button">Answered</button>
+      <button id="fAll" type="button">All</button>
+    </div>
+    <input id="fItem" type="text" placeholder="Filter by item code…" />
+    <span class="grow"></span>
+    <a class="btn" href="/api/questions/export.csv">Download CSV</a>
+  </div>
+
+  <div id="list"></div>
+  <div id="state" class="empty"><span class="spin"></span> Loading…</div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+const fmt$ = (n) => (n == null || isNaN(n) ? '—' : '$' + Math.round(n).toLocaleString());
+const fmtN = (n) => (n == null || isNaN(n) ? '—' : Math.round(n).toLocaleString());
+
+const FIELD_LABELS = {
+  rawMaterial: 'Raw material', rate: 'Rate ($/lb)', customer: 'Customer',
+  type: 'Toll / Own', gp: 'Gross profit', other: 'Other',
+};
+
+let status = 'open';            // 'open' | 'answered' | '' (all)
+let QUESTIONS = [];
+
+// Deep-linked from a production line's ❓ badge: /questions.html?item=016128
+const params = new URLSearchParams(location.search);
+if (params.get('item')) { $('fItem').value = params.get('item'); status = ''; }
+
+// The snapshot is whatever the asker was looking at — render the fields we know,
+// pass anything else through as-is so nothing captured is ever hidden.
+function renderSnapshot(s) {
+  if (!s || typeof s !== 'object') return '';
+  const cells = [];
+  const push = (label, val) => { if (val !== undefined && val !== null && val !== '') cells.push(`<span class="cell">${esc(label)} <b>${val}</b></span>`); };
+  push('Customer', esc(s.customer));
+  push('Type', esc(s.type));
+  if (s.rate != null) push('Rate', '$' + Number(s.rate).toFixed(2) + '/lb' + (s.rateBasis ? ` <span>(${esc(s.rateBasis)})</span>` : ''));
+  push('Lbs', fmtN(s.lbs));
+  push('Cases', fmtN(s.cases));
+  push('Revenue', fmt$(s.revenue));
+  push('Raw material', fmt$(s.rawMaterial));
+  push('GP', fmt$(s.gp));
+  const known = new Set(['customer', 'type', 'rate', 'rateBasis', 'rateSource', 'lbs', 'cases', 'revenue', 'rawMaterial', 'gp']);
+  for (const k of Object.keys(s)) if (!known.has(k)) push(k, esc(String(s[k])));
+  if (!cells.length) return '';
+  return `<div class="snap" title="The numbers as the asker saw them — kept even if the report is rebuilt">📌 As seen: ${cells.join('')}</div>`;
+}
+
+function renderQ(q) {
+  const isOpen = !q.answer;
+  const when = String(q.askedAt || '').slice(0, 10);
+  const head = `<div class="qhead">
+    <span class="chip ${isOpen ? 'open' : 'done'}">${isOpen ? 'OPEN' : (q.resolved ? 'RESOLVED' : 'ANSWERED')}</span>
+    <span class="chip field">${esc(FIELD_LABELS[q.field] || q.field)}</span>
+    <b>${esc(q.description || q.item || '(no item)')}</b>
+    <span class="meta mono">${esc(q.item)}${q.batch ? ' · batch ' + esc(q.batch) : ''}${q.date ? ' · day ' + esc(q.date) : ''}</span>
+    ${q.date && q.item ? `<a class="meta" href="/production.html">open Production Margin</a>` : ''}
+  </div>`;
+  const body = `<div class="qtext">${esc(q.question)}</div>
+    <div class="meta">asked by ${esc(q.askedBy || 'anonymous')} · ${esc(when)}</div>
+    ${renderSnapshot(q.snapshot)}`;
+  const answer = q.answer
+    ? `<div class="ans">${esc(q.answer)}
+        <div class="meta">answered by ${esc(q.answeredBy || 'anonymous')} · ${esc(String(q.answeredAt || '').slice(0, 10))}</div></div>
+       <div class="answer-form row" style="margin-top:8px;">
+         <button class="reopen" data-id="${esc(q.id)}" type="button" title="Clear the answer and put it back in the open queue">Re-open</button>
+         <button class="danger del" data-id="${esc(q.id)}" type="button">Delete</button>
+       </div>`
+    : `<div class="answer-form">
+        <textarea rows="2" class="ansText" placeholder="Answer this — e.g. 'batch was re-weighed, Swarmbox has the corrected lbs' or 'rate is right: live toll sale on 7/02'"></textarea>
+        <div class="row">
+          <input type="text" class="ansBy" placeholder="Your name (optional)" />
+          <button class="primary send" data-id="${esc(q.id)}" type="button">Answer</button>
+          <button class="danger del" data-id="${esc(q.id)}" type="button">Delete</button>
+        </div>
+      </div>`;
+  return `<div class="q ${isOpen ? 'open' : 'answered'}" data-id="${esc(q.id)}">${head}${body}${answer}</div>`;
+}
+
+function render() {
+  $('fOpen').classList.toggle('on', status === 'open');
+  $('fAnswered').classList.toggle('on', status === 'answered');
+  $('fAll').classList.toggle('on', status === '');
+  const itemFilter = $('fItem').value.trim();
+  const list = itemFilter ? QUESTIONS.filter((q) => (q.item || '').includes(itemFilter)) : QUESTIONS;
+  if (!list.length) {
+    $('list').innerHTML = '';
+    $('state').style.display = '';
+    $('state').className = 'empty';
+    $('state').textContent = status === 'open'
+      ? 'No open questions — everything asked has been answered. 🎉'
+      : 'No questions here yet. Ask one from any line’s 🔎 explainer on Production Margin.';
+    return;
+  }
+  $('state').style.display = 'none';
+  $('list').innerHTML = list.map(renderQ).join('');
+}
+
+async function load() {
+  $('state').style.display = '';
+  $('state').className = 'empty';
+  $('state').innerHTML = '<span class="spin"></span> Loading…';
+  try {
+    const qs = new URLSearchParams();
+    if (status) qs.set('status', status);
+    const res = await fetch('/api/questions?' + qs.toString());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    QUESTIONS = data.questions || [];
+    render();
+  } catch (err) {
+    $('list').innerHTML = '';
+    $('state').className = 'err';
+    $('state').textContent = 'Could not load questions: ' + err.message;
+  }
+}
+
+async function sendAnswer(id, card) {
+  const text = card.querySelector('.ansText').value.trim();
+  if (!text) { card.querySelector('.ansText').focus(); return; }
+  const by = card.querySelector('.ansBy').value.trim();
+  const btn = card.querySelector('.send');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/questions/' + encodeURIComponent(id) + '/answer', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answer: text, answeredBy: by, resolved: true }),
+    });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || res.statusText);
+    await load();
+  } catch (err) {
+    alert('Could not save answer: ' + err.message);
+    btn.disabled = false;
+  }
+}
+
+async function reopen(id) {
+  try {
+    const res = await fetch('/api/questions/' + encodeURIComponent(id) + '/answer', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answer: '', answeredBy: '', resolved: false }),
+    });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || res.statusText);
+    await load();
+  } catch (err) { alert('Could not re-open: ' + err.message); }
+}
+
+async function del(id) {
+  if (!confirm('Delete this question? This cannot be undone.')) return;
+  try {
+    const res = await fetch('/api/questions/' + encodeURIComponent(id), { method: 'DELETE' });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || res.statusText);
+    await load();
+  } catch (err) { alert('Could not delete: ' + err.message); }
+}
+
+$('fOpen').onclick = () => { status = 'open'; load(); };
+$('fAnswered').onclick = () => { status = 'answered'; load(); };
+$('fAll').onclick = () => { status = ''; load(); };
+$('fItem').oninput = () => render();
+
+$('list').addEventListener('click', (e) => {
+  const card = e.target.closest('.q');
+  if (!card) return;
+  if (e.target.closest('.send')) sendAnswer(card.dataset.id, card);
+  else if (e.target.closest('.reopen')) reopen(card.dataset.id);
+  else if (e.target.closest('.del')) del(card.dataset.id);
+});
+$('list').addEventListener('keydown', (e) => {
+  // Ctrl/Cmd+Enter in an answer box submits it.
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && e.target.closest('.ansText')) {
+    const card = e.target.closest('.q');
+    if (card) sendAnswer(card.dataset.id, card);
+  }
+});
+
+load();
+</script>
+</body>
+</html>

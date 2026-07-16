@@ -119,6 +119,14 @@
   .xp .ctl label { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
   .xp .math { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
   .xp .note { font-size: 11.5px; color: var(--muted); margin-top: 6px; }
+  /* question queue */
+  .qcount { display: inline-block; background: var(--neg); color: #fff; border-radius: 999px; font-size: 10px; padding: 1px 6px; vertical-align: 1px; }
+  a.qmark { text-decoration: none; font-size: 11px; margin-left: 4px; }
+  .qitem { border-top: 1px dashed var(--line); padding: 6px 0; font-size: 12px; }
+  .qitem:first-of-type { border-top: 0; }
+  .qitem .qq b { color: var(--ink); }
+  .qitem .qa { margin-top: 3px; padding-left: 10px; border-left: 2px solid var(--own); }
+  .qitem .qa.pend { border-left-color: var(--neg); color: var(--muted); }
 </style>
 </head>
 <body>
@@ -129,6 +137,7 @@
   <a href="/production.html" class="active">Production Margin</a>
   <a href="/prices.html">Prices Today</a>
   <a href="/checks.html">Sanity Check</a>
+  <a href="/questions.html">Questions <span id="qCount" class="qcount" style="display:none;"></span></a>
 </nav>
 <header>
   <h1>Production Margin</h1>
@@ -184,17 +193,28 @@ function esc(s) {
 let REPORT = null;
 let view = 'summary';
 let CUSTOMERS = []; // canonical customer list for the transfer dropdown
+let QUESTIONS_BY_LINE = {}; // `${batch}|${item}` -> [question] for the loaded day
 let labor = parseFloat(localStorage.getItem('cmp_labor') || '0') || 0;
 
 function renderRibbon() {
   const t = REPORT.totals;
   const net = t.gp - labor;
+  // Raw material that was consumed but landed on no output line — real cost that is
+  // subtracted from nobody's gross profit, so GP is overstated by exactly this much.
+  // Shown, not charged (charging it would move every margin number in the app).
+  const rm = REPORT.rawMaterial;
+  const shrink = rm && rm.unallocated > 0.005 ? `
+    <div class="metric" title="Meat consumed that came out as no product (yield loss). Swarmbox charges products only for the pounds that came OUT, so this cost is in nobody's GP — gross profit is overstated by this much.">
+      <div class="mL">Yield loss (not in GP)</div>
+      <div class="mV neg">${fmt$(rm.unallocated)}</div>
+      <div class="mS">${rm.pct != null ? rm.pct.toFixed(1) + '% of ' + fmt$(rm.consumed) + ' consumed' : ''}</div></div>` : '';
   $('ribbon').innerHTML = `
     <div class="metric"><div class="mL">Cases</div><div class="mV">${fmtN(t.cs)}</div><div class="mS">finished goods</div></div>
     <div class="metric"><div class="mL">Lbs</div><div class="mV">${fmtN(t.lbs)}</div><div class="mS">finished goods</div></div>
     <div class="metric"><div class="mL">Gross revenue</div><div class="mV">${fmt$(t.rev)}</div><div class="mS">Toll ${fmt$(t.tollRev)} · Own ${fmt$(t.ownRev)}</div></div>
     <div class="metric"><div class="mL">Raw material</div><div class="mV">${fmt$(t.ic)}</div><div class="mS">own product only</div></div>
     <div class="metric"><div class="mL">Gross profit</div><div class="mV ${sign(t.gp)}">${fmt$(t.gp)}</div><div class="mS">GP% ${gpPct(t.gp, t.rev)}</div></div>
+    ${shrink}
     <div class="metric"><div class="mL">Labor</div><div class="mV">${fmt$(labor)}</div>
       <input id="labor" type="number" value="${labor}" placeholder="Enter $" /></div>
     <div class="metric"><div class="mL">Net contribution</div><div class="mV ${sign(net)}">${fmt$(net)}</div><div class="mS">after labor</div></div>`;
@@ -238,12 +258,21 @@ function renderSummary() {
     rollupTable('Customer summary', custHead, custRows, '');
 }
 
+// ❓ = someone questioned this line and is waiting; 💬 = questioned and answered.
+function qMark(r) {
+  const qs = QUESTIONS_BY_LINE[`${r.batch}|${r.item}`] || [];
+  if (!qs.length) return '';
+  const open = qs.filter((q) => !q.answer).length;
+  return `<a class="qmark" href="/questions.html?item=${encodeURIComponent(r.item)}"
+    title="${open ? open + ' open question(s) on this line' : 'This line was questioned — answered'}">${open ? '❓' : '💬'}</a>`;
+}
+
 function renderDetail() {
   const head = `<th></th><th>Customer</th><th>Item / description</th><th class="num">Rm</th><th class="num">Type</th>
     <th class="num">CS</th><th class="num">Lbs</th><th class="num">$/lb</th><th class="num">Revenue</th>
     <th class="num">Source</th><th class="num">Raw material</th><th class="num">GP $</th><th class="num">GP %</th><th class="num">Yield</th>`;
   const rows = REPORT.rows.map((r, i) => `<tr>
-    <td><button class="explain" data-i="${i}" title="How we got these numbers">🔎</button></td>
+    <td><button class="explain" data-i="${i}" title="How we got these numbers">🔎</button>${qMark(r)}</td>
     <td><select class="custEdit ${r.customerOverride ? 'overridden' : ''}" data-code="${esc(r.item)}" title="Transfer this item to a customer">
       <option value="" ${!r.customerOverride ? 'selected' : ''}>Auto (${esc(r.autoCustomer || r.customer)})</option>
       ${CUSTOMERS.map(c => `<option value="${esc(c)}" ${r.customerOverride === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}
@@ -316,6 +345,7 @@ async function load(date, refresh) {
     $('csv').href = '/api/production/export.csv?date=' + encodeURIComponent(REPORT.date);
     $('state').style.display = 'none';
     render();
+    loadQuestionBadges(); // fire-and-forget — badges paint when they arrive
   } catch (err) {
     $('ribbon').innerHTML = ''; $('content').innerHTML = '';
     $('state').style.display = '';
@@ -489,14 +519,63 @@ function explainRate(r) {
   return `<section><h3>Rate ($/lb)</h3><div class="result">${rate$(t.chosen)}${t.chosen != null ? '/lb' : ''}</div>${steps}${ctl}</section>`;
 }
 
+// Where the raw material number came from.
+//
+// The old line read "raw material = $2.96/lb × 4,344 lbs = $12,870", which implies we
+// multiplied a rate by pounds. We didn't — and saying so was misleading. Swarmbox
+// GIVES us the $12,870 (total_inventory_cost on the output line); the $/lb is just
+// that total divided back out for display. This section shows the real chain: what
+// was consumed into the batch, what came out, and the yield loss in between.
+function explainRawMaterial(r) {
+  const rm = r.trace && r.trace.rawMaterial;
+  if (!rm) return '';
+  if (r.isToll) {
+    return `<section><h3>Raw material</h3>
+      <div class="result">$0</div>
+      <div class="note">Toll job — the customer supplied the meat, so we carry no raw-material cost.</div></section>`;
+  }
+
+  const comps = (rm.components || []).map((c) => stepLine(
+    `${c.item} ${c.description}`,
+    `${fmtN(c.lbs)} lbs · ${fmt$(c.cost)}${c.perLb != null ? ` · ${rate$(c.perLb)}/lb` : ''}`,
+    true,
+  )).join('');
+
+  const b = rm.batch;
+  let yieldBlock = '';
+  if (b) {
+    const share = b.shareOfBatch != null && b.shareOfBatch < 99.5
+      ? `<div class="note">This batch made more than one product, so Swarmbox splits the raw material across the outputs by weight — this line carries ${b.shareOfBatch.toFixed(1)}% of it.</div>`
+      : '';
+    const loss = b.unallocatedCost > 0.005
+      ? `<div class="warn"><b>${fmtN(b.unallocatedLbs)} lbs · ${fmt$(b.unallocatedCost)} went in but never came out.</b>
+           That cost sits on no product line, so it is not subtracted from anyone's gross profit — the GP below is
+           higher than the true economics by ${fmt$(b.unallocatedCost)}. We report this rather than charge it:
+           allocating it would move every margin number in the app.</div>`
+      : '';
+    yieldBlock = `
+      <div class="math">batch consumed = ${fmtN(b.inputLbs)} lbs = ${fmt$(b.inputCost)}</div>
+      <div class="math">batch produced = ${fmtN(b.outputLbs)} lbs = ${fmt$(b.outputCost)} &nbsp;(every output, incl. in-process)</div>
+      <div class="math">yield = ${b.yieldPct != null ? b.yieldPct.toFixed(1) + '%' : '—'}</div>
+      ${loss}${share}`;
+  }
+
+  return `<section><h3>Raw material — where it came from</h3>
+    <div class="result">${fmt$(rm.charged)}</div>
+    <div class="note">Swarmbox hands us this total directly (<code>total_inventory_cost</code>) — we don't compute it.
+      It equals <b>this line's pounds × the batch's average input $/lb</b>, so it charges only the pounds that came
+      <b>out</b>. The ${rm.perLb != null ? rate$(rm.perLb) + '/lb' : '$/lb'} you see elsewhere is just this total divided
+      back by ${fmtN(r.lbs)} lbs — it is not a rate we looked up.</div>
+    ${comps ? `<div class="sub">Consumed into batch ${esc(String(r.batch))}</div>${comps}`
+            : '<div class="note">Swarmbox recorded no component inputs for this batch.</div>'}
+    ${yieldBlock}</section>`;
+}
+
 function explainMath(r) {
   const a = r.trace.amounts;
-  // Break raw material into $/lb × lbs (same shape as the revenue line) so the
-  // input cost can be sanity-checked against the rate at a glance.
-  const icPerLb = a.lbs ? a.inputCost / a.lbs : null;
-  const rmLine = icPerLb != null
-    ? `raw material (input cost) = ${rate$(icPerLb)}/lb × ${fmtN(a.lbs)} lbs = ${fmt$(a.inputCost)}`
-    : `raw material (input cost) = ${fmt$(a.inputCost)}`;
+  // Raw material is a TOTAL from Swarmbox, not a rate × lbs — see explainRawMaterial.
+  // State it as the total it is, and point at the section that breaks it down.
+  const rmLine = `raw material (input cost) = ${fmt$(a.inputCost)}  (from Swarmbox — see above)`;
   if (r.internal) {
     return `<section><h3>The math</h3>
       <div class="math">${fmtN(a.cs)} cases · ${fmtN(a.lbs)} lbs &nbsp;(from Swarmbox)</div>
@@ -517,12 +596,109 @@ function explainMath(r) {
     <div class="math"><b>gross profit = revenue − raw material = ${fmt$(a.gp)}</b></div></section>`;
 }
 
+// "This number still looks wrong to me." The explainer can show how a number was
+// derived, but it can't know when the derivation is wrong, or when the reader knows
+// something we don't ("that batch was re-weighed"). This is that channel.
+//
+// The numbers are captured AS SHOWN. A question is unanswerable a week later if the
+// report has since been rebuilt with different overrides — the number they were
+// looking at would be gone.
+function explainAsk(r, i) {
+  const asked = (QUESTIONS_BY_LINE[`${r.batch}|${r.item}`] || []);
+  const prior = asked.length ? `
+    <div class="sub" style="margin-top:10px;">Already asked on this line</div>
+    ${asked.map((q) => `<div class="qitem">
+      <div class="qq"><b>Q:</b> ${esc(q.question)} <span class="dim">— ${esc(q.askedBy || 'anonymous')} · ${esc(String(q.askedAt).slice(0, 10))}</span></div>
+      ${q.answer
+        ? `<div class="qa"><b>A:</b> ${esc(q.answer)} <span class="dim">— ${esc(q.answeredBy || '')}</span></div>`
+        : '<div class="qa pend">Awaiting an answer.</div>'}
+    </div>`).join('')}
+    <div class="note"><a href="/questions.html?item=${encodeURIComponent(r.item)}">Open in the Questions queue</a></div>` : '';
+  return `<section><h3>Doesn't look right?</h3>
+    <div class="note">Ask about this line and it goes into the <b>Questions</b> queue with the numbers exactly as
+      you're seeing them now. You'll get an answer there — nothing is lost if the report is rebuilt.</div>
+    <div class="ctl" style="flex-direction:column;align-items:stretch;gap:8px;">
+      <select id="askField">
+        <option value="rawMaterial">Raw material (input cost)</option>
+        <option value="rate">Rate ($/lb)</option>
+        <option value="customer">Customer</option>
+        <option value="type">Toll / Own</option>
+        <option value="gp">Gross profit</option>
+        <option value="other">Something else</option>
+      </select>
+      <textarea id="askText" rows="3" placeholder="What looks wrong, or what do you want to know?"
+        style="width:100%;padding:8px;border:1px solid #d8dee7;border-radius:8px;font:inherit;"></textarea>
+      <input id="askBy" placeholder="Your name (optional)"
+        style="padding:8px;border:1px solid #d8dee7;border-radius:8px;font:inherit;" />
+      <button id="askSend" class="seg" data-i="${i}" style="border-radius:8px;padding:8px 14px;">Ask</button>
+      <div id="askMsg" class="note"></div>
+    </div>${prior}</section>`;
+}
+
+async function submitQuestion(i) {
+  const r = REPORT.rows[i];
+  const text = $('askText').value.trim();
+  if (!text) { $('askMsg').textContent = 'Type a question first.'; return; }
+  const btn = $('askSend');
+  btn.disabled = true;
+  const a = r.trace.amounts;
+  try {
+    const res = await fetch('/api/questions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        date: REPORT.date, item: r.item, batch: String(r.batch), description: r.description,
+        field: $('askField').value, question: text, askedBy: $('askBy').value.trim(),
+        // Exactly what they were looking at.
+        snapshot: {
+          customer: r.customer, type: r.isToll ? 'toll' : 'own',
+          rate: r.rate, rateBasis: r.priceBasis, rateSource: r.source,
+          lbs: a.lbs, cases: a.cs, revenue: a.revenue, rawMaterial: a.inputCost, gp: a.gp,
+        },
+      }),
+    });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || res.statusText);
+    $('askMsg').innerHTML = 'Asked — it\'s in the <a href="/questions.html">Questions</a> queue.';
+    $('askText').value = '';
+    loadQuestionBadges();
+  } catch (err) {
+    $('askMsg').textContent = 'Could not save: ' + err.message;
+    btn.disabled = false;
+  }
+}
+
+// Which lines of the loaded day have questions (for ❓/💬 badges and the explainer's
+// "already asked" block), plus the global open count for the nav.
+async function loadQuestionBadges() {
+  if (!REPORT) return;
+  try {
+    const res = await fetch('/api/questions/for-date?date=' + encodeURIComponent(REPORT.date));
+    const data = await res.json();
+    QUESTIONS_BY_LINE = data.byLine || {};
+  } catch (err) {
+    QUESTIONS_BY_LINE = {};
+  }
+  refreshNavQuestionCount();
+  if (view === 'detail') renderDetail(); // repaint the ❓/💬 marks
+}
+
+async function refreshNavQuestionCount() {
+  try {
+    const res = await fetch('/api/questions/count');
+    const data = await res.json();
+    const el = $('qCount');
+    el.style.display = data.open ? '' : 'none';
+    el.textContent = data.open;
+  } catch (err) { /* nav badge is cosmetic — never block the page on it */ }
+}
+
 function openExplain(i) {
   const r = REPORT && REPORT.rows[i];
   if (!r || !r.trace) return;
   $('xpTitle').textContent = r.description || r.item;
   $('xpSub').textContent = `${r.item} · batch ${r.batch} · room ${r.room || '—'}`;
-  $('xpBody').innerHTML = explainCustomer(r) + explainType(r) + explainRate(r) + explainMath(r);
+  $('xpBody').innerHTML = explainCustomer(r) + explainType(r) + explainRate(r)
+    + explainRawMaterial(r) + explainMath(r) + explainAsk(r, i);
   $('explainModal').style.display = 'flex';
 }
 function closeExplain() { $('explainModal').style.display = 'none'; }
@@ -535,6 +711,10 @@ $('xpBody').addEventListener('change', async (e) => {
   const cust = e.target.closest('select.custEdit'); if (cust) { await commitCustomer(cust); closeExplain(); return; }
 });
 $('xpBody').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.closest('input.rateEdit')) e.target.blur(); });
+$('xpBody').addEventListener('click', (e) => {
+  const ask = e.target.closest('#askSend');
+  if (ask) submitQuestion(Number(ask.dataset.i));
+});
 $('content').addEventListener('click', (e) => {
   const b = e.target.closest('button.explain'); if (b) openExplain(Number(b.dataset.i));
 });

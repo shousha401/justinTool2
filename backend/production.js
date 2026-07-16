@@ -194,7 +194,42 @@ function classify(lines) {
 // ── Report build ─────────────────────────────────────────────────────────────
 // livePrices: Map<item, { price, lastSoldDate, customer }> — most recent CMP-tier
 // toll sale within the lookback window.
-function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed) {
+// Where a line's "raw material (input cost)" actually comes from.
+//
+// Swarmbox hands us total_inventory_cost on the output line — we do NOT compute it.
+// It equals (this line's lbs) × (the batch's average input $/lb), so it only charges
+// the pounds that came OUT. The pounds that went in but didn't come out — yield loss —
+// carry real cost that lands on no product line and is therefore subtracted from
+// nobody's gross profit. Surface it rather than charging it: changing it would move
+// every GP number in the app, and that's a business decision, not a bug fix.
+function rawMaterialTrace(r, inputCost, lbs, batchInputs, batchOutputs) {
+  const bin = batchInputs && batchInputs.get(r.batch);
+  const bout = batchOutputs && batchOutputs.get(r.batch);
+  const trace = {
+    charged: inputCost,                       // what THIS line carries
+    perLb: lbs ? inputCost / lbs : null,      // derived for display — NOT a source number
+    components: bin ? bin.components : null,  // what was actually consumed into the batch
+    batch: null,
+  };
+  if (bin && bout) {
+    const unallocated = bin.cost - bout.cost;
+    trace.batch = {
+      inputLbs: bin.lbs,
+      inputCost: bin.cost,
+      outputLbs: bout.lbs,
+      outputCost: bout.cost,
+      unallocatedCost: unallocated,
+      unallocatedLbs: bin.lbs - bout.lbs,
+      yieldPct: bin.lbs ? (bout.lbs / bin.lbs) * 100 : null,
+      // This line's share of the batch's charged cost, so a multi-output batch
+      // (patties flat + patties round) is legible.
+      shareOfBatch: bout.cost ? (inputCost / bout.cost) * 100 : null,
+    };
+  }
+  return trace;
+}
+
+function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchInputs, batchOutputs) {
   const counts = { live: 0, manual: 0, contract: 0, sale: 0, missing: 0 };
   const ownCounts = { sale: 0, manual: 0, standard: 0, none: 0 };
   let forcedCount = 0, flaggedCount = 0, internalCount = 0;
@@ -356,6 +391,9 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed) {
         internal: internal ? { auto: autoInternal, consumedLbs: consumedRec ? consumedRec.lbs : null } : null,
       },
       amounts: { cs, lbs, revenue, inputCost, inputCostRaw, gp, sellVal },
+      // Provenance for "how did we get raw material?" — the components consumed into
+      // this batch, and the yield loss that no product line carries.
+      rawMaterial: rawMaterialTrace(r, inputCost, lbs, batchInputs, batchOutputs),
     };
 
     return {
@@ -409,10 +447,29 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed) {
     if (r.missingRate) missingSet.add(`${r.customer}/${r.item}`);
   }
 
+  // Day-level yield loss, rolled up per unique BATCH (a batch with two output lines
+  // must not have its inputs counted twice). This is raw material that was consumed
+  // but landed on no output line at all, so it is subtracted from nobody's gross
+  // profit — GP is overstated by exactly this much. Reported, NOT charged: allocating
+  // it would move every margin number in the app, which is a business decision.
+  const rawMaterial = { consumed: 0, charged: 0, unallocated: 0, pct: null, batches: 0 };
+  if (batchInputs && batchOutputs) {
+    for (const [batch, out] of batchOutputs) {
+      const inp = batchInputs.get(batch);
+      if (!inp) continue;               // no recorded inputs (e.g. repack) — nothing to compare
+      rawMaterial.consumed += inp.cost;
+      rawMaterial.charged += out.cost;
+      rawMaterial.batches++;
+    }
+    rawMaterial.unallocated = rawMaterial.consumed - rawMaterial.charged;
+    rawMaterial.pct = rawMaterial.consumed ? (rawMaterial.unallocated / rawMaterial.consumed) * 100 : null;
+  }
+
   return {
     date,
     builtAt: Date.now(),
     totals,
+    rawMaterial,               // consumed vs charged: the yield loss no line carries
     tollPricing: counts,       // toll line counts: { live, manual, contract, missing }
     ownPricing: ownCounts,     // own line counts: { sale, standard }
     forcedCount, flaggedCount, // price-override line counts (Prices Today page)
@@ -474,20 +531,57 @@ async function getProductionReport({ date, force = false, background = false } =
   if (!force && hit && Date.now() - hit.builtAt < TTL_MS) return hit.report;
 
   const [outRes, sumRes, inRes] = await Promise.all([
-    postRpc('production_output_cost', { p_date: day, p_product_designation: 'Finished Good' }, { background }),
+    // NO p_product_designation filter. We still report only Finished Goods (filtered
+    // below — verified to give byte-identical rows to the server-side filter), but we
+    // need the OTHER outputs too: a batch also yields In-Process intermediates, and
+    // those absorb raw-material cost. Without them we'd mistake "cost moved to the
+    // intermediate" for "cost vanished". Same call count, strictly more truth.
+    postRpc('production_output_cost', { p_date: day }, { background }),
     postRpc('production_batch_summary', { p_date: day }, { background }),
     postRpc('production_input_cost', { p_date: day }, { background }),
   ]);
-  const lines = outRes.ok ? outRes.data : [];
+  const allOutputs = outRes.ok ? outRes.data : [];
+  const isFinishedGood = (r) => String(r.product_designation || '').trim() === 'Finished Good';
+  const lines = allOutputs.filter(isFinishedGood);
+
   // Items consumed as components today → drives auto-detection of internal
   // intermediates (an output that's reused into another batch with no sale of its own).
   const consumed = new Map(); // item -> { lbs, cost }
+  // Per-BATCH raw material, so a line can show WHERE its cost came from instead of a
+  // single opaque number. This is the provenance behind "raw material (input cost)".
+  const batchInputs = new Map(); // batch -> { lbs, cost, components: [...] }
   if (inRes.ok) for (const r of inRes.data) {
     const c = consumed.get(r.item) || { lbs: 0, cost: 0 };
     c.lbs += num(r.cost_quantity);
     c.cost += num(r.total_inventory_cost);
     consumed.set(r.item, c);
+
+    const b = batchInputs.get(r.batch) || { lbs: 0, cost: 0, components: [] };
+    const lbs = num(r.cost_quantity);
+    const cost = num(r.total_inventory_cost);
+    b.lbs += lbs;
+    b.cost += cost;
+    b.components.push({
+      item: r.item,
+      description: r.description || '',
+      lbs,
+      cost,
+      perLb: lbs ? cost / lbs : null,
+    });
+    batchInputs.set(r.batch, b);
   }
+
+  // What each batch actually CHARGED to its outputs — every output, finished good or
+  // not. The gap against batchInputs is raw material that landed on no product at all
+  // (yield loss / shrink), and therefore is subtracted from nobody's gross profit.
+  const batchOutputs = new Map(); // batch -> { lbs, cost }
+  for (const r of allOutputs) {
+    const b = batchOutputs.get(r.batch) || { lbs: 0, cost: 0 };
+    b.lbs += num(r.cost_quantity);
+    b.cost += num(r.total_inventory_cost);
+    batchOutputs.set(r.batch, b);
+  }
+
   const yieldByBatch = new Map();
   if (sumRes.ok) for (const s of sumRes.data) {
     if (s.batch != null) yieldByBatch.set(s.batch, s.yield_pct != null ? Number(s.yield_pct) : null);
@@ -528,7 +622,7 @@ async function getProductionReport({ date, force = false, background = false } =
     b.hasSale = hasSale;
   }
 
-  const report = buildReport(day, base, itemLbs, yieldByBatch, sales, consumed);
+  const report = buildReport(day, base, itemLbs, yieldByBatch, sales, consumed, batchInputs, batchOutputs);
 
   // A day is TRUSTWORTHY only if every input behind its money came back.
   //   - output fetch failed  ⇒ there are no lines at all (a false $0 day).
