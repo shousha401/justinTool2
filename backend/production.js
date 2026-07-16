@@ -30,7 +30,8 @@ const dbStore = require('./db');
 
 const TTL_MS = Number(process.env.PRODUCTION_CACHE_TTL_MS) || 5 * 60 * 1000; // 5 min
 const RECENT_WINDOW_DAYS = 45;      // how far back the date picker / period comparisons look
-const SUMMARY_VERSION = 7;          // bump when the stored summary shape OR the numbers behind it change (forces re-backfill)
+const SUMMARY_VERSION = 8;          // bump when the stored summary shape OR the numbers behind it change (forces re-backfill)
+                                    // v8: chained-batch netting (cutting→packaging same-item double-count)
 const TOLL_IC_PER_LB = 0.10;        // batch avg input cost below this ⇒ customer-supplied meat ⇒ toll
 const TOLL_LOOKBACK_DAYS = Number(process.env.TOLL_LOOKBACK_DAYS) || 90; // freshness window for the live toll price
 
@@ -229,7 +230,7 @@ function rawMaterialTrace(r, inputCost, lbs, batchInputs, batchOutputs) {
   return trace;
 }
 
-function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchInputs, batchOutputs) {
+function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchInputs, batchOutputs, outputsByItem) {
   const counts = { live: 0, manual: 0, contract: 0, sale: 0, missing: 0 };
   const ownCounts = { sale: 0, manual: 0, standard: 0, none: 0 };
   let forcedCount = 0, flaggedCount = 0, internalCount = 0;
@@ -243,7 +244,24 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
     // INTERNAL_CODES list is a manual fallback. Either way it's input-cost-only and
     // kept OUT of the margin totals — its cost lands on the finished good downstream.
     const consumedRec = consumed && consumed.get(r.item);
-    const autoInternal = !!consumedRec && !(sellVal > 0);
+    // Chained batches: cutting → packaging where BOTH batches record the same
+    // finished good (Justin's 10152733/10152732 tenderloins — both billed $2.35/lb,
+    // doubling the day's money). This line is the UPSTREAM copy when a DIFFERENT
+    // batch consumed this item AND re-output it (a pass-through, not an ingredient
+    // draw — an ingredient draw doesn't re-output the same code, and netting on
+    // consumption alone would kill real revenue on items that also sell as-is).
+    // The 60% coverage floor keeps a small side-stream draw from silently netting
+    // a line that mostly shipped. Same-batch consumption (partial-case rescans,
+    // Justin's other 12 notes) never counts: b !== this line's batch.
+    let chainedLbs = 0;
+    if (consumedRec && consumedRec.byBatch) {
+      const outSet = outputsByItem && outputsByItem.get(r.item);
+      for (const [b, l] of consumedRec.byBatch) {
+        if (b !== String(r.batch) && outSet && outSet.has(b)) chainedLbs += l;
+      }
+    }
+    const chainedUpstream = lbs > 0 && chainedLbs >= lbs * 0.6;
+    const autoInternal = (!!consumedRec && !(sellVal > 0)) || chainedUpstream;
     const isInternal = INTERNAL_CODES.has(r.item) || autoInternal;
     if (forced && forced.flagged) flaggedCount++;
 
@@ -261,9 +279,11 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
       inputCost = isToll ? 0 : inputCostRaw;
       revenue = 0;
       rate = null;
-      source = autoInternal
-        ? 'internal intermediate · input cost only (reused downstream)'
-        : 'internal trim · input cost only';
+      source = chainedUpstream
+        ? 'chained into another batch · counted once on the final output'
+        : autoInternal
+          ? 'internal intermediate · input cost only (reused downstream)'
+          : 'internal trim · input cost only';
       priceBasis = 'internal';
     } else if (forced && forced.rate > 0) {
       // A typed correction WINS over everything Swarmbox pulls (live/own/sale/
@@ -388,7 +408,9 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
         contract: contract && contract.rate != null ? { rate: contract.rate, source: contract.source } : null,
         sale: anySale,
         productionValue: sellVal > 0 ? sellVal : null,
-        internal: internal ? { auto: autoInternal, consumedLbs: consumedRec ? consumedRec.lbs : null } : null,
+        internal: internal
+          ? { auto: autoInternal, chained: chainedUpstream, chainedLbs: chainedUpstream ? chainedLbs : null, consumedLbs: consumedRec ? consumedRec.lbs : null }
+          : null,
       },
       amounts: { cs, lbs, revenue, inputCost, inputCostRaw, gp, sellVal },
       // Provenance for "how did we get raw material?" — the components consumed into
@@ -546,14 +568,17 @@ async function getProductionReport({ date, force = false, background = false } =
 
   // Items consumed as components today → drives auto-detection of internal
   // intermediates (an output that's reused into another batch with no sale of its own).
-  const consumed = new Map(); // item -> { lbs, cost }
+  // byBatch tracks WHO consumed it — chained-batch detection must ignore a batch
+  // consuming its own item (partial-case rescans) and only count other batches.
+  const consumed = new Map(); // item -> { lbs, cost, byBatch: Map(batch -> lbs) }
   // Per-BATCH raw material, so a line can show WHERE its cost came from instead of a
   // single opaque number. This is the provenance behind "raw material (input cost)".
   const batchInputs = new Map(); // batch -> { lbs, cost, components: [...] }
   if (inRes.ok) for (const r of inRes.data) {
-    const c = consumed.get(r.item) || { lbs: 0, cost: 0 };
+    const c = consumed.get(r.item) || { lbs: 0, cost: 0, byBatch: new Map() };
     c.lbs += num(r.cost_quantity);
     c.cost += num(r.total_inventory_cost);
+    c.byBatch.set(String(r.batch), (c.byBatch.get(String(r.batch)) || 0) + num(r.cost_quantity));
     consumed.set(r.item, c);
 
     const b = batchInputs.get(r.batch) || { lbs: 0, cost: 0, components: [] };
@@ -575,11 +600,17 @@ async function getProductionReport({ date, force = false, background = false } =
   // not. The gap against batchInputs is raw material that landed on no product at all
   // (yield loss / shrink), and therefore is subtracted from nobody's gross profit.
   const batchOutputs = new Map(); // batch -> { lbs, cost }
+  // Which batches output each item — the other half of chained-batch detection
+  // (a batch that consumed an item AND re-output it is passing it through).
+  const outputsByItem = new Map(); // item -> Set(batch)
   for (const r of allOutputs) {
     const b = batchOutputs.get(r.batch) || { lbs: 0, cost: 0 };
     b.lbs += num(r.cost_quantity);
     b.cost += num(r.total_inventory_cost);
     batchOutputs.set(r.batch, b);
+    const s = outputsByItem.get(r.item) || new Set();
+    s.add(String(r.batch));
+    outputsByItem.set(r.item, s);
   }
 
   const yieldByBatch = new Map();
@@ -622,7 +653,7 @@ async function getProductionReport({ date, force = false, background = false } =
     b.hasSale = hasSale;
   }
 
-  const report = buildReport(day, base, itemLbs, yieldByBatch, sales, consumed, batchInputs, batchOutputs);
+  const report = buildReport(day, base, itemLbs, yieldByBatch, sales, consumed, batchInputs, batchOutputs, outputsByItem);
 
   // A day is TRUSTWORTHY only if every input behind its money came back.
   //   - output fetch failed  ⇒ there are no lines at all (a false $0 day).
