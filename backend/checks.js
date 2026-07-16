@@ -259,7 +259,9 @@ async function getDayChecks({ date, force = false } = {}) {
     for (const fl of flags) {
       fl.question = QUESTIONS[fl.rule] || null;
       const a = answers[fl.rule];
-      fl.feedback = a ? { answer: a.answer, note: a.note, by: a.by, at: a.updatedAt } : null;
+      fl.feedback = a
+        ? { answer: a.answer, note: a.note, by: a.by, at: a.updatedAt, reply: a.reply, replyBy: a.replyBy, repliedAt: a.repliedAt }
+        : null;
     }
     const sev = topSeverity(flags);
     counts[sev]++;

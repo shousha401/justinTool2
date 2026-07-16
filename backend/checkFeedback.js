@@ -7,6 +7,12 @@
 // data (e.g. "90% of weight-gains are 'wrong unit entered'") and chase the real
 // upstream fix instead of eyeballing batches forever.
 //
+// Each diagnosis can carry a REPLY — the answer to the answer ("you're right,
+// fixed in Swarmbox", "that's expected, rule adjusted"). Without it the person
+// on the floor never learns whether their note landed; with it the flag reads as
+// a closed conversation. A reply lives on the diagnosis it answers, so it can't
+// exist on its own, and neither side's save wipes the other's text.
+//
 // Keyed per (batch, rule) — one batch can trip several rules, each its own answer.
 // Stored on disk (data/check-feedback.json, gitignored) mirroring the override
 // stores. Read-only against Swarmbox; this is purely our own annotation layer.
@@ -34,6 +40,10 @@ function clean(r) {
     note: r.note ? String(r.note) : '',
     by: r.by ? String(r.by).slice(0, 60) : '',
     updatedAt: r.updatedAt || null,
+    // The reply — our response to the diagnosis (see header). Blank = unanswered.
+    reply: r.reply ? String(r.reply) : '',
+    replyBy: r.reply && r.replyBy ? String(r.replyBy).slice(0, 60) : '',
+    repliedAt: r.reply ? r.repliedAt || null : null,
   };
 }
 
@@ -79,13 +89,31 @@ function set({ batch, rule, date, answer, note, by } = {}) {
   const next = clean({ batch, rule, date, answer, note, by });
   if (!next) return false;
   if (isEmpty(next)) return remove(batch, rule);
-  next.updatedAt = new Date().toISOString();
   const k = key(next.batch, next.rule);
+  // The asker's save must not wipe an existing reply — the two sides of the
+  // conversation are edited independently. (Clearing the whole diagnosis via
+  // remove() still takes the reply with it: nothing left to reply to.)
+  const prev = map.get(k);
+  if (prev) { next.reply = prev.reply; next.replyBy = prev.replyBy; next.repliedAt = prev.repliedAt; }
+  next.updatedAt = new Date().toISOString();
   records = records.filter((r) => key(r.batch, r.rule) !== k);
   records.push(next);
   map.set(k, next);
   persist();
   return true;
+}
+
+// Set (or clear, when text is blank) the reply on an existing diagnosis. Returns
+// the updated record, or null when there's no diagnosis to reply to — a question
+// with no human answer yet belongs in the Questions queue, not here.
+function setReply(batch, rule, { reply, replyBy } = {}) {
+  const r = map.get(key(batch, rule));
+  if (!r) return null;
+  r.reply = reply ? String(reply) : '';
+  r.replyBy = r.reply && replyBy ? String(replyBy).slice(0, 60) : '';
+  r.repliedAt = r.reply ? new Date().toISOString() : null;
+  persist();
+  return r;
 }
 
 function remove(batch, rule) {
@@ -97,4 +125,4 @@ function remove(batch, rule) {
   return true;
 }
 
-module.exports = { get, forBatch, getList, set, remove };
+module.exports = { get, forBatch, getList, set, setReply, remove };

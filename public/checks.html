@@ -113,6 +113,12 @@
   .ask .ans { font-size: 11px; color: var(--pos); margin-top: 6px; font-weight: 600; }
   .ask .ans.empty { color: var(--muted); font-weight: 400; }
   .ask .ans .clear { color: var(--muted); cursor: pointer; font-weight: 600; margin-left: 8px; text-decoration: underline; }
+  /* the reply — our response to the diagnosis, indented like a conversation */
+  .ask .replybox { margin-top: 7px; padding-left: 10px; border-left: 3px solid var(--accent); }
+  .ask .fbreply { width: 100%; }
+  .ask .rstat { font-size: 11px; color: var(--accent); margin-top: 6px; font-weight: 600; }
+  .ask .rstat.empty { color: var(--muted); font-weight: 400; }
+  .ask .rstat .clear { color: var(--muted); cursor: pointer; font-weight: 600; margin-left: 8px; text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -173,6 +179,20 @@ function answeredHtml(fb) {
   return `✓ “${esc(fb.answer || '—')}”${fb.by ? ' · ' + esc(fb.by) : ''}${when} <span class="clear">clear</span>`;
 }
 
+// The reply — our response to the saved diagnosis, so the asker sees it landed.
+function repliedHtml(fb) {
+  const when = fb.repliedAt ? ' · ' + String(fb.repliedAt).slice(0, 10) : '';
+  return `↩ “${esc(fb.reply)}”${fb.replyBy ? ' · ' + esc(fb.replyBy) : ''}${when} <span class="clear">clear</span>`;
+}
+
+// Rendered only once a diagnosis exists — a reply can't hang on nothing.
+function replyBlock(fb) {
+  return `<div class="replybox">
+    <input class="fbreply" type="text" placeholder="Reply — what we found, what was fixed (optional)" value="${fb.reply ? esc(fb.reply) : ''}" />
+    <div class="rstat ${fb.reply ? '' : 'empty'}">${fb.reply ? repliedHtml(fb) : 'No reply yet'}</div>
+  </div>`;
+}
+
 // ── Day view ─────────────────────────────────────────────────────────────────
 function lineTable(rows, dupSet) {
   if (!rows || !rows.length) return '<div class="dim" style="font-size:11.5px;">— none —</div>';
@@ -200,6 +220,7 @@ function flagCard(f) {
         <div class="opts">${x.question.options.map(o => `<button type="button" class="opt ${fb && fb.answer === o ? 'selected' : ''}" data-answer="${esc(o)}">${esc(o)}</button>`).join('')}</div>
         <input class="fbnote" type="text" placeholder="Add a detail that helps us fix it (optional)" value="${fb ? esc(fb.note) : ''}" />
         <div class="ans ${fb ? '' : 'empty'}">${fb ? answeredHtml(fb) : 'Not answered yet'}</div>
+        ${fb ? replyBlock(fb) : ''}
       </div>` : '';
     return `<li class="${x.severity}">${esc(x.message)}${ask}</li>`;
   }).join('');
@@ -352,9 +373,35 @@ async function commitAsk(group) {
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const fb = (await res.json()).feedback;
-    if (fb) { ans.className = 'ans'; ans.innerHTML = answeredHtml({ answer: fb.answer, note: fb.note, by: fb.by, at: fb.updatedAt }); }
+    if (fb) {
+      ans.className = 'ans'; ans.innerHTML = answeredHtml({ answer: fb.answer, note: fb.note, by: fb.by, at: fb.updatedAt });
+      // First save of a diagnosis: the reply box wasn't rendered yet — add it now
+      // so the conversation can be answered without a page reload.
+      if (!group.querySelector('.replybox')) ans.insertAdjacentHTML('afterend', replyBlock({ reply: fb.reply, replyBy: fb.replyBy, repliedAt: fb.repliedAt }));
+    }
     else { ans.className = 'ans empty'; ans.textContent = 'Not answered yet'; }
   } catch (err) { ans.className = 'ans empty'; ans.textContent = 'Could not save: ' + err.message; }
+}
+
+// Save (or clear, when blank) the reply on a saved diagnosis.
+async function commitReply(group) {
+  if (!group) return;
+  const inp = group.querySelector('.fbreply');
+  if (!inp) return;
+  const reply = inp.value.trim();
+  if (reply && !WHO) { alert('Enter your name in the top bar first, so we know who replied.'); $('who').focus(); return; }
+  const st = group.querySelector('.rstat');
+  st.className = 'rstat'; st.textContent = reply ? 'Saving…' : 'Clearing…';
+  try {
+    const res = await fetch('/api/checks/feedback/reply', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ batch: group.dataset.batch, rule: group.dataset.rule, reply, replyBy: WHO }),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const fb = (await res.json()).feedback;
+    if (fb && fb.reply) { st.className = 'rstat'; st.innerHTML = repliedHtml(fb); }
+    else { st.className = 'rstat empty'; st.textContent = 'No reply yet'; }
+  } catch (err) { st.className = 'rstat empty'; st.textContent = 'Could not save: ' + err.message; }
 }
 
 async function clearAsk(group) {
@@ -363,6 +410,8 @@ async function clearAsk(group) {
     group.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
     group.querySelector('.fbnote').value = '';
     const ans = group.querySelector('.ans'); ans.className = 'ans empty'; ans.textContent = 'Not answered yet';
+    // The record is gone — and the reply with it (nothing left to reply to).
+    const rb = group.querySelector('.replybox'); if (rb) rb.remove();
   } catch (err) { alert('Could not clear: ' + err.message); }
 }
 
@@ -370,10 +419,15 @@ async function clearAsk(group) {
 $('content').addEventListener('click', (e) => {
   const opt = e.target.closest('.opt');
   if (opt) { const g = opt.closest('.ask'); g.querySelectorAll('.opt').forEach(o => o.classList.toggle('selected', o === opt)); commitAsk(g); return; }
+  const rclr = e.target.closest('.rstat .clear');
+  if (rclr) { const g = rclr.closest('.ask'); g.querySelector('.fbreply').value = ''; commitReply(g); return; }
   const clr = e.target.closest('.ans .clear');
   if (clr) { clearAsk(clr.closest('.ask')); }
 });
-$('content').addEventListener('change', (e) => { const n = e.target.closest('.fbnote'); if (n) commitAsk(n.closest('.ask')); });
+$('content').addEventListener('change', (e) => {
+  const n = e.target.closest('.fbnote'); if (n) { commitAsk(n.closest('.ask')); return; }
+  const r = e.target.closest('.fbreply'); if (r) commitReply(r.closest('.ask'));
+});
 
 // In sanity-only mode the other tabs aren't running — hide them so nobody lands
 // on a broken page.

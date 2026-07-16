@@ -19,7 +19,7 @@ router.get('/feedback', (_req, res) => {
 
 // GET /api/checks/feedback.csv → answers as a spreadsheet for chasing root cause
 router.get('/feedback.csv', (_req, res) => {
-  const cols = ['date', 'batch', 'rule', 'answer', 'note', 'by', 'updatedAt'];
+  const cols = ['date', 'batch', 'rule', 'answer', 'note', 'by', 'updatedAt', 'reply', 'replyBy', 'repliedAt'];
   const esc = (v) => {
     let s = v == null ? '' : String(v);
     // Neutralize spreadsheet formula injection without mangling plain numbers.
@@ -44,6 +44,20 @@ router.post('/feedback', (req, res) => {
   checkFeedback.set({ batch, rule, date: b.date, answer: b.answer, note: b.note, by: b.by });
   clearCache(); // so the day view shows the saved answer immediately
   res.json({ ok: true, feedback: checkFeedback.get(batch, rule) });
+});
+
+// POST /api/checks/feedback/reply { batch, rule, reply, replyBy }
+// The answer TO the diagnosis — closes the loop so the asker sees their note
+// landed. Blank reply clears it. 404s when there's no diagnosis to reply to.
+router.post('/feedback/reply', (req, res) => {
+  const b = req.body || {};
+  const batch = String(b.batch || '').trim();
+  const rule = String(b.rule || '').trim();
+  if (!batch || !rule) return res.status(400).json({ error: 'batch and rule are required' });
+  const r = checkFeedback.setReply(batch, rule, { reply: b.reply, replyBy: b.replyBy });
+  if (!r) return res.status(404).json({ error: 'no saved diagnosis to reply to' });
+  clearCache(); // so the day view shows the reply immediately
+  res.json({ ok: true, feedback: r });
 });
 
 // DELETE /api/checks/feedback/:batch/:rule → clear one answer
