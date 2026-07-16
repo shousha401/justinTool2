@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JD Food — Value Tool · Sign in</title>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font: 14px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: #eef1f5; overflow: hidden;
+  }
+  /* Decorative blurred backdrop — suggests the app behind the gate without
+     rendering a single real number. */
+  .blobs { position: fixed; inset: 0; filter: blur(70px); opacity: .55; pointer-events: none; }
+  .blobs i { position: absolute; border-radius: 50%; }
+  .blobs i:nth-child(1) { width: 480px; height: 480px; left: -120px; top: -100px; background: #2f6fed; }
+  .blobs i:nth-child(2) { width: 420px; height: 420px; right: -100px; top: 20%; background: #24a06a; }
+  .blobs i:nth-child(3) { width: 380px; height: 380px; left: 25%; bottom: -140px; background: #d97706; }
+  .card {
+    position: relative; width: min(360px, calc(100vw - 32px));
+    background: rgba(255, 255, 255, .82); backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, .6); border-radius: 16px;
+    box-shadow: 0 18px 50px rgba(20, 30, 55, .18); padding: 30px 28px 26px;
+  }
+  h1 { font-size: 17px; color: #16233b; margin-bottom: 4px; }
+  .sub { font-size: 12.5px; color: #5b6b82; margin-bottom: 20px; }
+  label { display: block; font-size: 12px; font-weight: 600; color: #37465e; margin-bottom: 6px; }
+  input[type=password] {
+    width: 100%; padding: 10px 12px; font-size: 14px; color: #16233b;
+    border: 1px solid #c9d2de; border-radius: 10px; background: #fff; outline: none;
+  }
+  input[type=password]:focus { border-color: #2f6fed; box-shadow: 0 0 0 3px rgba(47, 111, 237, .15); }
+  button {
+    width: 100%; margin-top: 14px; padding: 10px 12px; font: inherit; font-weight: 600;
+    color: #fff; background: #2f6fed; border: 0; border-radius: 10px; cursor: pointer;
+  }
+  button:hover { background: #245cd0; }
+  button:disabled { opacity: .6; cursor: default; }
+  .err { min-height: 18px; font-size: 12.5px; color: #c2413b; margin-top: 10px; font-weight: 600; }
+  .foot { margin-top: 16px; font-size: 11.5px; color: #8a97aa; text-align: center; }
+  .shake { animation: shake .35s; }
+  @keyframes shake { 20%, 60% { transform: translateX(-7px); } 40%, 80% { transform: translateX(7px); } }
+</style>
+</head>
+<body>
+<div class="blobs" aria-hidden="true"><i></i><i></i><i></i></div>
+<form class="card" id="f">
+  <h1>Value Tool</h1>
+  <div class="sub">This page contains sensitive company financials. Enter the password to continue.</div>
+  <label for="pw">Password</label>
+  <input type="password" id="pw" autocomplete="current-password" autofocus />
+  <button id="go" type="submit">Unlock</button>
+  <div class="err" id="err"></div>
+  <div class="foot">JD Food · internal use only</div>
+</form>
+<script>
+const f = document.getElementById('f');
+const pw = document.getElementById('pw');
+const go = document.getElementById('go');
+const err = document.getElementById('err');
+
+// Where to land after login — same-site relative paths only (anything else
+// would be an open redirect).
+const raw = new URLSearchParams(location.search).get('next') || '/';
+const next = /^\/(?!\/)/.test(raw) ? raw : '/';
+
+f.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!pw.value) { pw.focus(); return; }
+  go.disabled = true; err.textContent = '';
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw.value }),
+    });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Wrong password');
+    location.replace(next);
+  } catch (e2) {
+    err.textContent = e2.message;
+    f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake');
+    pw.select();
+    go.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

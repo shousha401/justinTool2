@@ -29,6 +29,13 @@ app.use((_req, res, next) => {
   next();
 });
 
+// Password gate (APP_PASSWORD in .env) — every page and every /api/* route
+// requires a session; only the login screen is open. See backend/auth.js.
+const auth = require('./backend/auth');
+app.use(auth.middleware);
+app.post('/api/login', auth.login);
+app.post('/api/logout', auth.logout);
+
 // The Sanity Check API is always on.
 app.use('/api/checks', require('./backend/routes/checks'));
 // So is the question queue — it's our own annotation layer (no Swarmbox), and a
@@ -80,6 +87,8 @@ function scheduleDailyRefresh() {
 
 const PORT = Number(process.env.PORT) || 3004;
 app.listen(PORT, () => {
+  if (auth.enabled()) console.log('[Auth] password gate ON — pages and API require login');
+  else console.warn('[Auth] APP_PASSWORD not set — the app is OPEN (no password). Add APP_PASSWORD to .env to enable the gate.');
   if (SANITY_ONLY) {
     console.log(`[ValueTool] SANITY-ONLY mode → http://localhost:${PORT}/checks.html`);
     console.log('[ValueTool] heavy Swarmbox builds (pricing, production, dashboard, daily refresh) are DISABLED.');

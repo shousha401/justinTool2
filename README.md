@@ -238,6 +238,18 @@ Forced prices and flags are per-item, saved to `data/price-overrides.json` (giti
 Changing any override (price, class, customer) rebuilds the recent daily summaries in the
 background, so the Dashboard and Customers tab catch up without a manual refresh.
 
+## Password gate
+
+The margin data is company-sensitive, so the whole app sits behind one shared
+password — **every page and every `/api/*` route**, not just the HTML (the
+sensitive part is the JSON; gating only the pixels would leave the money one
+curl away). Set `APP_PASSWORD` in `.env` (gitignored — the password never ships
+in code) and the login screen (`/login.html`) fronts everything; a successful
+login sets an HttpOnly session cookie (12h sliding). Sessions are in-memory, so
+a pm2 restart logs everyone out — you just type the password again. Leaving
+`APP_PASSWORD` unset turns the gate **off** (with a loud boot warning), so a
+missing line degrades to open rather than locking everyone out.
+
 ## Run
 
 ```bash
@@ -330,6 +342,8 @@ entire multi-minute rebuild and just spins.
 | Var | Default | Purpose |
 |---|---|---|
 | `PORT` | `3004` | HTTP port. |
+| `APP_PASSWORD` | *(unset — gate off)* | Shared password in front of every page and API route. |
+| `SESSION_TTL_MS` | `43200000` | Login session lifetime (12h, sliding). |
 | `SWARMBOX_BASE_URL` | `https://jdfood.swarmbox.com:443/pg-api` | Swarmbox REST base. |
 | `SWARMBOX_TIMEOUT_MS` | `30000` | Per-request timeout. |
 | `SWARMBOX_CONCURRENCY` | `4` | Process-wide cap on parallel Swarmbox calls. |
