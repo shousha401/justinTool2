@@ -255,14 +255,14 @@ function valCellHtml(r, tier) {
   const raw = isCmp ? r.cmpRaw : r.jdRaw;
   const rawUom = isCmp ? r.cmpRawUom : r.jdRawUom;
   const cls = isCmp ? 'val cmpcol' : 'val jdcol';
-  const sw = raw != null ? money(raw) + ' / ' + (rawUom || '—') : 'no recent sale';
+  const sw = raw != null ? money(raw) + ' / ' + escapeHtml(rawUom || '—') : 'no recent sale';
   if (val == null) return `<td class="none" title="No price — use ✎ to set one">—</td>`;
   if (src === 'manual') {
-    return `<td class="${cls} manual" title="Manual override · Swarmbox: ${sw}">${money(val)}<span class="uom">/ ${uom || '—'}</span><span class="mtag">MANUAL</span></td>`;
+    return `<td class="${cls} manual" title="Manual override · Swarmbox: ${sw}">${money(val)}<span class="uom">/ ${escapeHtml(uom || '—')}</span><span class="mtag">MANUAL</span></td>`;
   }
   const lastSold = isCmp ? r.cmpLastSoldDate : r.jdLastSoldDate;
-  const t = lastSold ? ` title="${(isCmp ? 'CMP→JD' : 'JD→Customer')} last sold ${lastSold}"` : '';
-  return `<td class="${cls}"${t}>${money(val)}<span class="uom">/ ${uom || '—'}</span></td>`;
+  const t = lastSold ? ` title="${(isCmp ? 'CMP→JD' : 'JD→Customer')} last sold ${escapeHtml(lastSold)}"` : '';
+  return `<td class="${cls}"${t}>${money(val)}<span class="uom">/ ${escapeHtml(uom || '—')}</span></td>`;
 }
 
 function render() {
@@ -284,7 +284,7 @@ function render() {
       <td class="desc">${escapeHtml(r.description)}</td>
       ${valCellHtml(r, 'cmp')}
       ${valCellHtml(r, 'jd')}
-      <td class="date">${r.jdLastSoldDate || ''}</td>
+      <td class="date">${escapeHtml(r.jdLastSoldDate || '')}</td>
       <td class="cust">${escapeHtml(r.jdCustomer || '')}</td>
       <td class="act"><button class="x edit" data-code="${escapeHtml(r.productCode)}" title="Set / correct value">✎</button> <button class="x hist" data-code="${escapeHtml(r.productCode)}" title="Price history">📈</button> <button class="x" data-code="${escapeHtml(r.productCode)}" title="Discontinue this item">✕</button></td>
     </tr>`).join('');

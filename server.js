@@ -19,6 +19,16 @@ const app = express();
 app.use(express.json({ limit: '256kb' }));
 app.locals.sanityOnly = SANITY_ONLY; // so routes/pages can adapt (e.g. hide other tabs)
 
+// Baseline security headers (dependency-free). Blunts MIME-sniffing and
+// clickjacking — the two a scanner flags — without a CSP that could break the
+// pages' inline scripts; the output-escaping fixes are the real XSS mitigation.
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  next();
+});
+
 // The Sanity Check API is always on.
 app.use('/api/checks', require('./backend/routes/checks'));
 // So is the question queue — it's our own annotation layer (no Swarmbox), and a
@@ -40,6 +50,14 @@ app.get('/', (_req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, SANITY_ONLY ? 'checks.html' : 'index.html'));
 });
 app.use(express.static(PUBLIC_DIR));
+
+// Terminal error handler — return a generic message (never a stack trace or file
+// path) regardless of NODE_ENV, so a malformed request body can't leak internals.
+app.use((err, _req, res, _next) => { // eslint-disable-line no-unused-vars
+  if (err && err.type === 'entity.parse.failed') return res.status(400).json({ error: 'Invalid JSON body' });
+  console.error('[ValueTool] unhandled error:', err && err.message);
+  res.status((err && err.status) || 500).json({ error: 'Server error' });
+});
 
 // Schedule the daily price refresh (default 5 AM, VM local time). Reschedules
 // itself each day. The build runs in the background, so no user ever waits on it.

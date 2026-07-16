@@ -20,7 +20,12 @@ router.get('/feedback', (_req, res) => {
 // GET /api/checks/feedback.csv → answers as a spreadsheet for chasing root cause
 router.get('/feedback.csv', (_req, res) => {
   const cols = ['date', 'batch', 'rule', 'answer', 'note', 'by', 'updatedAt'];
-  const esc = (v) => (v == null ? '' : `"${String(v).replace(/"/g, '""')}"`);
+  const esc = (v) => {
+    let s = v == null ? '' : String(v);
+    // Neutralize spreadsheet formula injection without mangling plain numbers.
+    if (/^[=+\-@\t\r]/.test(s) && !/^-?\d/.test(s)) s = `'${s}`;
+    return `"${s.replace(/"/g, '""')}"`;
+  };
   const lines = [cols.join(',')];
   for (const r of checkFeedback.getList()) lines.push(cols.map((c) => esc(r[c])).join(','));
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');

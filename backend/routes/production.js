@@ -162,7 +162,13 @@ router.get('/export.csv', async (req, res) => {
       'batch', 'item', 'description', 'room', 'process', 'customer', 'type',
       'cases', 'lbs', 'ratePerLb', 'revenue', 'inputCost', 'grossProfit', 'source',
     ];
-    const esc = (v) => (v == null ? '' : `"${String(v).replace(/"/g, '""')}"`);
+    const esc = (v) => {
+      let s = v == null ? '' : String(v);
+      // Neutralize spreadsheet formula injection without mangling plain numbers
+      // (negative money values legitimately begin with '-').
+      if (/^[=+\-@\t\r]/.test(s) && !/^-?\d/.test(s)) s = `'${s}`;
+      return `"${s.replace(/"/g, '""')}"`;
+    };
     const lines = [cols.join(',')];
     for (const r of report.rows) {
       lines.push([

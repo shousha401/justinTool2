@@ -50,7 +50,12 @@ router.delete('/:id', (req, res) => {
 // GET /api/questions/export.csv → the whole queue as a spreadsheet
 router.get('/export.csv', (_req, res) => {
   const cols = ['id', 'date', 'item', 'batch', 'description', 'field', 'question', 'askedBy', 'askedAt', 'answer', 'answeredBy', 'answeredAt', 'resolved'];
-  const esc = (v) => (v == null ? '' : `"${String(v).replace(/"/g, '""')}"`);
+  const esc = (v) => {
+    let s = v == null ? '' : String(v);
+    // Neutralize spreadsheet formula injection without mangling plain numbers.
+    if (/^[=+\-@\t\r]/.test(s) && !/^-?\d/.test(s)) s = `'${s}`;
+    return `"${s.replace(/"/g, '""')}"`;
+  };
   const lines = [cols.join(',')];
   for (const r of questions.getList()) lines.push(cols.map((c) => esc(r[c])).join(','));
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');

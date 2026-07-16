@@ -99,7 +99,13 @@ router.get('/export.csv', async (_req, res) => {
       'cmpValue', 'cmpValueUom', 'cmpLastSoldDate',
       'jdValue', 'jdValueUom', 'jdLastSoldDate', 'jdCustomer',
     ];
-    const esc = (v) => (v == null ? '' : `"${String(v).replace(/"/g, '""')}"`);
+    const esc = (v) => {
+      let s = v == null ? '' : String(v);
+      // Neutralize spreadsheet formula injection without mangling plain numbers
+      // (negative money values legitimately begin with '-').
+      if (/^[=+\-@\t\r]/.test(s) && !/^-?\d/.test(s)) s = `'${s}`;
+      return `"${s.replace(/"/g, '""')}"`;
+    };
     const lines = [cols.join(',')];
     for (const r of c.rows) lines.push(cols.map((k) => esc(r[k])).join(','));
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
