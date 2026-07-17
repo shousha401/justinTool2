@@ -178,6 +178,22 @@ real Miami sale, not the $0.75/lb production standard") and fix anything wrong w
 customer/type/rate controls built into the same panel. Each row carries a `trace` object
 (`backend/production.js`) holding those candidates.
 
+**Chained-batch re-costing — WIP blended-average dilution.** Swarmbox costs a
+batch's *draw* of an item at that item's **blended average**, not at the cost of the
+batch that actually produced it. When one WIP code pools customer-supplied ($0) and
+company-owned meat — e.g. 060269 Mishima ground beef on 2026-07-15: once from
+CMP-owned trim at $4.71/lb, three times from Mishima's own $0 trim — every packaging
+batch draws it at the diluted average ($0.47/lb), the real cost leaks onto the toll
+chains (whose input cost the report zeroes anyway), and own-product GP is overstated
+(~$3.3k that day). The report undoes this: a draw whose pounds match a **sibling
+batch's same-day output** of the same item (within 1%) is re-costed at that batch's
+**actual output cost**, and the consuming batch's lines are re-scaled the way
+Swarmbox itself allocates (by weight, off the original split). Anything ambiguous —
+no pounds match, competing producers at different $/lb, a partial draw — **keeps the
+blended number**: mis-attributing cost is worse than averaging it. Re-costed lines
+say so in the 🔎 explainer (both numbers shown, with the producing batch), and the
+day header counts the re-costed batches.
+
 **Toll vs Own is also overridable.** The Type column in Batch Detail is an
 **Auto / Toll / Own** selector: "Auto" uses the automatic rule (and shows what it
 decided, e.g. "Auto (Own)"), or pick Toll/Own to force an item either way. Overrides

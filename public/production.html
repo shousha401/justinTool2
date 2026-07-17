@@ -317,7 +317,8 @@ function render() {
   const op = REPORT.ownPricing || { sale: 0, standard: 0 };
   $('tollnote').innerHTML = `Toll rates — ${tp.live} live · ${tp.manual || 0} manual · ${tp.contract} contract · ${tp.sale || 0} sale-price · ${tp.missing} no rate`
     + ` &nbsp;|&nbsp; Own revenue — ${op.sale} from actual sales · ${op.manual || 0} manual · ${op.standard} from production value${op.none ? ` · ${op.none} no price` : ''}`
-    + (REPORT.internalCount ? ` &nbsp;|&nbsp; ${REPORT.internalCount} internal intermediate${REPORT.internalCount > 1 ? 's' : ''} (input cost only, excluded from margin)` : '');
+    + (REPORT.internalCount ? ` &nbsp;|&nbsp; ${REPORT.internalCount} internal intermediate${REPORT.internalCount > 1 ? 's' : ''} (input cost only, excluded from margin)` : '')
+    + (REPORT.recostCount ? ` &nbsp;|&nbsp; ${REPORT.recostCount} batch${REPORT.recostCount > 1 ? 'es' : ''} re-costed (chained WIP drawn at a blended average — charged the producing batch's actual cost instead)` : '');
   renderRibbon();
   if (view === 'summary') renderSummary(); else renderDetail();
 }
@@ -537,7 +538,9 @@ function explainRawMaterial(r) {
 
   const comps = (rm.components || []).map((c) => stepLine(
     `${c.item} ${c.description}`,
-    `${fmtN(c.lbs)} lbs · ${fmt$(c.cost)}${c.perLb != null ? ` · ${rate$(c.perLb)}/lb` : ''}`,
+    `${fmtN(c.lbs)} lbs · ${fmt$(c.cost)}${c.perLb != null ? ` · ${rate$(c.perLb)}/lb` : ''}`
+      + (c.recost ? `<div class="note">re-costed — these pounds were made by chained batch ${esc(String(c.recost.fromBatch))},
+          so they carry that batch's actual cost. Swarmbox's blended average said ${fmt$(c.recost.blendedCost)}${c.recost.blendedPerLb != null ? ` (${rate$(c.recost.blendedPerLb)}/lb)` : ''}.</div>` : ''),
     true,
   )).join('');
 
@@ -560,12 +563,21 @@ function explainRawMaterial(r) {
       ${loss}${share}`;
   }
 
-  return `<section><h3>Raw material — where it came from</h3>
-    <div class="result">${fmt$(rm.charged)}</div>
-    <div class="note">Swarmbox hands us this total directly (<code>total_inventory_cost</code>) — we don't compute it.
+  // When the batch drew same-day WIP past a blended average, the headline number is
+  // OURS (re-costed), not Swarmbox's — the explainer must not claim otherwise.
+  const srcNote = rm.recost
+    ? `<div class="note"><b>Re-costed.</b> Swarmbox said ${fmt$(rm.recost.blendedCharged)}${rm.recost.blendedPerLb != null ? ` (${rate$(rm.recost.blendedPerLb)}/lb)` : ''}
+        for this line, but that came from the item's <b>blended average</b> — Swarmbox averages a WIP item across every
+        batch that made it that day, so when customer-supplied $0 meat and company-owned meat share one item code, the
+        average hides the real cost. This batch's pounds match one sibling batch's output exactly, so the line is charged
+        <b>that batch's actual cost</b> instead (see the re-costed component below).</div>`
+    : `<div class="note">Swarmbox hands us this total directly (<code>total_inventory_cost</code>) — we don't compute it.
       It equals <b>this line's pounds × the batch's average input $/lb</b>, so it charges only the pounds that came
       <b>out</b>. The ${rm.perLb != null ? rate$(rm.perLb) + '/lb' : '$/lb'} you see elsewhere is just this total divided
-      back by ${fmtN(r.lbs)} lbs — it is not a rate we looked up.</div>
+      back by ${fmtN(r.lbs)} lbs — it is not a rate we looked up.</div>`;
+  return `<section><h3>Raw material — where it came from</h3>
+    <div class="result">${fmt$(rm.charged)}</div>
+    ${srcNote}
     ${comps ? `<div class="sub">Consumed into batch ${esc(String(r.batch))}</div>${comps}`
             : '<div class="note">Swarmbox recorded no component inputs for this batch.</div>'}
     ${yieldBlock}</section>`;
@@ -575,7 +587,8 @@ function explainMath(r) {
   const a = r.trace.amounts;
   // Raw material is a TOTAL from Swarmbox, not a rate × lbs — see explainRawMaterial.
   // State it as the total it is, and point at the section that breaks it down.
-  const rmLine = `raw material (input cost) = ${fmt$(a.inputCost)}  (from Swarmbox — see above)`;
+  const recosted = r.trace.rawMaterial && r.trace.rawMaterial.recost;
+  const rmLine = `raw material (input cost) = ${fmt$(a.inputCost)}  (${recosted ? 're-costed from the producing batch — see above' : 'from Swarmbox — see above'})`;
   if (r.internal) {
     return `<section><h3>The math</h3>
       <div class="math">${fmtN(a.cs)} cases · ${fmtN(a.lbs)} lbs &nbsp;(from Swarmbox)</div>

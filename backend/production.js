@@ -30,8 +30,9 @@ const dbStore = require('./db');
 
 const TTL_MS = Number(process.env.PRODUCTION_CACHE_TTL_MS) || 5 * 60 * 1000; // 5 min
 const RECENT_WINDOW_DAYS = 45;      // how far back the date picker / period comparisons look
-const SUMMARY_VERSION = 8;          // bump when the stored summary shape OR the numbers behind it change (forces re-backfill)
+const SUMMARY_VERSION = 9;          // bump when the stored summary shape OR the numbers behind it change (forces re-backfill)
                                     // v8: chained-batch netting (cutting→packaging same-item double-count)
+                                    // v9: chained-draw re-costing (WIP blended-average dilution)
 const TOLL_IC_PER_LB = 0.10;        // batch avg input cost below this ⇒ customer-supplied meat ⇒ toll
 const TOLL_LOOKBACK_DAYS = Number(process.env.TOLL_LOOKBACK_DAYS) || 90; // freshness window for the live toll price
 
@@ -209,6 +210,11 @@ function rawMaterialTrace(r, inputCost, lbs, batchInputs, batchOutputs) {
   const trace = {
     charged: inputCost,                       // what THIS line carries
     perLb: lbs ? inputCost / lbs : null,      // derived for display — NOT a source number
+    // Set when this batch drew same-day WIP whose blended average hid the real
+    // cost — charged above is the re-costed number; blended* is what Swarmbox said.
+    recost: r._recostScale
+      ? { blendedCharged: r._recostScale.blendedCost, blendedPerLb: lbs ? r._recostScale.blendedCost / lbs : null }
+      : null,
     components: bin ? bin.components : null,  // what was actually consumed into the batch
     batch: null,
   };
@@ -503,6 +509,115 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
   };
 }
 
+// ── Chained-draw re-costing ──────────────────────────────────────────────────
+// Swarmbox costs a batch's DRAW of an item at that item's blended average — not at
+// the cost of the sibling batch that actually produced it. When one WIP code pools
+// customer-supplied ($0) and company-owned (real-cost) meat, the average dilutes:
+// on 2026-07-15, 060269 (Mishima ground beef) was output by four grind batches —
+// 780 lbs from CMP-owned trim at $4.71/lb and 7,008 lbs from Mishima's own $0
+// trim — so every packaging batch drew it at the blended $0.47/lb. The own-meat
+// chain was charged $368 instead of $3,673, the difference leaked onto the toll
+// chains (whose input cost the report zeroes anyway), and the day's own-product GP
+// was overstated ~$3.3k. The chained netting in buildReport assumes "the
+// intermediate's cost is realized on the finished good downstream" — average
+// costing breaks that promise; this pass restores it.
+//
+// Rule: a draw whose pounds match a SIBLING batch's same-day output of the same
+// item (within 1%) is re-costed at that output line's actual cost, and the
+// consuming batch's output lines are re-scaled off their ORIGINAL allocation (so
+// Swarmbox's own by-weight split across multiple outputs is preserved). Anything
+// ambiguous — no pounds match, competing producers at different $/lb, a partial
+// draw — KEEPS the blended number: mis-attributing cost is worse than averaging
+// it, so we only claim what the pounds prove. Runs to a fixpoint (≤3 passes) so a
+// grind → blend → pack chain propagates; a batch never consumes its own output
+// (same-batch rows are excluded), so it terminates.
+//
+// Mutates the fetched rows IN PLACE, before anything reads a cost — classification
+// (batch avg IC), consumed/batchInputs/batchOutputs, and every line's inputCostRaw
+// all flow from them. Originals are stashed on the rows (_recost on draws,
+// _recostScale on outputs) so the explainer can show both numbers.
+function recostChainedDraws(allOutputs, inputRows) {
+  const lbsTol = (lbs) => Math.max(1, lbs * 0.01);
+
+  // Producer side: every output line, claimable once — one batch's pounds can
+  // only have fed one draw.
+  const producersByItem = new Map(); // item -> [{ row, batch, lbs, claimed }]
+  for (const r of allOutputs) {
+    const lbs = num(r.cost_quantity);
+    if (!(lbs > 0)) continue;
+    const list = producersByItem.get(r.item) || [];
+    list.push({ row: r, batch: String(r.batch), lbs, claimed: false });
+    producersByItem.set(r.item, list);
+  }
+
+  // Match phase — by pounds, once. Costs can still move afterwards (a multi-hop
+  // chain), so a match records WHO feeds the draw; the resolve phase below reads
+  // the producer's then-current cost.
+  const matches = [];
+  for (const draw of inputRows) {
+    const lbs = num(draw.cost_quantity);
+    if (!(lbs > 0)) continue;
+    const cands = (producersByItem.get(draw.item) || []).filter(
+      (p) => !p.claimed && p.batch !== String(draw.batch) && Math.abs(p.lbs - lbs) <= lbsTol(lbs)
+    );
+    if (!cands.length) continue;
+    // Two candidate producers telling different cost stories = we cannot know
+    // which fed this draw — keep the blended number rather than guess.
+    const perLb = cands.map((p) => num(p.row.total_inventory_cost) / p.lbs);
+    if (Math.max(...perLb) - Math.min(...perLb) > 0.005) continue;
+    cands[0].claimed = true;
+    matches.push({ draw, producer: cands[0] });
+  }
+  if (!matches.length) return 0;
+
+  // Originals — every re-scale derives from these, so repeated passes never compound.
+  const origInputCost = new Map(); // batch -> input total as Swarmbox sent it
+  const inputsByBatch = new Map(); // batch -> its draw rows
+  for (const r of inputRows) {
+    const b = String(r.batch);
+    origInputCost.set(b, (origInputCost.get(b) || 0) + num(r.total_inventory_cost));
+    const list = inputsByBatch.get(b) || [];
+    list.push(r);
+    inputsByBatch.set(b, list);
+  }
+  const outputsByBatch = new Map(); // batch -> its output rows
+  for (const r of allOutputs) {
+    const b = String(r.batch);
+    const list = outputsByBatch.get(b) || [];
+    list.push(r);
+    outputsByBatch.set(b, list);
+  }
+
+  const recostedBatches = new Set();
+  for (let pass = 0; pass < 3; pass++) {
+    const dirty = new Set();
+    for (const { draw, producer } of matches) {
+      const actual = num(producer.row.total_inventory_cost);
+      if (Math.abs(actual - num(draw.total_inventory_cost)) < 0.01) continue;
+      if (!draw._recost) draw._recost = { blendedCost: num(draw.total_inventory_cost), fromBatch: producer.batch };
+      draw.total_inventory_cost = actual;
+      dirty.add(String(draw.batch));
+      recostedBatches.add(String(draw.batch));
+    }
+    if (!dirty.size) break;
+    // Re-spread each dirty batch's corrected input total over its outputs the way
+    // Swarmbox allocates — scaled off the original allocation, preserving its
+    // by-weight split (and its >100%-yield over-charge) exactly.
+    for (const b of dirty) {
+      const orig = origInputCost.get(b) || 0;
+      if (!(orig > 0.005)) continue; // Swarmbox allocated nothing to outputs — nothing to re-scale
+      const now = (inputsByBatch.get(b) || []).reduce((s, r) => s + num(r.total_inventory_cost), 0);
+      const factor = now / orig;
+      for (const row of outputsByBatch.get(b) || []) {
+        if (!row._recostScale) row._recostScale = { blendedCost: num(row.total_inventory_cost) };
+        row.total_inventory_cost = row._recostScale.blendedCost * factor;
+        row._recostScale.factor = factor;
+      }
+    }
+  }
+  return recostedBatches.size;
+}
+
 // ── Public API (cached per date) ─────────────────────────────────────────────
 const reportCache = new Map(); // date -> { report, builtAt }
 
@@ -563,6 +678,10 @@ async function getProductionReport({ date, force = false, background = false } =
     postRpc('production_input_cost', { p_date: day }, { background }),
   ]);
   const allOutputs = outRes.ok ? outRes.data : [];
+  // Undo WIP average-cost dilution FIRST — classification (batch avg IC), the
+  // consumed/batchInputs/batchOutputs maps, and every line's inputCostRaw all read
+  // these rows, so the correction has to land before any of them are built.
+  const recostCount = inRes.ok && allOutputs.length ? recostChainedDraws(allOutputs, inRes.data) : 0;
   const isFinishedGood = (r) => String(r.product_designation || '').trim() === 'Finished Good';
   const lines = allOutputs.filter(isFinishedGood);
 
@@ -592,6 +711,11 @@ async function getProductionReport({ date, force = false, background = false } =
       lbs,
       cost,
       perLb: lbs ? cost / lbs : null,
+      // Set when this draw was re-costed past the item's blended average to the
+      // producing batch's actual cost (see recostChainedDraws).
+      recost: r._recost
+        ? { fromBatch: r._recost.fromBatch, blendedCost: r._recost.blendedCost, blendedPerLb: lbs ? r._recost.blendedCost / lbs : null }
+        : null,
     });
     batchInputs.set(r.batch, b);
   }
@@ -654,6 +778,7 @@ async function getProductionReport({ date, force = false, background = false } =
   }
 
   const report = buildReport(day, base, itemLbs, yieldByBatch, sales, consumed, batchInputs, batchOutputs, outputsByItem);
+  report.recostCount = recostCount; // batches re-costed past a blended WIP average
 
   // A day is TRUSTWORTHY only if every input behind its money came back.
   //   - output fetch failed  ⇒ there are no lines at all (a false $0 day).
@@ -679,7 +804,7 @@ async function getProductionReport({ date, force = false, background = false } =
   const status = !outRes.ok ? 'UNAVAILABLE (Swarmbox error)'
     : !salesOk ? `${report.rows.length} lines — NOT SAVED (sales fetch incomplete; margin unreliable)`
     : `${report.rows.length} lines`;
-  console.log(`[Production] ${day}: ${status}, GP $${Math.round(report.totals.gp).toLocaleString()} (toll: ${c.live} live, ${c.contract} contract, ${c.missing} missing)`);
+  console.log(`[Production] ${day}: ${status}, GP $${Math.round(report.totals.gp).toLocaleString()} (toll: ${c.live} live, ${c.contract} contract, ${c.missing} missing${recostCount ? `; ${recostCount} batch(es) re-costed past blended WIP avg` : ''})`);
   return report;
 }
 
