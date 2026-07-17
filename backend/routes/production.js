@@ -4,6 +4,7 @@ const manualRates = require('../manualRates');
 const classOverrides = require('../classOverrides');
 const customerOverrides = require('../customerOverrides');
 const priceOverrides = require('../priceOverrides');
+const costOverrides = require('../costOverrides');
 const itemSpecs = require('../itemSpecs');
 const { KNOWN_CUSTOMERS } = require('../tollRates');
 
@@ -124,6 +125,38 @@ router.post('/price-overrides', (req, res) => {
 // DELETE /api/production/price-overrides/:code → clear a forced price + flag
 router.delete('/price-overrides/:code', (req, res) => {
   const removed = priceOverrides.remove(req.params.code);
+  afterOverrideChange();
+  res.json({ ok: true, removed });
+});
+
+// ── Cost overrides (manual raw-material $/lb) ────────────────────────────────
+// The cost-side twin of the forced price: when Swarmbox's blended WIP average is
+// wrong and the chained re-cost can't prove the chain, this forces a line's
+// raw-material $/lb. Per item, optionally pinned to one batch (batch numbers are
+// day-specific, so a batch-scoped record corrects just that day's line).
+
+// GET /api/production/cost-overrides → all manual cost corrections
+router.get('/cost-overrides', (_req, res) => {
+  res.json({ overrides: costOverrides.getList() });
+});
+
+// POST /api/production/cost-overrides { code, rate, batch?, note? } → force a
+// raw-material $/lb for an item (batch omitted/null = every batch of the item).
+router.post('/cost-overrides', (req, res) => {
+  const body = req.body || {};
+  const code = String(body.code || '').trim();
+  const rate = Number(body.rate);
+  if (!code || !(rate > 0)) return res.status(400).json({ error: 'code and a positive rate are required' });
+  costOverrides.set(code, body.batch, rate, body.note);
+  afterOverrideChange();
+  res.json({ ok: true, override: costOverrides.get(code, body.batch) });
+});
+
+// DELETE /api/production/cost-overrides/:code[?batch=...] → clear a cost
+// correction. `batch` targets a batch-scoped record; omit it for the item-wide one.
+router.delete('/cost-overrides/:code', (req, res) => {
+  const batch = typeof req.query.batch === 'string' && req.query.batch.trim() ? req.query.batch : null;
+  const removed = costOverrides.remove(req.params.code, batch);
   afterOverrideChange();
   res.json({ ok: true, removed });
 });

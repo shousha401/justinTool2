@@ -25,6 +25,7 @@ const manualRates = require('./manualRates');
 const classOverrides = require('./classOverrides');
 const customerOverrides = require('./customerOverrides');
 const priceOverrides = require('./priceOverrides');
+const costOverrides = require('./costOverrides');
 const itemSpecs = require('./itemSpecs');
 const dbStore = require('./db');
 
@@ -204,14 +205,28 @@ function classify(lines) {
 // carry real cost that lands on no product line and is therefore subtracted from
 // nobody's gross profit. Surface it rather than charging it: changing it would move
 // every GP number in the app, and that's a business decision, not a bug fix.
-function rawMaterialTrace(r, inputCost, lbs, batchInputs, batchOutputs) {
+function rawMaterialTrace(r, inputCost, lbs, batchInputs, batchOutputs, costOv, replacedCost) {
   const bin = batchInputs && batchInputs.get(r.batch);
   const bout = batchOutputs && batchOutputs.get(r.batch);
   const trace = {
     charged: inputCost,                       // what THIS line carries
     perLb: lbs ? inputCost / lbs : null,      // derived for display — NOT a source number
+    // Set when a manual cost override is in effect — charged above is the forced
+    // rate × lbs; replaced* is what the line would otherwise carry (the chained
+    // re-cost if one applied, else Swarmbox's number). The Swarmbox blended figure
+    // stays visible via recost.blendedCharged when a re-cost also happened.
+    override: costOv
+      ? {
+          rate: costOv.rate,
+          batch: costOv.batch || null,        // null = applies to every batch of the item
+          note: costOv.note || '',
+          replacedCost,
+          replacedPerLb: lbs ? replacedCost / lbs : null,
+        }
+      : null,
     // Set when this batch drew same-day WIP whose blended average hid the real
-    // cost — charged above is the re-costed number; blended* is what Swarmbox said.
+    // cost — absent a manual override, charged above is the re-costed number;
+    // blended* is what Swarmbox said.
     recost: r._recostScale
       ? { blendedCharged: r._recostScale.blendedCost, blendedPerLb: lbs ? r._recostScale.blendedCost / lbs : null }
       : null,
@@ -239,12 +254,20 @@ function rawMaterialTrace(r, inputCost, lbs, batchInputs, batchOutputs) {
 function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchInputs, batchOutputs, outputsByItem) {
   const counts = { live: 0, manual: 0, contract: 0, sale: 0, missing: 0 };
   const ownCounts = { sale: 0, manual: 0, standard: 0, none: 0 };
-  let forcedCount = 0, flaggedCount = 0, internalCount = 0;
+  let forcedCount = 0, flaggedCount = 0, internalCount = 0, costForcedCount = 0;
 
   const rows = base.map(({ r, cs, lbs, sellVal, inputCostRaw, batchAvgIC, customer, autoCustomer, specCustomer, customerOverride, isToll, autoToll, override, hasTollSale, hasSale }) => {
     let revenue, inputCost, rate, source, missingRate = false, priceBasis, internal = false;
     const rec = sales.get(r.item);
     const forced = priceOverrides.get(r.item); // authoritative correction (wins over Swarmbox)
+    // Manual raw-material correction (the cost-side twin of the forced price).
+    // Precedence: manual cost override > chained re-cost > Swarmbox blended —
+    // inputCostRaw already carries the re-cost when one applied, and the override
+    // beats both. Money only: classification (batch avg IC) never sees it, and a
+    // toll line still zeroes its cost below regardless.
+    const costOv = costOverrides.get(r.item, r.batch);
+    const inputCostEff = costOv ? costOv.rate * lbs : inputCostRaw;
+    if (costOv && !isToll) costForcedCount++;
     // Internal intermediate: this item is consumed as a component into another batch
     // today AND has no sale value of its own (e.g. 662139 grind → patties). The static
     // INTERNAL_CODES list is a manual fallback. Either way it's input-cost-only and
@@ -282,7 +305,7 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
       // turn an intermediate into a sold good; it stays input-cost-only.
       internal = true;
       internalCount++;
-      inputCost = isToll ? 0 : inputCostRaw;
+      inputCost = isToll ? 0 : inputCostEff;
       revenue = 0;
       rate = null;
       source = chainedUpstream
@@ -296,7 +319,7 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
       // contract/standard) — this is the "Swarmbox is wrong; here's the right
       // number" override on the Prices Today page.
       rate = forced.rate;
-      inputCost = isToll ? 0 : inputCostRaw;
+      inputCost = isToll ? 0 : inputCostEff;
       revenue = rate * lbs;
       source = `forced $${rate.toFixed(2)}/lb${forced.note ? ' · ' + forced.note : ''}`;
       priceBasis = 'forced';
@@ -343,7 +366,7 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
         }
       }
     } else {
-      inputCost = inputCostRaw;
+      inputCost = inputCostEff;
       const sale = rec && rec.any;
       const manual = manualRates.getRate(r.item);
       if (sale && sale.price > 0) {
@@ -420,8 +443,9 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
       },
       amounts: { cs, lbs, revenue, inputCost, inputCostRaw, gp, sellVal },
       // Provenance for "how did we get raw material?" — the components consumed into
-      // this batch, and the yield loss that no product line carries.
-      rawMaterial: rawMaterialTrace(r, inputCost, lbs, batchInputs, batchOutputs),
+      // this batch, and the yield loss that no product line carries. A toll line's
+      // cost is $0 by definition, so a cost override is inert there (not passed).
+      rawMaterial: rawMaterialTrace(r, inputCost, lbs, batchInputs, batchOutputs, isToll ? null : costOv, inputCostRaw),
     };
 
     return {
@@ -441,6 +465,8 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
       internal,
       cs, lbs, rate, revenue, inputCost, gp,
       source, missingRate, priceBasis,
+      // Cost-override surface (manual raw-material $/lb, set from the explainer).
+      costForced: !isToll && !!costOv,
       // Price-override surface for the Prices Today page.
       forced: !!(forced && forced.rate > 0),
       flagged: !!(forced && forced.flagged),
@@ -501,6 +527,7 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
     tollPricing: counts,       // toll line counts: { live, manual, contract, missing }
     ownPricing: ownCounts,     // own line counts: { sale, standard }
     forcedCount, flaggedCount, // price-override line counts (Prices Today page)
+    costForcedCount,           // lines whose raw-material cost is manually overridden
     internalCount,             // internal intermediates excluded from margin (input cost only)
     rooms: [...roomMap.values()].sort((a, b) => (a.room < b.room ? -1 : a.room > b.room ? 1 : 0)),
     customers: [...custMap.values()].sort((a, b) => b.rev - a.rev),
@@ -809,12 +836,12 @@ async function getProductionReport({ date, force = false, background = false } =
 }
 
 // A cheap fingerprint of all user overrides (manual rates, toll/own class,
-// customer transfers, price corrections). Stored alongside each daily summary so
+// customer transfers, price corrections, cost corrections). Stored alongside each daily summary so
 // that changing ANY override marks the affected days stale — the Dashboard and
 // Customers tab then recompute them, so a transfer/correction "updates
 // everything", not just today's live report.
 function overrideSignature() {
-  const lists = [manualRates.getList(), classOverrides.getList(), customerOverrides.getList(), priceOverrides.getList()];
+  const lists = [manualRates.getList(), classOverrides.getList(), customerOverrides.getList(), priceOverrides.getList(), costOverrides.getList()];
   let total = 0, latest = '';
   for (const list of lists) {
     total += list.length;
