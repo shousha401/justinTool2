@@ -67,10 +67,17 @@ function middleware(req, res, next) {
   // channel is even enabled).
   const suppliedKey = req.headers['x-api-key'];
   if (suppliedKey !== undefined) {
+    // Audit trail — a leaked key would otherwise scrape silently. We log the
+    // request line (method + path + source ip), NEVER the key value itself.
     if (!API_KEY || !safeEqual(suppliedKey, API_KEY)) {
+      console.warn(`[Auth] api key REJECTED — ${req.method} ${req.path} from ${req.ip}`);
       return setTimeout(() => res.status(401).json({ error: 'bad api key' }), FAIL_DELAY_MS);
     }
-    if (keyAllowed(req)) return next();
+    if (keyAllowed(req)) {
+      console.log(`[Auth] api key — ${req.method} ${req.path} from ${req.ip}`);
+      return next();
+    }
+    console.warn(`[Auth] api key BLOCKED (out of scope) — ${req.method} ${req.path} from ${req.ip}`);
     return res.status(403).json({ error: 'api key not permitted for this route' });
   }
 
