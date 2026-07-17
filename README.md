@@ -250,6 +250,16 @@ a pm2 restart logs everyone out — you just type the password again. Leaving
 `APP_PASSWORD` unset turns the gate **off** (with a loud boot warning), so a
 missing line degrades to open rather than locking everyone out.
 
+**API key (machine channel).** Setting `API_KEY` in `.env` opens one narrow,
+password-free lane through the gate: a request bearing the header
+`X-Api-Key: <key>` may **GET any `/api/*` route** and **POST
+`/api/questions/:id/answer`** — nothing else. No deletes, no question
+creation, no override/rate edits, no pages; those still need a human login.
+It exists so a local agent or script can read the numbers and work the
+Questions queue without ever holding the shared password. Wrong keys get the
+same slowed 401 as wrong passwords and can't tell whether the channel is even
+enabled.
+
 ## Run
 
 ```bash
@@ -343,6 +353,7 @@ entire multi-minute rebuild and just spins.
 |---|---|---|
 | `PORT` | `3004` | HTTP port. |
 | `APP_PASSWORD` | *(unset — gate off)* | Shared password in front of every page and API route. |
+| `API_KEY` | *(unset — channel off)* | `X-Api-Key` header auth: `/api/*` reads + question answers only. |
 | `SESSION_TTL_MS` | `43200000` | Login session lifetime (12h, sliding). |
 | `SWARMBOX_BASE_URL` | `https://jdfood.swarmbox.com:443/pg-api` | Swarmbox REST base. |
 | `SWARMBOX_TIMEOUT_MS` | `30000` | Per-request timeout. |

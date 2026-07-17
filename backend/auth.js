@@ -16,6 +16,7 @@
 const crypto = require('crypto');
 
 const PASSWORD = process.env.APP_PASSWORD || '';
+const API_KEY = process.env.API_KEY || '';
 const SESSION_TTL_MS = Number(process.env.SESSION_TTL_MS) || 12 * 60 * 60 * 1000; // 12h sliding
 const COOKIE = 'vt_session';
 const FAIL_DELAY_MS = 600; // slow down guessing without a lockout table
@@ -43,11 +44,35 @@ function prune() {
   for (const [t, exp] of sessions) if (exp <= now) sessions.delete(t);
 }
 
+// What the API key may do: GET any /api/* (read the numbers), and POST an answer
+// to a question (close the loop). Everything else — deletes, question creation,
+// override/rate edits, pages — still requires a human session. The key exists so
+// a local agent/script can read the app and work the Questions queue without
+// ever holding the human password.
+function keyAllowed(req) {
+  if (!req.path.startsWith('/api/')) return false;
+  if (req.method === 'GET') return true;
+  return req.method === 'POST' && /^\/api\/questions\/[^/]+\/answer$/.test(req.path);
+}
+
 // Everything goes through here. Exemptions: the login page and the login call
 // itself (otherwise nobody could ever get in).
 function middleware(req, res, next) {
   if (!PASSWORD) return next(); // gate off — warned at boot
   if (req.path === '/login.html' || req.path === '/api/login') return next();
+
+  // Machine channel: a request that presents X-Api-Key is judged on the key
+  // alone — matched keys get the narrow slice above, mismatches get the same
+  // slow 401 as a wrong password (and reveal nothing about whether the
+  // channel is even enabled).
+  const suppliedKey = req.headers['x-api-key'];
+  if (suppliedKey !== undefined) {
+    if (!API_KEY || !safeEqual(suppliedKey, API_KEY)) {
+      return setTimeout(() => res.status(401).json({ error: 'bad api key' }), FAIL_DELAY_MS);
+    }
+    if (keyAllowed(req)) return next();
+    return res.status(403).json({ error: 'api key not permitted for this route' });
+  }
 
   const token = readToken(req);
   const exp = token && sessions.get(token);
@@ -90,5 +115,6 @@ function logout(req, res) {
 }
 
 const enabled = () => !!PASSWORD;
+const keyEnabled = () => !!API_KEY;
 
-module.exports = { middleware, login, logout, enabled };
+module.exports = { middleware, login, logout, enabled, keyEnabled };

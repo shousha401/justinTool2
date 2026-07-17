@@ -89,6 +89,7 @@ const PORT = Number(process.env.PORT) || 3004;
 app.listen(PORT, () => {
   if (auth.enabled()) console.log('[Auth] password gate ON — pages and API require login');
   else console.warn('[Auth] APP_PASSWORD not set — the app is OPEN (no password). Add APP_PASSWORD to .env to enable the gate.');
+  if (auth.enabled() && auth.keyEnabled()) console.log('[Auth] API key channel ON — X-Api-Key grants /api/* reads + question answers only');
   if (SANITY_ONLY) {
     console.log(`[ValueTool] SANITY-ONLY mode → http://localhost:${PORT}/checks.html`);
     console.log('[ValueTool] heavy Swarmbox builds (pricing, production, dashboard, daily refresh) are DISABLED.');
