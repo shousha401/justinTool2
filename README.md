@@ -194,6 +194,15 @@ blended number**: mis-attributing cost is worse than averaging it. Re-costed lin
 say so in the 🔎 explainer (both numbers shown, with the producing batch), and the
 day header counts the re-costed batches.
 
+**Repack / boxing batches create no value.** A batch whose input is (≈)entirely the
+**same item** it outputs, pounds in ≈ pounds out, and where **no sibling batch made
+that item the same day** (that guard is what protects the tail of a cutting→packaging
+chain, whose line carries the chain's real revenue), is a repack (one case broken into
+two) or a boxing run (bulk boxed for later use). Swarmbox still stamps the output with
+a sell value, so these used to show phantom GP (+$70 for splitting a bacon case; a fake
+−$8.4k on a cooker-trim boxing run). They're treated as internal: input cost only,
+excluded from margin — the real margin appears when the item actually ships or cooks.
+
 **Toll vs Own is also overridable.** The Type column in Batch Detail is an
 **Auto / Toll / Own** selector: "Auto" uses the automatic rule (and shows what it
 decided, e.g. "Auto (Own)"), or pick Toll/Own to force an item either way. Overrides
@@ -381,6 +390,6 @@ entire multi-minute rebuild and just spins.
 | `VALUE_CACHE_TTL_MS` | `21600000` | How long a built table is reused (6h). |
 | `CATALOG_ROW_BUDGET` | `50000` | Subdivide a wildcard prefix above this many rows. |
 | `CATALOG_ATTEMPTS` | `3` | Tries per prefix before the slice is written off (timeouts are split, not retried). |
-| `CATALOG_CALL_BUDGET` | `1500` | Hard ceiling on Swarmbox calls per sweep — abort rather than storm. |
+| `CATALOG_CALL_BUDGET` | `300` | Hard ceiling on Swarmbox calls per sweep — abort rather than storm. |
 | `PRODUCTION_CACHE_TTL_MS` | `300000` | How long a built day's margin report is reused (5m). |
 | `PRODUCTION_MAX_DAY_ATTEMPTS` | `6` | Give up rebuilding a broken day after this many failures. |

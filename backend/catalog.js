@@ -31,7 +31,12 @@ const { getRows, withRetry, isTimeout, isTransient } = require('./swarmbox');
 const ROW_BUDGET = Number(process.env.CATALOG_ROW_BUDGET) || 40000;
 const MAX_DEPTH = 6;  // product codes are 6 digits — never subdivide past that
 const ATTEMPTS = Number(process.env.CATALOG_ATTEMPTS) || 3;      // tries per prefix before it's a failed slice
-const CALL_BUDGET = Number(process.env.CATALOG_CALL_BUDGET) || 1500; // hard ceiling on calls per sweep
+// Hard ceiling on calls per sweep. A clean sweep is 100 calls and a legitimate
+// dense-prefix split adds 10, so 300 leaves room for ~20 splits — while a
+// timeout storm (every split child hitting an already-struggling Swarmbox) gets
+// cut off at 3× steady state instead of 15×. Raise via env if the code space
+// ever genuinely needs deeper subdivision.
+const CALL_BUDGET = Number(process.env.CATALOG_CALL_BUDGET) || 300;
 
 function twoDigitSeeds() {
   const seeds = [];
