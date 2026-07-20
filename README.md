@@ -188,7 +188,7 @@ chains (whose input cost the report zeroes anyway), and own-product GP is overst
 (~$3.3k that day). The report undoes this: a draw whose pounds match a **sibling
 batch's same-day output** of the same item (within 1%) is re-costed at that batch's
 **actual output cost**, and the consuming batch's lines are re-scaled the way
-Swarmbox itself allocates (by weight, off the original split). Anything ambiguous —
+Swarmbox itself allocates (by value, off its original split). Anything ambiguous —
 no pounds match, competing producers at different $/lb, a partial draw — **keeps the
 blended number**: mis-attributing cost is worse than averaging it. Re-costed lines
 say so in the 🔎 explainer (both numbers shown, with the producing batch), and the

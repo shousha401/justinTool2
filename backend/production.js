@@ -200,8 +200,12 @@ function classify(lines) {
 // Where a line's "raw material (input cost)" actually comes from.
 //
 // Swarmbox hands us total_inventory_cost on the output line — we do NOT compute it.
-// It equals (this line's lbs) × (the batch's average input $/lb), so it only charges
-// the pounds that came OUT. The pounds that went in but didn't come out — yield loss —
+// It splits the batch's input cost across the outputs by VALUE (each output's
+// standard $/lb), NOT by weight — a single-output batch reduces to lbs × the batch
+// average, but on a multi-output batch the primary cut carries most of the cost and
+// a low-value byproduct (cooker fat, trim) leaves with little (proven on batch
+// 10152725: 56% of the pounds carried 93.8% of the cost). It only charges the
+// pounds that came OUT. The pounds that went in but didn't come out — yield loss —
 // carry real cost that lands on no product line and is therefore subtracted from
 // nobody's gross profit. Surface it rather than charging it: changing it would move
 // every GP number in the app, and that's a business decision, not a bug fix.
@@ -246,6 +250,25 @@ function rawMaterialTrace(r, inputCost, lbs, batchInputs, batchOutputs, costOv, 
       // This line's share of the batch's charged cost, so a multi-output batch
       // (patties flat + patties round) is legible.
       shareOfBatch: bout.cost ? (inputCost / bout.cost) * 100 : null,
+      // The batch's OTHER output lines, by name — where the rest of the input cost
+      // went. Swarmbox splits by value, so a low-value byproduct (cooker fat, trim)
+      // leaves with little of the cost and the primary cut carries the rest; naming
+      // them here is what turns "$486 of $515??" into "$32 left with the 40 lbs of
+      // fat". Filtered by row identity, not item, so a second line of the same item
+      // still lists.
+      others: (bout.rows || [])
+        .filter((o) => o !== r)
+        .map((o) => {
+          const olbs = num(o.cost_quantity), ocost = num(o.total_inventory_cost);
+          return {
+            item: o.item,
+            description: o.description || '',
+            lbs: olbs,
+            cost: ocost,
+            perLb: olbs ? ocost / olbs : null,
+            designation: String(o.product_designation || '').trim() || null,
+          };
+        }),
     };
   }
   return trace;
@@ -629,7 +652,7 @@ function recostChainedDraws(allOutputs, inputRows) {
     if (!dirty.size) break;
     // Re-spread each dirty batch's corrected input total over its outputs the way
     // Swarmbox allocates — scaled off the original allocation, preserving its
-    // by-weight split (and its >100%-yield over-charge) exactly.
+    // value-based split (and its >100%-yield over-charge) exactly.
     for (const b of dirty) {
       const orig = origInputCost.get(b) || 0;
       if (!(orig > 0.005)) continue; // Swarmbox allocated nothing to outputs — nothing to re-scale
@@ -750,14 +773,15 @@ async function getProductionReport({ date, force = false, background = false } =
   // What each batch actually CHARGED to its outputs — every output, finished good or
   // not. The gap against batchInputs is raw material that landed on no product at all
   // (yield loss / shrink), and therefore is subtracted from nobody's gross profit.
-  const batchOutputs = new Map(); // batch -> { lbs, cost }
+  const batchOutputs = new Map(); // batch -> { lbs, cost, rows }
   // Which batches output each item — the other half of chained-batch detection
   // (a batch that consumed an item AND re-output it is passing it through).
   const outputsByItem = new Map(); // item -> Set(batch)
   for (const r of allOutputs) {
-    const b = batchOutputs.get(r.batch) || { lbs: 0, cost: 0 };
+    const b = batchOutputs.get(r.batch) || { lbs: 0, cost: 0, rows: [] };
     b.lbs += num(r.cost_quantity);
     b.cost += num(r.total_inventory_cost);
+    b.rows.push(r); // kept by reference so a trace can list the batch's OTHER outputs
     batchOutputs.set(r.batch, b);
     const s = outputsByItem.get(r.item) || new Set();
     s.add(String(r.batch));

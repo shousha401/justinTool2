@@ -588,7 +588,23 @@ function explainRawMaterial(r) {
   let yieldBlock = '';
   if (b) {
     const share = b.shareOfBatch != null && b.shareOfBatch < 99.5
-      ? `<div class="note">This batch made more than one product, so Swarmbox splits the raw material across the outputs by weight — this line carries ${b.shareOfBatch.toFixed(1)}% of it.</div>`
+      ? `<div class="note">This batch made more than one product, so Swarmbox splits the raw material across the outputs
+          <b>by value</b> (each output's standard $/lb — <b>not</b> by weight) — this line carries ${b.shareOfBatch.toFixed(1)}%
+          of the cost.</div>`
+      : '';
+    // Name the batch's other outputs, so "why is this line's cost less than the batch
+    // consumed?" answers itself: the rest of the cost left WITH those items.
+    const others = b.others && b.others.length
+      ? `<div class="sub">Also out of this batch</div>`
+        + b.others.map((o) => stepLine(
+            `${o.item} ${o.description}`,
+            `${fmtN(o.lbs)} lbs · ${fmt$(o.cost)}${o.perLb != null ? ` · ${rate$(o.perLb)}/lb` : ''}`
+              + (o.designation && o.designation !== 'Finished Good' ? ` · <span class="dim">${esc(o.designation.toLowerCase())}</span>` : ''),
+            false,
+          )).join('')
+        + `<div class="note">These carried the rest of the batch's input cost out with them. That share isn't lost —
+            an in-process item takes its cost into the batch that later uses it (e.g. cooker fat into the cooker run),
+            and a finished good realizes it against its own revenue.</div>`
       : '';
     const loss = b.unallocatedCost > 0.005
       ? `<div class="warn"><b>${fmtN(b.unallocatedLbs)} lbs · ${fmt$(b.unallocatedCost)} went in but never came out.</b>
@@ -596,11 +612,19 @@ function explainRawMaterial(r) {
            higher than the true economics by ${fmt$(b.unallocatedCost)}. We report this rather than charge it:
            allocating it would move every margin number in the app.</div>`
       : '';
+    // The mirror image: Swarmbox's value-based standards charged the outputs MORE
+    // than the batch actually consumed (yield reads over 100%).
+    const over = b.unallocatedCost < -0.05
+      ? `<div class="note"><b>Outputs were charged ${fmt$(-b.unallocatedCost)} more than the batch consumed</b>
+           (${fmt$(b.outputCost)} charged vs ${fmt$(b.inputCost)} in). Swarmbox's value-based standards don't reconcile
+           exactly to actual consumption, so this line's raw material is slightly <b>overstated</b> — and its GP
+           understated — by this line's share of that.</div>`
+      : '';
     yieldBlock = `
       <div class="math">batch consumed = ${fmtN(b.inputLbs)} lbs = ${fmt$(b.inputCost)}</div>
       <div class="math">batch produced = ${fmtN(b.outputLbs)} lbs = ${fmt$(b.outputCost)} &nbsp;(every output, incl. in-process)</div>
       <div class="math">yield = ${b.yieldPct != null ? b.yieldPct.toFixed(1) + '%' : '—'}</div>
-      ${loss}${share}`;
+      ${loss}${over}${share}${others}`;
   }
 
   // When the batch drew same-day WIP past a blended average, the headline number is
@@ -622,8 +646,9 @@ function explainRawMaterial(r) {
         average hides the real cost. This batch's pounds match one sibling batch's output exactly, so the line is charged
         <b>that batch's actual cost</b> instead (see the re-costed component below).</div>`
     : `<div class="note">Swarmbox hands us this total directly (<code>total_inventory_cost</code>) — we don't compute it.
-      It equals <b>this line's pounds × the batch's average input $/lb</b>, so it charges only the pounds that came
-      <b>out</b>. The ${rm.perLb != null ? rate$(rm.perLb) + '/lb' : '$/lb'} you see elsewhere is just this total divided
+      It is this line's share of the batch's input cost, split across the batch's outputs <b>by value</b> (each
+      output's standard $/lb — not by weight), and it charges only the pounds that came <b>out</b>. The
+      ${rm.perLb != null ? rate$(rm.perLb) + '/lb' : '$/lb'} you see elsewhere is just this total divided
       back by ${fmtN(r.lbs)} lbs — it is not a rate we looked up.</div>`;
   // The correction tool for when the blended average is wrong but the chain is
   // ambiguous (partial draw, competing producers) so the automatic re-cost can't
