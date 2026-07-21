@@ -26,6 +26,7 @@ const classOverrides = require('./classOverrides');
 const customerOverrides = require('./customerOverrides');
 const priceOverrides = require('./priceOverrides');
 const costOverrides = require('./costOverrides');
+const lineExcludes = require('./lineExcludes');
 const itemSpecs = require('./itemSpecs');
 const dbStore = require('./db');
 
@@ -277,7 +278,7 @@ function rawMaterialTrace(r, inputCost, lbs, batchInputs, batchOutputs, costOv, 
 function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchInputs, batchOutputs, outputsByItem) {
   const counts = { live: 0, manual: 0, contract: 0, sale: 0, missing: 0 };
   const ownCounts = { sale: 0, manual: 0, standard: 0, none: 0 };
-  let forcedCount = 0, flaggedCount = 0, internalCount = 0, costForcedCount = 0;
+  let forcedCount = 0, flaggedCount = 0, internalCount = 0, costForcedCount = 0, excludedCount = 0;
 
   const rows = base.map(({ r, cs, lbs, sellVal, inputCostRaw, batchAvgIC, customer, autoCustomer, specCustomer, customerOverride, isToll, autoToll, override, hasTollSale, hasSale }) => {
     let revenue, inputCost, rate, source, missingRate = false, priceBasis, internal = false;
@@ -291,6 +292,11 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
     const costOv = costOverrides.get(r.item, r.batch);
     const inputCostEff = costOv ? costOv.rate * lbs : inputCostRaw;
     if (costOv && !isToll) costForcedCount++;
+    // Manual "exclude from margin" (NOT a delete — see lineExcludes.js). The line
+    // still computes and displays all its numbers so the reader can see exactly
+    // what is being left out; the rollups below just skip it, like an internal.
+    const excludeRec = lineExcludes.get(r.item, r.batch);
+    if (excludeRec) excludedCount++;
     // Internal intermediate: this item is consumed as a component into another batch
     // today AND has no sale value of its own (e.g. 662139 grind → patties). The static
     // INTERNAL_CODES list is a manual fallback. Either way it's input-cost-only and
@@ -488,6 +494,10 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
       internal,
       cs, lbs, rate, revenue, inputCost, gp,
       source, missingRate, priceBasis,
+      // Manual exclude-from-margin surface (set from the explainer; reversible).
+      excluded: !!excludeRec,
+      excludedNote: excludeRec ? excludeRec.note : '',
+      excludedScope: excludeRec ? (excludeRec.batch ? 'batch' : 'item') : null,
       // Cost-override surface (manual raw-material $/lb, set from the explainer).
       costForced: !isToll && !!costOv,
       // Price-override surface for the Prices Today page.
@@ -509,7 +519,9 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
   for (const r of rows) {
     // Internal intermediates are input-cost-only — leave them out of every rollup and
     // total so their cost (already on the finished good they feed) isn't double-counted.
-    if (r.internal) continue;
+    // Manually excluded lines are left out too — but they stay visible in the detail
+    // table (dimmed, counted in the header) so nothing disappears silently.
+    if (r.internal || r.excluded) continue;
     const rm = roomMap.get(r.room) || { room: r.room, cs: 0, lbs: 0, rev: 0, ic: 0, gp: 0 };
     rm.cs += r.cs; rm.lbs += r.lbs; rm.rev += r.revenue; rm.ic += r.inputCost; rm.gp += r.gp;
     roomMap.set(r.room, rm);
@@ -551,6 +563,7 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
     ownPricing: ownCounts,     // own line counts: { sale, standard }
     forcedCount, flaggedCount, // price-override line counts (Prices Today page)
     costForcedCount,           // lines whose raw-material cost is manually overridden
+    excludedCount,             // lines manually excluded from margin (visible, reversible)
     internalCount,             // internal intermediates excluded from margin (input cost only)
     rooms: [...roomMap.values()].sort((a, b) => (a.room < b.room ? -1 : a.room > b.room ? 1 : 0)),
     customers: [...custMap.values()].sort((a, b) => b.rev - a.rev),
@@ -865,7 +878,7 @@ async function getProductionReport({ date, force = false, background = false } =
 // Customers tab then recompute them, so a transfer/correction "updates
 // everything", not just today's live report.
 function overrideSignature() {
-  const lists = [manualRates.getList(), classOverrides.getList(), customerOverrides.getList(), priceOverrides.getList(), costOverrides.getList()];
+  const lists = [manualRates.getList(), classOverrides.getList(), customerOverrides.getList(), priceOverrides.getList(), costOverrides.getList(), lineExcludes.getList()];
   let total = 0, latest = '';
   for (const list of lists) {
     total += list.length;
@@ -881,7 +894,7 @@ function overrideSignature() {
 function summarize(report) {
   const custMap = new Map();
   for (const r of report.rows) {
-    if (r.internal) continue; // input-cost-only intermediates: excluded from stored margin too
+    if (r.internal || r.excluded) continue; // intermediates + manual excludes: out of stored margin too
     let c = custMap.get(r.customer);
     if (!c) { c = { customer: r.customer, lbs: 0, rev: 0, ic: 0, gp: 0, tollRev: 0, ownRev: 0, _items: new Map() }; custMap.set(r.customer, c); }
     c.lbs += r.lbs; c.rev += r.revenue; c.ic += r.inputCost; c.gp += r.gp;

@@ -5,6 +5,7 @@ const classOverrides = require('../classOverrides');
 const customerOverrides = require('../customerOverrides');
 const priceOverrides = require('../priceOverrides');
 const costOverrides = require('../costOverrides');
+const lineExcludes = require('../lineExcludes');
 const itemSpecs = require('../itemSpecs');
 const { KNOWN_CUSTOMERS } = require('../tollRates');
 
@@ -157,6 +158,34 @@ router.post('/cost-overrides', (req, res) => {
 router.delete('/cost-overrides/:code', (req, res) => {
   const batch = typeof req.query.batch === 'string' && req.query.batch.trim() ? req.query.batch : null;
   const removed = costOverrides.remove(req.params.code, batch);
+  afterOverrideChange();
+  res.json({ ok: true, removed });
+});
+
+// ── Line excludes (manual exclude-from-margin, reversible) ───────────────────
+// Not a delete: the line stays visible in Batch Detail (dimmed, counted in the
+// header) but is left out of every rollup, total, and stored summary.
+
+// GET /api/production/line-excludes → all manual exclusions
+router.get('/line-excludes', (_req, res) => {
+  res.json({ excludes: lineExcludes.getList() });
+});
+
+// POST /api/production/line-excludes { code, batch?, note? } → exclude a line
+// (batch omitted/null = every batch of the item).
+router.post('/line-excludes', (req, res) => {
+  const body = req.body || {};
+  const code = String(body.code || '').trim();
+  if (!code) return res.status(400).json({ error: 'code required' });
+  lineExcludes.set(code, body.batch, body.note);
+  afterOverrideChange();
+  res.json({ ok: true, exclude: lineExcludes.get(code, body.batch) });
+});
+
+// DELETE /api/production/line-excludes/:code[?batch=...] → restore a line.
+router.delete('/line-excludes/:code', (req, res) => {
+  const batch = typeof req.query.batch === 'string' && req.query.batch.trim() ? req.query.batch : null;
+  const removed = lineExcludes.remove(req.params.code, batch);
   afterOverrideChange();
   res.json({ ok: true, removed });
 });

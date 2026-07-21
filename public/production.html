@@ -93,6 +93,13 @@
   select.custEdit:hover { border-color: var(--line); background: var(--card); }
   select.custEdit.overridden { color: var(--accent); border-color: var(--accent); background: var(--card); }
   .warn { background: #fff7e6; border: 1px solid #ffe1a6; color: #8a5a00; border-radius: 10px; padding: 10px 14px; font-size: 12.5px; margin: 14px 0; }
+  /* collapsible group headers in Batch Detail */
+  tr.grp td { background: var(--secbg); font-weight: 600; cursor: pointer; border-top: 2px solid var(--line); }
+  tr.grp:hover td { background: #e9edf2; }
+  tr.grp .tri { display: inline-block; width: 15px; color: var(--muted); }
+  /* manually excluded lines: visible but clearly out of the money */
+  tr.excluded td { opacity: .45; }
+  tr.excluded td .exmark { opacity: 1; }
   .empty, .err { padding: 40px; text-align: center; color: var(--muted); }
   .err { color: #b42318; }
   .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px; }
@@ -162,6 +169,13 @@
       <button id="vSummary" class="on" type="button">Summary</button>
       <button id="vDetail" type="button">Batch Detail</button>
     </div>
+    <label class="fld" id="grpWrap" style="display:none;">Group
+      <select id="groupBy">
+        <option value="">None</option>
+        <option value="protein">Protein</option>
+        <option value="customer">Customer</option>
+        <option value="room">Room</option>
+      </select></label>
     <span class="grow"></span>
     <button id="refresh" class="primary" type="button">Refresh</button>
     <a id="csv" class="btn" href="/api/production/export.csv">Download CSV</a>
@@ -195,6 +209,8 @@ function esc(s) {
 
 let REPORT = null;
 let view = 'summary';
+let groupBy = localStorage.getItem('cmp_groupby') || '';
+const EXPANDED = new Set(); // expanded group keys (`${groupBy}:${name}`) — groups start collapsed
 let CUSTOMERS = []; // canonical customer list for the transfer dropdown
 let QUESTIONS_BY_LINE = {}; // `${batch}|${item}` -> [question] for the loaded day
 let labor = parseFloat(localStorage.getItem('cmp_labor') || '0') || 0;
@@ -270,11 +286,24 @@ function qMark(r) {
     title="${open ? open + ' open question(s) on this line' : 'This line was questioned — answered'}">${open ? '❓' : '💬'}</a>`;
 }
 
-function renderDetail() {
-  const head = `<th></th><th>Customer</th><th>Item / description</th><th class="num">Rm</th><th class="num">Type</th>
-    <th class="num">CS</th><th class="num">Lbs</th><th class="num">$/lb</th><th class="num">Revenue</th>
-    <th class="num">Source</th><th class="num">Raw material</th><th class="num">GP $</th><th class="num">GP %</th><th class="num">Yield</th>`;
-  const rows = REPORT.rows.map((r, i) => `<tr>
+// Which protein a line is, read from the description/notes text — display-only
+// (grouping in Batch Detail), so a miss lands in "Other" and costs nothing.
+// Beef is checked first (dominant business): "BEEF SAUSAGE" is beef, a bare
+// "SAUSAGE" falls through to pork.
+function proteinOf(r) {
+  const t = ((r.description || '') + ' ' + (r.notes || '')).toUpperCase();
+  if (/BEEF|\bBF\b|ANGUS|WAGYU|BRISKET|CHUCK|RIB ?EYE|TRI ?TIP|SIRLOIN|TENDERLOIN|\bSTRIP\b|FLANK|SKIRT|OXTAIL|SHORT ?RIB|TALLOW|PICANHA|TOMAHAWK/.test(t)) return 'Beef';
+  if (/PORK|\bPK\b|BACON|\bHAM\b|SAUSAGE|CHORIZO|CARNITAS|BELLY/.test(t)) return 'Pork';
+  if (/CHICKEN|\bCHIX\b|\bCHKN\b|\bCKN\b|DRUMETTE|\bWING\b/.test(t)) return 'Chicken';
+  if (/TURKEY|\bTKY\b|\bTRKY\b/.test(t)) return 'Turkey';
+  if (/LAMB/.test(t)) return 'Lamb';
+  return 'Other';
+}
+
+// One Batch Detail line. i is the row's index in REPORT.rows — the explainer and
+// every commit handler key off it, so grouping must pass the ORIGINAL index.
+function lineRow(r, i) {
+  return `<tr${r.excluded ? ' class="excluded" title="Manually excluded from margin — click 🔎 to restore"' : ''}>
     <td><button class="explain" data-i="${i}" title="How we got these numbers">🔎</button>${qMark(r)}</td>
     <td><select class="custEdit ${r.customerOverride ? 'overridden' : ''}" data-code="${esc(r.item)}" title="Transfer this item to a customer">
       <option value="" ${!r.customerOverride ? 'selected' : ''}>Auto (${esc(r.autoCustomer || r.customer)})</option>
@@ -294,18 +323,54 @@ function renderDetail() {
     <td class="num">${r.internal ? '—' : fmt$(r.revenue)}</td>
     <td class="num ${r.priceBasis === 'contract' ? 'src-contract' : r.priceBasis === 'manual' ? 'src-manual' : r.priceBasis === 'sale' ? 'src-sale' : r.priceBasis === 'none' ? 'src-none' : 'dim'}">${r.missingRate ? '⚠ no rate' : esc(r.source || '')}</td>
     <td class="num">${r.isToll ? '—' : fmt$(r.inputCost) + (r.costForced ? ' <span class="src-manual" title="Raw-material cost manually overridden — click 🔎 for the Swarmbox number">✎</span>' : '')}</td>
-    <td class="num ${r.internal ? 'dim' : sign(r.gp)}">${r.internal ? '<span title="Internal intermediate — input cost only, not counted in margin">internal</span>' : fmt$(r.gp)}</td>
-    <td class="num ${r.internal ? 'dim' : sign(r.gp)}">${r.internal ? '—' : gpPct(r.gp, r.revenue)}</td>
+    <td class="num ${r.internal || r.excluded ? 'dim' : sign(r.gp)}">${r.excluded ? '<span class="exmark" title="Manually excluded from margin — restore via 🔎">excluded</span>' : r.internal ? '<span title="Internal intermediate — input cost only, not counted in margin">internal</span>' : fmt$(r.gp)}</td>
+    <td class="num ${r.internal || r.excluded ? 'dim' : sign(r.gp)}">${r.internal || r.excluded ? '—' : gpPct(r.gp, r.revenue)}</td>
     <td class="num dim">${r.yieldPct != null ? r.yieldPct.toFixed(1) + '%' : '—'}</td>
-  </tr>`).join('');
+  </tr>`;
+}
+
+function renderDetail() {
+  const head = `<th></th><th>Customer</th><th>Item / description</th><th class="num">Rm</th><th class="num">Type</th>
+    <th class="num">CS</th><th class="num">Lbs</th><th class="num">$/lb</th><th class="num">Revenue</th>
+    <th class="num">Source</th><th class="num">Raw material</th><th class="num">GP $</th><th class="num">GP %</th><th class="num">Yield</th>`;
+  let body;
+  if (!groupBy) {
+    body = REPORT.rows.map((r, i) => lineRow(r, i)).join('');
+  } else {
+    // Group the lines (keeping original indices), roll each group up the same way
+    // the totals do (internal + excluded lines don't count), and render collapsible
+    // header rows. Groups keep their expand/collapse state across reloads.
+    const keyOf = (r) => groupBy === 'protein' ? proteinOf(r) : groupBy === 'customer' ? (r.customer || '—') : (r.room || '—');
+    const groups = new Map(); // key -> { lines: [{r, i}], cs, lbs, rev, ic, gp }
+    REPORT.rows.forEach((r, i) => {
+      const k = keyOf(r);
+      let g = groups.get(k);
+      if (!g) { g = { key: k, lines: [], cs: 0, lbs: 0, rev: 0, ic: 0, gp: 0 }; groups.set(k, g); }
+      g.lines.push({ r, i });
+      if (!r.internal && !r.excluded) { g.cs += r.cs; g.lbs += r.lbs; g.rev += r.revenue; g.ic += r.inputCost; g.gp += r.gp; }
+    });
+    body = [...groups.values()].sort((a, b) => b.rev - a.rev).map((g) => {
+      const gk = `${groupBy}:${g.key}`;
+      const open = EXPANDED.has(gk);
+      const header = `<tr class="grp" data-g="${esc(gk)}" title="Click to ${open ? 'collapse' : 'expand'}">
+        <td colspan="5"><span class="tri">${open ? '▾' : '▸'}</span>${esc(g.key)} <span class="dim">· ${g.lines.length} line${g.lines.length > 1 ? 's' : ''}</span></td>
+        <td class="num">${fmtN(g.cs)}</td><td class="num">${fmtN(g.lbs)}</td><td></td>
+        <td class="num">${fmt$(g.rev)}</td><td></td>
+        <td class="num">${fmt$(g.ic)}</td>
+        <td class="num ${sign(g.gp)}">${fmt$(g.gp)}</td><td class="num ${sign(g.gp)}">${gpPct(g.gp, g.rev)}</td><td></td>
+      </tr>`;
+      return header + (open ? g.lines.map(({ r, i }) => lineRow(r, i)).join('') : '');
+    }).join('');
+  }
   $('content').innerHTML = `<div class="card"><h2>Batch detail — ${REPORT.rows.length} lines · ${fmtN(REPORT.totals.lbs)} lbs · ${fmtN(REPORT.totals.cs)} cases</h2>
-    <div class="scroll"><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    <div class="scroll"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div></div>`;
 }
 
 function render() {
   if (!REPORT) return;
   $('vSummary').classList.toggle('on', view === 'summary');
   $('vDetail').classList.toggle('on', view === 'detail');
+  $('grpWrap').style.display = view === 'detail' ? '' : 'none';
   const m = REPORT.missing || [];
   if (REPORT.unavailable) {
     $('warn').style.display = '';
@@ -322,7 +387,8 @@ function render() {
     + ` &nbsp;|&nbsp; Own revenue — ${op.sale} from actual sales · ${op.manual || 0} manual · ${op.standard} from production value${op.none ? ` · ${op.none} no price` : ''}`
     + (REPORT.internalCount ? ` &nbsp;|&nbsp; ${REPORT.internalCount} internal intermediate${REPORT.internalCount > 1 ? 's' : ''} (input cost only, excluded from margin)` : '')
     + (REPORT.recostCount ? ` &nbsp;|&nbsp; ${REPORT.recostCount} batch${REPORT.recostCount > 1 ? 'es' : ''} re-costed (chained WIP drawn at a blended average — charged the producing batch's actual cost instead)` : '')
-    + (REPORT.costForcedCount ? ` &nbsp;|&nbsp; ${REPORT.costForcedCount} line${REPORT.costForcedCount > 1 ? 's' : ''} with a manual raw-material cost override` : '');
+    + (REPORT.costForcedCount ? ` &nbsp;|&nbsp; ${REPORT.costForcedCount} line${REPORT.costForcedCount > 1 ? 's' : ''} with a manual raw-material cost override` : '')
+    + (REPORT.excludedCount ? ` &nbsp;|&nbsp; ${REPORT.excludedCount} line${REPORT.excludedCount > 1 ? 's' : ''} excluded manually (visible in Batch Detail, out of every total)` : '');
   renderRibbon();
   if (view === 'summary') renderSummary(); else renderDetail();
 }
@@ -365,6 +431,12 @@ $('date').onchange = (e) => load(e.target.value, false);
 $('vSummary').onclick = () => { view = 'summary'; render(); };
 $('vDetail').onclick = () => { view = 'detail'; render(); };
 $('refresh').onclick = () => load($('date').value, true);
+$('groupBy').value = groupBy;
+$('groupBy').onchange = (e) => {
+  groupBy = e.target.value;
+  localStorage.setItem('cmp_groupby', groupBy);
+  if (view === 'detail' && REPORT) renderDetail();
+};
 
 // Inline manual toll rates: commit on Enter or blur. A value sets the rate for
 // that item; clearing it removes the manual rate. Then reload the day.
@@ -696,6 +768,64 @@ function explainMath(r) {
     <div class="math"><b>gross profit = revenue − raw material = ${fmt$(a.gp)}</b></div></section>`;
 }
 
+// Exclude-from-margin: the reversible "delete". The line keeps computing and
+// displaying everything; the rollups just skip it. Internal lines are already out
+// of the margin automatically, so they don't get the control.
+function explainExclude(r) {
+  if (r.internal) return '';
+  if (r.excluded) {
+    return `<section><h3>Excluded from margin</h3>
+      <div class="note">This line is <b>manually excluded</b> ${r.excludedScope === 'batch' ? '(this batch only)' : '(every batch of this item)'}
+        — still visible in Batch Detail, but out of every total, rollup, and dashboard number.${r.excludedNote ? ' Reason: <b>' + esc(r.excludedNote) + '</b>.' : ''}</div>
+      <div class="ctl"><button type="button" class="exRestore" data-code="${esc(r.item)}"
+        data-cur="${r.excludedScope === 'batch' ? esc(String(r.batch)) : ''}">Restore this line</button></div></section>`;
+  }
+  return `<section><h3>Exclude from margin</h3>
+    <div class="note">Takes this line out of every total, rollup, and dashboard number. <b>Not a delete</b> — it stays
+      visible (dimmed) in Batch Detail with a count in the day header, and one click restores it. For a line that
+      genuinely shouldn't count; if the number is merely wrong, correct it above instead.</div>
+    <div class="ctl" style="flex-direction:column;align-items:stretch;gap:8px;">
+      <input id="exNote" placeholder="Why? (shows on the line — recommended)"
+        style="padding:8px;border:1px solid #d8dee7;border-radius:8px;font:inherit;" />
+      <label><input id="exScope" type="checkbox" checked /> this batch only</label>
+      <button type="button" class="exApply" data-code="${esc(r.item)}" data-batch="${esc(String(r.batch))}">Exclude this line</button>
+    </div></section>`;
+}
+
+async function commitExclude(btn) {
+  btn.disabled = true;
+  try {
+    const scope = $('exScope');
+    await fetch('/api/production/line-excludes', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code: btn.dataset.code,
+        batch: scope && !scope.checked ? null : btn.dataset.batch,
+        note: ($('exNote') && $('exNote').value.trim()) || '',
+      }),
+    });
+    await load($('date').value, false);
+    closeExplain();
+  } catch (err) {
+    alert('Could not exclude line: ' + err.message);
+    btn.disabled = false;
+  }
+}
+
+async function commitRestore(btn) {
+  btn.disabled = true;
+  try {
+    const cur = btn.dataset.cur; // '' = the item-wide record
+    await fetch('/api/production/line-excludes/' + encodeURIComponent(btn.dataset.code)
+      + (cur ? '?batch=' + encodeURIComponent(cur) : ''), { method: 'DELETE' });
+    await load($('date').value, false);
+    closeExplain();
+  } catch (err) {
+    alert('Could not restore line: ' + err.message);
+    btn.disabled = false;
+  }
+}
+
 // "This number still looks wrong to me." The explainer can show how a number was
 // derived, but it can't know when the derivation is wrong, or when the reader knows
 // something we don't ("that batch was re-weighed"). This is that channel.
@@ -798,7 +928,7 @@ function openExplain(i) {
   $('xpTitle').textContent = r.description || r.item;
   $('xpSub').textContent = `${r.item} · batch ${r.batch} · room ${r.room || '—'}`;
   $('xpBody').innerHTML = explainCustomer(r) + explainType(r) + explainRate(r)
-    + explainRawMaterial(r) + explainMath(r) + explainAsk(r, i);
+    + explainRawMaterial(r) + explainMath(r) + explainExclude(r) + explainAsk(r, i);
   $('explainModal').style.display = 'flex';
 }
 function closeExplain() { $('explainModal').style.display = 'none'; }
@@ -813,11 +943,19 @@ $('xpBody').addEventListener('change', async (e) => {
 });
 $('xpBody').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.closest('input.rateEdit, input.costEdit')) e.target.blur(); });
 $('xpBody').addEventListener('click', (e) => {
+  const ex = e.target.closest('button.exApply'); if (ex) { commitExclude(ex); return; }
+  const rs = e.target.closest('button.exRestore'); if (rs) { commitRestore(rs); return; }
   const ask = e.target.closest('#askSend');
   if (ask) submitQuestion(Number(ask.dataset.i));
 });
 $('content').addEventListener('click', (e) => {
-  const b = e.target.closest('button.explain'); if (b) openExplain(Number(b.dataset.i));
+  const b = e.target.closest('button.explain'); if (b) { openExplain(Number(b.dataset.i)); return; }
+  const g = e.target.closest('tr.grp');
+  if (g) {
+    const k = g.dataset.g;
+    if (EXPANDED.has(k)) EXPANDED.delete(k); else EXPANDED.add(k);
+    renderDetail();
+  }
 });
 $('xpClose').onclick = closeExplain;
 $('explainModal').onclick = (e) => { if (e.target === $('explainModal')) closeExplain(); };
