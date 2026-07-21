@@ -94,9 +94,19 @@ function classifyProcess(process) {
   return 'neutral';
 }
 
+// TODAY, in LOCAL calendar terms. Used only to tell "the shift is still running"
+// from "the day is closed". toISOString() would roll over to tomorrow every
+// afternoon (5pm Pacific = next day UTC) and make a finished day look open.
+function todayYmd() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 // ── Rule engine (per batch) ──────────────────────────────────────────────────
 // b: a batch_summary row. opts.mixedUom: batch mixes non-LB units (yield not
-// comparable). Pure — no I/O. Returns { flags, ...computed }.
+// comparable). opts.dayInProgress: this batch's day is still being worked, so
+// "nothing recorded yet" is normal and not flagged. Pure — no I/O.
+// Returns { flags, ...computed }.
 function batchFlags(b, opts = {}) {
   const input = num(b.input_quantity);
   const wip = num(b.wip_quantity);
@@ -166,11 +176,19 @@ function batchFlags(b, opts = {}) {
   }
 
   // Rule E — no usable quantities at all.
-  if (input === 0 && output === 0 && wip === 0) {
+  //
+  // NOT flagged while the day is still running. An open batch with nothing on it
+  // yet is just work in progress: on 2026-07-21 mid-shift, 60 of 116 batches were
+  // empty, against 0–2 per day on every completed day that week. Flagging those
+  // buried the handful that matter under noise that resolves itself by morning.
+  // On a CLOSED day it's real but harmless — a batch opened and never used (a job
+  // that didn't run, or a duplicate of the batch that did). It carries no pounds
+  // and no cost, so it cannot move margin; hence "info".
+  if (input === 0 && output === 0 && wip === 0 && !opts.dayInProgress) {
     flags.push({
       rule: 'empty-batch',
       severity: 'info',
-      message: `No input, output, or WIP quantity recorded — the batch looks empty or incomplete.`,
+      message: `Opened but never used — no input, output, or WIP was ever recorded on it. No effect on margin (it carries no pounds and no cost); usually a job that didn't run, or a duplicate of the batch that did.`,
     });
   }
 
@@ -230,11 +248,17 @@ async function getDayChecks({ date, force = false } = {}) {
   const flagged = [];
   let scanned = 0;
   const counts = { high: 0, medium: 0, low: 0, info: 0, batches: 0 };
+  // Is this day still being worked? If so, empty batches are open work, not
+  // errors — we don't flag them, but we DO report how many, so "not flagged"
+  // never reads as "not there".
+  const dayInProgress = day === todayYmd();
+  let openBatches = 0;
 
   for (const b of summaries) {
     scanned++;
     const isMixed = mixed.has(b.batch);
-    const { flags, input, wip, output, yieldPct, gain, procClass } = batchFlags(b, { mixedUom: isMixed });
+    if (dayInProgress && !num(b.input_quantity) && !num(b.output_quantity) && !num(b.wip_quantity)) openBatches++;
+    const { flags, input, wip, output, yieldPct, gain, procClass } = batchFlags(b, { mixedUom: isMixed, dayInProgress });
 
     // Rule F — same item appears on BOTH the input and output side of the batch.
     const ins = inByBatch.get(b.batch) || [];
@@ -283,9 +307,9 @@ async function getDayChecks({ date, force = false } = {}) {
 
   flagged.sort((a, b) => SEVERITY_RANK[b.topSeverity] - SEVERITY_RANK[a.topSeverity] || b.gain - a.gain);
 
-  const result = { date: day, scanned, counts, flagged, unavailable: !sumRes.ok, builtAt: Date.now() };
+  const result = { date: day, scanned, counts, flagged, dayInProgress, openBatches, unavailable: !sumRes.ok, builtAt: Date.now() };
   dayCache.set(day, { result, builtAt: Date.now() });
-  console.log(`[Checks] ${day}: scanned ${scanned} batches, ${counts.batches} flagged (${counts.high} high, ${counts.medium} med, ${counts.low} low, ${counts.info} info; ${mixed.size} mixed-UOM)`);
+  console.log(`[Checks] ${day}: scanned ${scanned} batches, ${counts.batches} flagged (${counts.high} high, ${counts.medium} med, ${counts.low} low, ${counts.info} info; ${mixed.size} mixed-UOM${dayInProgress ? `; day still running — ${openBatches} open batch(es) not flagged` : ''})`);
   return result;
 }
 
@@ -319,7 +343,8 @@ async function getRangeChecks({ days = RANGE_DAYS, force = false } = {}) {
     const d = String(b.production_date || '').slice(0, 10);
     const row = byDay.get(d);
     if (!row) continue;
-    const { flags } = batchFlags(b, { mixedUom: mixed.has(b.batch) }); // no same-item in range
+    // no same-item check in range; today's open batches aren't errors (see Rule E)
+    const { flags } = batchFlags(b, { mixedUom: mixed.has(b.batch), dayInProgress: d === todayYmd() });
     if (!flags.length) continue;
     const sev = topSeverity(flags);
     row[sev]++;

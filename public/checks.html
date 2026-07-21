@@ -156,6 +156,7 @@
 
   <div id="warn" class="warn" style="display:none;"></div>
   <div id="ribbon" class="ribbon"></div>
+  <div id="openNote" class="warn" style="display:none;"></div>
   <div id="content"></div>
   <div id="state" class="empty"><span class="spin"></span> Loading…</div>
 </div>
@@ -261,6 +262,19 @@ function renderDay() {
     <div class="metric"><div class="mL">Medium</div><div class="mV ${c.medium ? 'med' : 'ok'}">${fmtN(c.medium)}</div><div class="mS">suspicious</div></div>
     <div class="metric"><div class="mL">Low</div><div class="mV">${fmtN(c.low)}</div><div class="mS">worth confirming</div></div>
     <div class="metric"><div class="mL">Info</div><div class="mV">${fmtN(c.info)}</div><div class="mS">mixed-UOM / empty</div></div>`;
+
+  // A day still being worked has batches open with nothing scanned on them yet.
+  // Those aren't errors, so they aren't flagged — but say so out loud, or "not
+  // flagged" reads as "not there".
+  const openNote = $('openNote');
+  if (DAY.dayInProgress) {
+    openNote.style.display = '';
+    openNote.innerHTML = DAY.openBatches
+      ? `⏳ <b>${DAY.date} is still being worked.</b> ${fmtN(DAY.openBatches)} batch${DAY.openBatches > 1 ? 'es are' : ' is'} open with nothing recorded yet — normal mid-shift, so not flagged as empty. Check again once the day is closed.`
+      : `⏳ <b>${DAY.date} is still being worked</b> — numbers can still move.`;
+  } else {
+    openNote.style.display = 'none';
+  }
 
   if (DAY.unavailable) {
     $('content').innerHTML = '';
