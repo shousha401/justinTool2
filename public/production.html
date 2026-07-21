@@ -97,6 +97,10 @@
   tr.grp td { background: var(--secbg); font-weight: 600; cursor: pointer; border-top: 2px solid var(--line); }
   tr.grp:hover td { background: #e9edf2; }
   tr.grp .tri { display: inline-block; width: 15px; color: var(--muted); }
+  /* expandable protein sub-rows under each customer in the Summary */
+  tr.custrow { cursor: pointer; }
+  tr.custrow .tri { display: inline-block; width: 15px; color: var(--muted); }
+  tr.sub td { background: #fafbfc; font-size: 11.5px; border-bottom: 1px dashed var(--line); }
   /* manually excluded lines: visible but clearly out of the money */
   tr.excluded td { opacity: .45; }
   tr.excluded td .exmark { opacity: 1; }
@@ -174,6 +178,7 @@
         <option value="">None</option>
         <option value="protein">Protein</option>
         <option value="customer">Customer</option>
+        <option value="custprot">Customer › Protein</option>
         <option value="room">Room</option>
       </select></label>
     <span class="grow"></span>
@@ -211,6 +216,7 @@ let REPORT = null;
 let view = 'summary';
 let groupBy = localStorage.getItem('cmp_groupby') || '';
 const EXPANDED = new Set(); // expanded group keys (`${groupBy}:${name}`) — groups start collapsed
+const CUSTEXP = new Set();  // customers expanded to their protein split in the Summary
 let CUSTOMERS = []; // canonical customer list for the transfer dropdown
 let QUESTIONS_BY_LINE = {}; // `${batch}|${item}` -> [question] for the loaded day
 let labor = parseFloat(localStorage.getItem('cmp_labor') || '0') || 0;
@@ -263,13 +269,40 @@ function renderSummary() {
     <td class="num ${sign(t.gp)}">${fmt$(t.gp)}</td><td class="num ${sign(t.gp)}">${gpPct(t.gp, t.rev)}</td></tr>`;
   const roomHead = `<th>Room</th><th class="num">Cases</th><th class="num">Lbs</th><th class="num">Revenue</th><th class="num">Raw material</th><th class="num">GP $</th><th class="num">GP %</th>`;
 
-  const custRows = REPORT.customers.map(c => `<tr>
-    <td><b>${esc(c.customer)}</b></td>
-    <td class="num"><span class="badge ${c.isToll ? 'toll' : 'own'}">${c.isToll ? 'Toll' : 'Own'}</span></td>
-    <td class="num">${fmtN(c.cs)}</td><td class="num">${fmtN(c.lbs)}</td>
-    <td class="num">${fmt$(c.rev)}</td><td class="num">${c.isToll ? '—' : fmt$(c.ic)}</td>
-    <td class="num ${sign(c.gp)}">${fmt$(c.gp)}</td><td class="num ${sign(c.gp)}">${gpPct(c.gp, c.rev)}</td>
-  </tr>`).join('');
+  // Per-customer protein split (client-side, from the detail rows — same
+  // exclusions as the backend rollup: internal + manually excluded lines don't
+  // count). This is Justin's "for JD Food I want to see beef / chicken / …":
+  // JD's own cutting batches carry the cut in the batch notes (RIBEYE,
+  // STRIPLOIN, TENDERLOIN, CHICKEN…), which is exactly what proteinOf reads.
+  const protByCust = new Map(); // customer -> Map(protein -> agg)
+  for (const r of REPORT.rows) {
+    if (r.internal || r.excluded) continue;
+    let cm = protByCust.get(r.customer);
+    if (!cm) { cm = new Map(); protByCust.set(r.customer, cm); }
+    const p = proteinOf(r);
+    let a = cm.get(p);
+    if (!a) { a = { cs: 0, lbs: 0, rev: 0, ic: 0, gp: 0 }; cm.set(p, a); }
+    a.cs += r.cs; a.lbs += r.lbs; a.rev += r.revenue; a.ic += r.inputCost; a.gp += r.gp;
+  }
+  const custRows = REPORT.customers.map(c => {
+    const open = CUSTEXP.has(c.customer);
+    const subs = protByCust.get(c.customer);
+    const subRows = open && subs
+      ? [...subs.entries()].sort((a, b) => b[1].rev - a[1].rev).map(([p, a]) => `<tr class="sub">
+          <td style="padding-left:26px;" class="dim">${esc(p)}</td><td></td>
+          <td class="num">${fmtN(a.cs)}</td><td class="num">${fmtN(a.lbs)}</td>
+          <td class="num">${fmt$(a.rev)}</td><td class="num">${c.isToll ? '—' : fmt$(a.ic)}</td>
+          <td class="num ${sign(a.gp)}">${fmt$(a.gp)}</td><td class="num ${sign(a.gp)}">${gpPct(a.gp, a.rev)}</td>
+        </tr>`).join('')
+      : '';
+    return `<tr class="custrow" data-cust="${esc(c.customer)}" title="Click for the protein split">
+      <td><span class="tri">${open ? '▾' : '▸'}</span><b>${esc(c.customer)}</b></td>
+      <td class="num"><span class="badge ${c.isToll ? 'toll' : 'own'}">${c.isToll ? 'Toll' : 'Own'}</span></td>
+      <td class="num">${fmtN(c.cs)}</td><td class="num">${fmtN(c.lbs)}</td>
+      <td class="num">${fmt$(c.rev)}</td><td class="num">${c.isToll ? '—' : fmt$(c.ic)}</td>
+      <td class="num ${sign(c.gp)}">${fmt$(c.gp)}</td><td class="num ${sign(c.gp)}">${gpPct(c.gp, c.rev)}</td>
+    </tr>${subRows}`;
+  }).join('');
   const custHead = `<th>Customer</th><th class="num">Type</th><th class="num">Cases</th><th class="num">Lbs</th><th class="num">Revenue</th><th class="num">Raw material</th><th class="num">GP $</th><th class="num">GP %</th>`;
 
   $('content').innerHTML =
@@ -292,7 +325,7 @@ function qMark(r) {
 // "SAUSAGE" falls through to pork.
 function proteinOf(r) {
   const t = ((r.description || '') + ' ' + (r.notes || '')).toUpperCase();
-  if (/BEEF|\bBF\b|ANGUS|WAGYU|BRISKET|CHUCK|RIB ?EYE|TRI ?TIP|SIRLOIN|TENDERLOIN|\bSTRIP\b|FLANK|SKIRT|OXTAIL|SHORT ?RIB|TALLOW|PICANHA|TOMAHAWK/.test(t)) return 'Beef';
+  if (/BEEF|\bBF\b|ANGUS|WAGYU|BRISKET|CHUCK|RIB ?EYE|RIBEYE|TRI[ -]*TIP|SIRLOIN|STRIPLOIN|TENDERLOIN|\bSTRIP\b|TOP ?BLADE|FLANK|SKIRT|OXTAIL|SHORT ?RIB|TALLOW|PICANHA|TOMAHAWK/.test(t)) return 'Beef';
   if (/PORK|\bPK\b|BACON|\bHAM\b|SAUSAGE|CHORIZO|CARNITAS|BELLY/.test(t)) return 'Pork';
   if (/CHICKEN|\bCHIX\b|\bCHKN\b|\bCKN\b|DRUMETTE|\bWING\b/.test(t)) return 'Chicken';
   if (/TURKEY|\bTKY\b|\bTRKY\b/.test(t)) return 'Turkey';
@@ -340,7 +373,10 @@ function renderDetail() {
     // Group the lines (keeping original indices), roll each group up the same way
     // the totals do (internal + excluded lines don't count), and render collapsible
     // header rows. Groups keep their expand/collapse state across reloads.
-    const keyOf = (r) => groupBy === 'protein' ? proteinOf(r) : groupBy === 'customer' ? (r.customer || '—') : (r.room || '—');
+    const keyOf = (r) => groupBy === 'protein' ? proteinOf(r)
+      : groupBy === 'customer' ? (r.customer || '—')
+      : groupBy === 'custprot' ? `${r.customer || '—'} · ${proteinOf(r)}`
+      : (r.room || '—');
     const groups = new Map(); // key -> { lines: [{r, i}], cs, lbs, rev, ic, gp }
     REPORT.rows.forEach((r, i) => {
       const k = keyOf(r);
@@ -955,6 +991,13 @@ $('content').addEventListener('click', (e) => {
     const k = g.dataset.g;
     if (EXPANDED.has(k)) EXPANDED.delete(k); else EXPANDED.add(k);
     renderDetail();
+    return;
+  }
+  const cr = e.target.closest('tr.custrow');
+  if (cr) {
+    const c = cr.dataset.cust;
+    if (CUSTEXP.has(c)) CUSTEXP.delete(c); else CUSTEXP.add(c);
+    renderSummary();
   }
 });
 $('xpClose').onclick = closeExplain;
