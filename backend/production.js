@@ -32,9 +32,10 @@ const dbStore = require('./db');
 
 const TTL_MS = Number(process.env.PRODUCTION_CACHE_TTL_MS) || 5 * 60 * 1000; // 5 min
 const RECENT_WINDOW_DAYS = 45;      // how far back the date picker / period comparisons look
-const SUMMARY_VERSION = 9;          // bump when the stored summary shape OR the numbers behind it change (forces re-backfill)
+const SUMMARY_VERSION = 10;         // bump when the stored summary shape OR the numbers behind it change (forces re-backfill)
                                     // v8: chained-batch netting (cutting→packaging same-item double-count)
                                     // v9: chained-draw re-costing (WIP blended-average dilution)
+                                    // v10: repack/boxing batches are internal (same item in and out — no value created)
 const TOLL_IC_PER_LB = 0.10;        // batch avg input cost below this ⇒ customer-supplied meat ⇒ toll
 const TOLL_LOOKBACK_DAYS = Number(process.env.TOLL_LOOKBACK_DAYS) || 90; // freshness window for the live toll price
 
@@ -275,7 +276,7 @@ function rawMaterialTrace(r, inputCost, lbs, batchInputs, batchOutputs, costOv, 
   return trace;
 }
 
-function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchInputs, batchOutputs, outputsByItem) {
+function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchInputs, batchOutputs, outputsByItem, repackBatches) {
   const counts = { live: 0, manual: 0, contract: 0, sale: 0, missing: 0 };
   const ownCounts = { sale: 0, manual: 0, standard: 0, none: 0 };
   let forcedCount = 0, flaggedCount = 0, internalCount = 0, costForcedCount = 0, excludedCount = 0;
@@ -319,7 +320,10 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
       }
     }
     const chainedUpstream = lbs > 0 && chainedLbs >= lbs * 0.6;
-    const autoInternal = (!!consumedRec && !(sellVal > 0)) || chainedUpstream;
+    // Repack/boxing pass-through (same item in and out, see getProductionReport):
+    // no value was created, so the line is input-cost-only like any intermediate.
+    const isRepack = !!(repackBatches && repackBatches.get(String(r.batch)) === r.item);
+    const autoInternal = (!!consumedRec && !(sellVal > 0)) || chainedUpstream || isRepack;
     const isInternal = INTERNAL_CODES.has(r.item) || autoInternal;
     if (forced && forced.flagged) flaggedCount++;
 
@@ -339,9 +343,11 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
       rate = null;
       source = chainedUpstream
         ? 'chained into another batch · counted once on the final output'
-        : autoInternal
-          ? 'internal intermediate · input cost only (reused downstream)'
-          : 'internal trim · input cost only';
+        : isRepack
+          ? 'repack / boxing · same item in and out — no value created'
+          : autoInternal
+            ? 'internal intermediate · input cost only (reused downstream)'
+            : 'internal trim · input cost only';
       priceBasis = 'internal';
     } else if (forced && forced.rate > 0) {
       // A typed correction WINS over everything Swarmbox pulls (live/own/sale/
@@ -467,7 +473,7 @@ function buildReport(date, base, itemLbs, yieldByBatch, sales, consumed, batchIn
         sale: anySale,
         productionValue: sellVal > 0 ? sellVal : null,
         internal: internal
-          ? { auto: autoInternal, chained: chainedUpstream, chainedLbs: chainedUpstream ? chainedLbs : null, consumedLbs: consumedRec ? consumedRec.lbs : null }
+          ? { auto: autoInternal, chained: chainedUpstream, chainedLbs: chainedUpstream ? chainedLbs : null, repack: isRepack, consumedLbs: consumedRec ? consumedRec.lbs : null }
           : null,
       },
       amounts: { cs, lbs, revenue, inputCost, inputCostRaw, gp, sellVal },
@@ -801,6 +807,44 @@ async function getProductionReport({ date, force = false, background = false } =
     outputsByItem.set(r.item, s);
   }
 
+  // Pure repack / boxing batches: the batch's input is (≈)entirely the SAME item it
+  // outputs, pounds in ≈ pounds out — one case broken into two, or bulk boxed for
+  // later. Nothing was made or sold, but Swarmbox still stamps the output with a
+  // sell value, so the auto-internal rule (which needs NO sale value) can't see it
+  // and the line shows phantom GP (Justin's 052310 break-box: +$70 for splitting a
+  // bacon case; the 661953 boxing run: a fake −$8.4k). Same-batch same-item is
+  // deliberately NOT handled by the chained netting (partial-case rescans), so this
+  // gets its own, stricter signature — and the sibling guard is what keeps it from
+  // eating real money: the tail of a cutting→packaging chain also re-outputs the
+  // same item at ≈the same pounds, but there a SIBLING batch produced the item that
+  // day (and that tail line is where the chain's revenue is counted). A true
+  // repack's input comes from inventory: nobody else made the item today.
+  const repackBatches = new Map(); // batch(String) -> the passed-through item
+  {
+    const outItemLbs = new Map(); // batch -> Map(item -> lbs), every output
+    for (const r of allOutputs) {
+      const m = outItemLbs.get(r.batch) || new Map();
+      m.set(r.item, (m.get(r.item) || 0) + num(r.cost_quantity));
+      outItemLbs.set(r.batch, m);
+    }
+    for (const [batch, bin] of batchInputs) {
+      if (!(bin.lbs > 0)) continue;
+      const inByItem = new Map();
+      for (const c of bin.components) inByItem.set(c.item, (inByItem.get(c.item) || 0) + c.lbs);
+      const [topItem, topLbs] = [...inByItem.entries()].sort((a, b) => b[1] - a[1])[0];
+      if (topLbs < bin.lbs * 0.95) continue;                     // input must be ~one item
+      const outs = outItemLbs.get(batch);
+      if (!outs) continue;
+      let outTotal = 0; for (const l of outs.values()) outTotal += l;
+      const sameOut = outs.get(topItem) || 0;
+      if (!(sameOut > 0) || sameOut < outTotal * 0.95) continue; // output must be ~that same item
+      if (Math.abs(sameOut - topLbs) > topLbs * 0.05) continue;  // pounds in ≈ pounds out
+      const siblings = outputsByItem.get(topItem);
+      if (siblings && [...siblings].some((b) => b !== String(batch))) continue; // chain tail, not a repack
+      repackBatches.set(String(batch), topItem);
+    }
+  }
+
   const yieldByBatch = new Map();
   if (sumRes.ok) for (const s of sumRes.data) {
     if (s.batch != null) yieldByBatch.set(s.batch, s.yield_pct != null ? Number(s.yield_pct) : null);
@@ -841,7 +885,7 @@ async function getProductionReport({ date, force = false, background = false } =
     b.hasSale = hasSale;
   }
 
-  const report = buildReport(day, base, itemLbs, yieldByBatch, sales, consumed, batchInputs, batchOutputs, outputsByItem);
+  const report = buildReport(day, base, itemLbs, yieldByBatch, sales, consumed, batchInputs, batchOutputs, outputsByItem, repackBatches);
   report.recostCount = recostCount; // batches re-costed past a blended WIP average
 
   // A day is TRUSTWORTHY only if every input behind its money came back.
