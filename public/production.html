@@ -181,6 +181,8 @@
         <option value="custprot">Customer › Protein</option>
         <option value="room">Room</option>
       </select></label>
+    <label class="fld" id="custFilterWrap" style="display:none;">Customer
+      <select id="custFilter"><option value="">All</option></select></label>
     <span class="grow"></span>
     <button id="refresh" class="primary" type="button">Refresh</button>
     <a id="csv" class="btn" href="/api/production/export.csv">Download CSV</a>
@@ -217,6 +219,7 @@ let view = 'summary';
 let groupBy = localStorage.getItem('cmp_groupby') || '';
 const EXPANDED = new Set(); // expanded group keys (`${groupBy}:${name}`) — groups start collapsed
 const CUSTEXP = new Set();  // customers expanded to their protein split in the Summary
+let custFilter = localStorage.getItem('cmp_custfilter') || ''; // '' = all customers (Batch Detail only)
 let CUSTOMERS = []; // canonical customer list for the transfer dropdown
 let QUESTIONS_BY_LINE = {}; // `${batch}|${item}` -> [question] for the loaded day
 let labor = parseFloat(localStorage.getItem('cmp_labor') || '0') || 0;
@@ -366,9 +369,23 @@ function renderDetail() {
   const head = `<th></th><th>Customer</th><th>Item / description</th><th class="num">Rm</th><th class="num">Type</th>
     <th class="num">CS</th><th class="num">Lbs</th><th class="num">$/lb</th><th class="num">Revenue</th>
     <th class="num">Source</th><th class="num">Raw material</th><th class="num">GP $</th><th class="num">GP %</th><th class="num">Yield</th>`;
+  // Customer filter narrows THIS TABLE only — the ribbon above stays the whole
+  // day's money on purpose (a filtered view must not quietly rewrite what the
+  // day made). The card header carries the filtered rollup instead.
+  const pairs = [];
+  REPORT.rows.forEach((r, i) => { if (!custFilter || r.customer === custFilter) pairs.push({ r, i }); });
+  let heading;
+  if (custFilter) {
+    const t = { cs: 0, lbs: 0, rev: 0, gp: 0 };
+    for (const { r } of pairs) if (!r.internal && !r.excluded) { t.cs += r.cs; t.lbs += r.lbs; t.rev += r.revenue; t.gp += r.gp; }
+    heading = `${esc(custFilter)} only — ${pairs.length} lines · ${fmtN(t.lbs)} lbs · ${fmtN(t.cs)} cases · revenue ${fmt$(t.rev)} · GP ${fmt$(t.gp)}
+      <span class="dim">(ribbon above = whole day, all customers)</span>`;
+  } else {
+    heading = `Batch detail — ${REPORT.rows.length} lines · ${fmtN(REPORT.totals.lbs)} lbs · ${fmtN(REPORT.totals.cs)} cases`;
+  }
   let body;
   if (!groupBy) {
-    body = REPORT.rows.map((r, i) => lineRow(r, i)).join('');
+    body = pairs.map(({ r, i }) => lineRow(r, i)).join('');
   } else {
     // Group the lines (keeping original indices), roll each group up the same way
     // the totals do (internal + excluded lines don't count), and render collapsible
@@ -378,7 +395,7 @@ function renderDetail() {
       : groupBy === 'custprot' ? `${r.customer || '—'} · ${proteinOf(r)}`
       : (r.room || '—');
     const groups = new Map(); // key -> { lines: [{r, i}], cs, lbs, rev, ic, gp }
-    REPORT.rows.forEach((r, i) => {
+    pairs.forEach(({ r, i }) => {
       const k = keyOf(r);
       let g = groups.get(k);
       if (!g) { g = { key: k, lines: [], cs: 0, lbs: 0, rev: 0, ic: 0, gp: 0 }; groups.set(k, g); }
@@ -398,7 +415,7 @@ function renderDetail() {
       return header + (open ? g.lines.map(({ r, i }) => lineRow(r, i)).join('') : '');
     }).join('');
   }
-  $('content').innerHTML = `<div class="card"><h2>Batch detail — ${REPORT.rows.length} lines · ${fmtN(REPORT.totals.lbs)} lbs · ${fmtN(REPORT.totals.cs)} cases</h2>
+  $('content').innerHTML = `<div class="card"><h2>${heading}</h2>
     <div class="scroll"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div></div>`;
 }
 
@@ -407,6 +424,13 @@ function render() {
   $('vSummary').classList.toggle('on', view === 'summary');
   $('vDetail').classList.toggle('on', view === 'detail');
   $('grpWrap').style.display = view === 'detail' ? '' : 'none';
+  $('custFilterWrap').style.display = view === 'detail' ? '' : 'none';
+  // Rebuild the customer filter from the loaded day (keep the saved pick listed
+  // even if that customer didn't run today, so the choice survives day switches).
+  const custs = [...new Set(REPORT.rows.map((r) => r.customer || '—'))].sort();
+  if (custFilter && !custs.includes(custFilter)) custs.push(custFilter);
+  $('custFilter').innerHTML = `<option value="">All</option>`
+    + custs.map((c) => `<option value="${esc(c)}" ${custFilter === c ? 'selected' : ''}>${esc(c)}</option>`).join('');
   const m = REPORT.missing || [];
   if (REPORT.unavailable) {
     $('warn').style.display = '';
@@ -471,6 +495,11 @@ $('groupBy').value = groupBy;
 $('groupBy').onchange = (e) => {
   groupBy = e.target.value;
   localStorage.setItem('cmp_groupby', groupBy);
+  if (view === 'detail' && REPORT) renderDetail();
+};
+$('custFilter').onchange = (e) => {
+  custFilter = e.target.value;
+  localStorage.setItem('cmp_custfilter', custFilter);
   if (view === 'detail' && REPORT) renderDetail();
 };
 
